@@ -125,7 +125,8 @@ for key in all_records.keys():
   mv = mp * remain_stock
   margin = (mp - CPSCC) / mp
   record = [remain_stock, mp, round(mv, 0),
-            round(holding_cps, 3), str(CPSCC) + '(' + str(CPS) + ')',
+            round(holding_cps, 3),
+            str(CPSCC), #+ '(' + str(CPS) + ')',
             str(round(margin * 100, 2)) + '%',
             round(net_profit, 0), round(capital_cost, 0), key]
   stat_records.append(record)

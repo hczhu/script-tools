@@ -134,13 +134,15 @@ table_header = ['MV', 'NCF', 'CC', '#TxN', 'TNF', 'DTP', '#DT',
 summation = [0] * (len(table_header) - 1)
 summation.append('Summary')
 
-blacked_keys = {'131810' : 1, '' : 1}
+blacked_keys = {'131810' : 1, '511880' : 1,
+                '513100' : 1, '601988' : 1,
+                '511990' : 1, '511010' : 1,
+                '113001' : 1, '' : 1}
 
 for key in all_records.keys():
   if len(key.split(',')) < 2: continue
   sys.stderr.write('Processing [' + key + ']\n')
   code = key.split(',')[1]
-  if code in blacked_keys: continue;
   (net_profit, capital_cost, remain_stock, holding_cps, dtp, dt, txn_fee) = CalOneStock(R, all_records[key])
   investment = -net_profit
   CPS, CPSCC = 0, 0
@@ -158,8 +160,10 @@ for key in all_records.keys():
             str(CPSCC), #+ '(' + str(CPS) + ')',
             str(round(margin * 100, 2)) + '%',
             key]
-  stat_records.append(record)
-  for i in range(7): summation[i] += record[i]
+  if code not in blacked_keys or holding_shares > 0:
+    stat_records.append(record)
+    for i in range(7): summation[i] += record[i]
+
 summation[11] = str(summation[0] + summation[1] - summation[2]) + '(' + str(round((summation[0] + summation[1] - summation[2]) / -summation[1] * 100, 2)) + '%)'
 
 stat_records.append(summation)

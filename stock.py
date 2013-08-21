@@ -160,7 +160,7 @@ for key in all_records.keys():
             str(CPSCC), #+ '(' + str(CPS) + ')',
             str(round(margin * 100, 2)) + '%',
             key]
-  if code not in blacked_keys or holding_shares > 0:
+  if code not in blacked_keys or remain_stock > 0:
     stat_records.append(record)
     for i in range(7): summation[i] += record[i]
 

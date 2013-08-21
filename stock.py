@@ -21,10 +21,12 @@ def CalOneStock(R, records):
   sum_fee = 0
   for cell in records:
     trans_date = date(int(cell[0][0:4]), int(cell[0][4:6]), int(cell[0][6:8]))
-    value = float(cell[14])
+    fee = sum(map(float, cell[9:13]))
+    sum_fee += fee
+    value = float(cell[7]) + fee
     buy_shares = int(cell[6])
-    real_value = float(cell[7])
-    sum_fee += abs(abs(value) - real_value)
+    if buy_shares != 0:
+      value *= -abs(buy_shares) / buy_shares
     if investment > 0.0:
       diff_days = (trans_date - prev_date).days
       capital_cost  += investment * R / 365 * diff_days

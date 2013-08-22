@@ -134,10 +134,16 @@ table_header = ['MV', 'NCF', 'CC', '#TxN', 'TNF', 'DTP', '#DT',
 summation = [0] * (len(table_header) - 1)
 summation.append('Summary')
 
-blacked_keys = {'131810' : 1, '511880' : 1,
-                '513100' : 1, '601988' : 1,
-                '511990' : 1, '511010' : 1,
-                '113001' : 1, '' : 1}
+blacked_keys = {
+#  '511880' : 1,
+#  '513100' : 1,
+#  '601988' : 1,
+#  '511990' : 1,
+#  '511010' : 1,
+#  '113001' : 1,
+  '131810' : 1,
+  '' : 1,
+}
 
 for key in all_records.keys():
   if len(key.split(',')) < 2: continue

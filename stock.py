@@ -119,8 +119,6 @@ if len(sys.argv) > 1:
 all_records = defaultdict(list)
 for line in sys.stdin:
   cells = line.strip().split(',')
-  if len(cells) < 15:
-    cells = line.strip().split('\t')
   all_records[cells[4] + ',' + cells[3]].append(cells)
   ctime = map(int, cells[1].split(':'))
   cells[1] = time(ctime[0], ctime[1], ctime[2]).isoformat()
@@ -148,7 +146,7 @@ blacked_keys = {
 total_capital = 0
 
 for key in all_records.keys():
-  #sys.stderr.write('Processing [' + key + ']\n')
+  sys.stderr.write('Processing [' + key + ']\n')
   if len(key.split(',')) < 2: continue
   code = key.split(',')[1]
   if code == '':
@@ -187,8 +185,8 @@ stat_records.sort(reverse = True)
 stat_records.insert(0, table_header)
 free_cash = total_capital + summation[1]
 
-print 'Total Capital: %.0f Free cash: %.0f Stock ratio: %.0f%%'%(
-    round(total_capital, 0), round(free_cash, 0),
+print 'Total Capital: %.0fK Free cash: %.0fK Stock ratio: %.0f%%'%(
+    round(total_capital / 1000, 0), round(free_cash / 1000, 0),
     round(100 * free_cash / total_capital, 2))
 
 PrintTable(stat_records)

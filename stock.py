@@ -124,7 +124,7 @@ for line in sys.stdin:
   all_records[cells[4] + ',' + cells[3]].append(cells)
   ctime = map(int, cells[1].split(':'))
   cells[1] = time(ctime[0], ctime[1], ctime[2]).isoformat()
-sys.stderr.write('There are ' + str(len(all_records)) + ' records.\n')
+#sys.stderr.write('There are ' + str(len(all_records)) + ' records.\n')
 
 stat_records = []
 table_header = ['MV', 'NCF', 'CC', '#TxN', 'TNF', 'DTP', '#DT',
@@ -145,26 +145,36 @@ blacked_keys = {
   '' : 1,
 }
 
+total_capital = 0
+
 for key in all_records.keys():
+  #sys.stderr.write('Processing [' + key + ']\n')
   if len(key.split(',')) < 2: continue
-  sys.stderr.write('Processing [' + key + ']\n')
   code = key.split(',')[1]
+  if code == '':
+    for cells in all_records[key]:
+      total_capital += float(cells[14])
+    continue
   (net_profit, capital_cost, remain_stock, holding_cps, dtp, dt, txn_fee) = CalOneStock(R, all_records[key])
   investment = -net_profit
-  CPS, CPSCC = 0, 0
+  CPS, CPSCC, change_rate, margin = 0, 0, '', 0
+  mp = GetMarketPrice(code)
+  mv = mp * remain_stock
   if remain_stock > 0 :
     CPS = round(investment / remain_stock, 3)
     CPSCC = round((investment + capital_cost) / remain_stock, 3)
-  mp = GetMarketPrice(code)
-  mv = mp * remain_stock
-  margin = (mp - CPSCC) / mp
+    change_rate = '(' + str(round((mp - holding_cps) / holding_cps * 100, 2)) + '%)'
+    margin = str(round((mp - CPSCC) / mp * 100, 2)) + '%'
+  else:
+    margin = round(net_profit - capital_cost, 0)
   record = [round(mv, 0), round(net_profit, 0),
             round(capital_cost, 0), len(all_records[key]), round(txn_fee, 0),
             round(dtp, 0), dt,
-            remain_stock, mp,
+            remain_stock,
+            str(mp) + change_rate,
             round(holding_cps, 3),
             str(CPSCC), #+ '(' + str(CPS) + ')',
-            str(round(margin * 100, 2)) + '%',
+            margin,
             key]
   if code not in blacked_keys or remain_stock > 0:
     stat_records.append(record)
@@ -175,5 +185,11 @@ summation[11] = str(summation[0] + summation[1] - summation[2]) + '(' + str(roun
 stat_records.append(summation)
 stat_records.sort(reverse = True)
 stat_records.insert(0, table_header)
+free_cash = total_capital + summation[1]
+
+print 'Total Capital: %.0f Free cash: %.0f Stock ratio: %.0f%%'%(
+    round(total_capital, 0), round(free_cash, 0),
+    round(100 * free_cash / total_capital, 2))
+
 PrintTable(stat_records)
 

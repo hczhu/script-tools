@@ -65,25 +65,35 @@ def CalOneStock(R, records):
 #        remain_stock,
 #        (capital_cost + investment) / max(1, remain_stock))
 
-def PrintOneLine(col_len):
+table_header = ['MV', 'NCF', 'CC', '#TxN', 'TNF', 'DTP', '#DT',
+                'HS', 'MP', 'HCPS',
+                'CPSCC(CPS)', 'Margin', 'Stock name']
+silent_column = {
+  '#TxN' : 1, 'TNF' : 1, 'DTP' : 1, '#DT' : 1,
+}
+
+def PrintOneLine(table_header, col_len):
   line = '|'
-  for l in col_len:
-    line += '-' * l + '|'
+  for i in range(len(col_len)):
+    if table_header[i] in silent_column: continue
+    line += '-' * col_len[i] + '|'
   return line
 
-def PrintTable(records):
-  col_len = [0] * len(records[0])
+def PrintTable(table_header, records):
+  col_len = map(len, table_header)
   for cells in records:
     for i in range(len(cells)):
       col_len[i] = max(col_len[i], len(str(cells[i])))
-  line = PrintOneLine(col_len)
+  line = PrintOneLine(table_header, col_len)
   header = '+' + line[1:len(line) - 1] + '+'
   print header
+  records.insert(0, table_header)
   first = True
   for cells in records:
     assert len(cells) == len(records[0])
     row = '|'
     for i in range(len(cells)):
+      if table_header[i] in silent_column: continue
       row += (' ' * (col_len[i] - len(str(cells[i])))) + str(cells[i]) + '|'
     if first: first = False
     else: print line
@@ -125,9 +135,6 @@ for line in sys.stdin:
 #sys.stderr.write('There are ' + str(len(all_records)) + ' records.\n')
 
 stat_records = []
-table_header = ['MV', 'NCF', 'CC', '#TxN', 'TNF', 'DTP', '#DT',
-                'HS', 'MP', 'HCPS',
-                'CPSCC(CPS)', 'Margin', 'Stock name']
 
 summation = [0] * (len(table_header) - 1)
 summation.append('Summary')
@@ -162,7 +169,7 @@ for key in all_records.keys():
     CPS = round(investment / remain_stock, 3)
     CPSCC = round((investment + capital_cost) / remain_stock, 3)
     change_rate = '(' + str(round((mp - holding_cps) / holding_cps * 100, 2)) + '%)'
-    margin = str(round((mp - CPSCC) / mp * 100, 2)) + '%'
+    margin = str(int((mv - investment)/100)) + 'h(' + str(round((mp - CPSCC) / mp * 100, 2)) + '%)'
   else:
     margin = round(net_profit - capital_cost, 0)
   record = [round(mv, 0), round(net_profit, 0),
@@ -182,12 +189,11 @@ summation[11] = str(summation[0] + summation[1] - summation[2]) + '(' + str(roun
 
 stat_records.append(summation)
 stat_records.sort(reverse = True)
-stat_records.insert(0, table_header)
 free_cash = total_capital + summation[1]
 
 print 'Total Capital: %.0fK Free cash: %.0fK Stock ratio: %.0f%%'%(
     round(total_capital / 1000, 0), round(free_cash / 1000, 0),
     round(100 * free_cash / total_capital, 2))
 
-PrintTable(stat_records)
+PrintTable(table_header, stat_records)
 

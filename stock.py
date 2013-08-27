@@ -69,7 +69,10 @@ table_header = ['MV', 'NCF', 'CC', '#TxN', 'TNF', 'DTP', '#DT',
                 'HS', 'MP', 'HCPS',
                 'CPSCC(CPS)', 'Margin', 'Stock name']
 silent_column = {
-  '#TxN' : 1, 'TNF' : 1, 'DTP' : 1, '#DT' : 1,
+  '#TxN' : 1,
+  'TNF' : 1,
+  #'DTP' : 1,
+  '#DT' : 1,
 }
 
 def PrintOneLine(table_header, col_len):
@@ -163,20 +166,17 @@ for key in all_records.keys():
     for cells in all_records[key]:
       total_capital += float(cells[14])
     continue
-  if code in blacked_keys:
-    continue
   (net_profit, capital_cost, remain_stock, holding_cps, dtp, dt, txn_fee) = CalOneStock(R, all_records[key])
   investment = -net_profit
-  CPS, CPSCC, change_rate, margin = 0, 0, '', 0
-  mp = GetMarketPrice(code)
-  mv = mp * remain_stock
+  mp, mv, CPS, CPSCC, change_rate, margin = 1, 0, 0, 0, '', 0
+  if code not in blacked_keys:
+    mp = GetMarketPrice(code)
   if remain_stock > 0 :
+    mv = mp * remain_stock
     CPS = round(investment / remain_stock, 3)
     CPSCC = round((investment + capital_cost) / remain_stock, 3)
     change_rate = '(' + str(round((mp - holding_cps) / holding_cps * 100, 2)) + '%)'
-    margin = str(int((mv - investment)/100)) + 'h(' + str(round((mp - CPSCC) / mp * 100, 2)) + '%)'
-  else:
-    margin = round(net_profit - capital_cost, 0)
+  margin = str(int((mv - investment - capital_cost + 30)/100)) + 'h(' + str(round((mp - CPSCC) / mp * 100, 2)) + '%)'
   record = [round(mv, 0), round(net_profit, 0),
             round(capital_cost, 0), len(all_records[key]), round(txn_fee, 0),
             round(dtp, 0), dt,
@@ -186,9 +186,9 @@ for key in all_records.keys():
             str(CPSCC), #+ '(' + str(CPS) + ')',
             margin,
             key]
+  for i in range(7): summation[i] += record[i]
   if code not in blacked_keys or remain_stock > 0:
     stat_records.append(record)
-    for i in range(7): summation[i] += record[i]
 
 summation[11] = str(summation[0] + summation[1] - summation[2]) + '(' + str(round((summation[0] + summation[1] - summation[2]) / -summation[1] * 100, 2)) + '%)'
 
@@ -198,7 +198,7 @@ free_cash = total_capital + summation[1]
 
 print 'Total Capital: %.0fK Free cash: %.0fK Stock ratio: %.0f%%'%(
     round(total_capital / 1000, 0), round(free_cash / 1000, 0),
-    round(100 * free_cash / total_capital, 2))
+    round(100 * (total_capital -  free_cash) / total_capital, 2))
 
 PrintTable(table_header, stat_records)
 

@@ -140,13 +140,16 @@ summation = [0] * (len(table_header) - 1)
 summation.append('Summary')
 
 blacked_keys = {
-#  '511880' : 1,
-#  '513100' : 1,
-#  '601988' : 1,
-#  '511990' : 1,
-#  '511010' : 1,
-#  '113001' : 1,
+  '511880' : 1,
+  '513100' : 1,
+  '601988' : 1,
+  '511990' : 1,
+  '511010' : 1,
+  '113001' : 1,
   '131810' : 1,
+  '601318' : 1,
+  '112109' : 1,
+  '110023' : 1,
   '' : 1,
 }
 
@@ -159,6 +162,8 @@ for key in all_records.keys():
   if code == '':
     for cells in all_records[key]:
       total_capital += float(cells[14])
+    continue
+  if code in blacked_keys:
     continue
   (net_profit, capital_cost, remain_stock, holding_cps, dtp, dt, txn_fee) = CalOneStock(R, all_records[key])
   investment = -net_profit

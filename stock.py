@@ -103,7 +103,7 @@ def PrintTable(table_header, records):
     print row
   print header
 
-def GetMarketPrice(code):
+def GetRealTimeMarketPrice(code):
   url_prefix = 'http://xueqiu.com/S/'
   feature_str = '<div class="currentInfo"><strong data-current="'
   st_prefix = ['SH', 'SZ']
@@ -117,11 +117,21 @@ def GetMarketPrice(code):
         pos += len(feature_str)
         end = content[pos:].find('"') + pos
         if end < 0: continue
-        return float(content[pos:end])
+        return max(0.001, float(content[pos:end]))
       except:
         continue
       time.sleep(0.3)
-  return 0.01
+  return 0.001
+
+market_price_cache = {
+    '600036' : 10.6,
+}
+
+def GetMarketPrice(code):
+  mp = GetRealTimeMarketPrice(code)
+  if mp < 0.1 and code in market_price_cache:
+    mp = market_price_cache[code]
+  return mp
 
 #print GetMarketPrice('112072')
 
@@ -149,11 +159,15 @@ blacked_keys = {
   '511990' : 1,
   '511010' : 1,
   '113001' : 1,
-  '131810' : 1,
   '601318' : 1,
   '112109' : 1,
   '110023' : 1,
   '' : 1,
+}
+
+skipped_keys = {
+  '131800' : 1,
+  '131810' : 1,
 }
 
 total_capital = 0
@@ -165,6 +179,8 @@ for key in all_records.keys():
   if code == '':
     for cells in all_records[key]:
       total_capital += float(cells[14])
+    continue
+  if code in skipped_keys:
     continue
   (net_profit, capital_cost, remain_stock, holding_cps, dtp, dt, txn_fee) = CalOneStock(R, all_records[key])
   investment = -net_profit

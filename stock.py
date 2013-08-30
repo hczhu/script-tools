@@ -152,7 +152,7 @@ stat_records = []
 summation = [0] * (len(table_header) - 1)
 summation.append('Summary')
 
-blacked_keys = {
+ignored_keys = {
   '511880' : 1,
   '513100' : 1,
   '601988' : 1,
@@ -168,6 +168,7 @@ blacked_keys = {
 skipped_keys = {
   '131800' : 1,
   '131810' : 1,
+  '204001' : 1,
 }
 
 total_capital = 0
@@ -185,7 +186,7 @@ for key in all_records.keys():
   (net_profit, capital_cost, remain_stock, holding_cps, dtp, dt, txn_fee) = CalOneStock(R, all_records[key])
   investment = -net_profit
   mp, mv, CPS, CPSCC, change_rate, margin = 1, 0, 0, 0, '', 0
-  if code not in blacked_keys:
+  if code not in ignored_keys:
     mp = GetMarketPrice(code)
   if remain_stock > 0 :
     mv = mp * remain_stock
@@ -203,7 +204,7 @@ for key in all_records.keys():
             margin,
             key]
   for i in range(7): summation[i] += record[i]
-  if code not in blacked_keys or remain_stock > 0:
+  if code not in ignored_keys or remain_stock > 0:
     stat_records.append(record)
 
 summation[11] = str(summation[0] + summation[1] - summation[2]) + '(' + str(round((summation[0] + summation[1] - summation[2]) / -summation[1] * 100, 2)) + '%)'

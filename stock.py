@@ -71,8 +71,9 @@ table_header = ['MV', 'NCF', 'CC', '#TxN', 'TNF', 'DTP', '#DT',
 silent_column = {
   '#TxN' : 1,
   'TNF' : 1,
-  #'DTP' : 1,
+  'DTP' : 1,
   '#DT' : 1,
+  'CC' : 1,
 }
 
 def PrintOneLine(table_header, col_len):
@@ -155,7 +156,7 @@ summation.append('Summary')
 ignored_keys = {
   '511880' : 1,
   '513100' : 1,
-  '601988' : 1,
+  #'601988' : 1,
   '511990' : 1,
   '511010' : 1,
   '113001' : 1,

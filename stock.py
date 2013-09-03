@@ -66,7 +66,7 @@ def CalOneStock(R, records):
 #        (capital_cost + investment) / max(1, remain_stock))
 
 table_header = ['MV', 'NCF', 'CC', '#TxN', 'TNF', 'DTP', '#DT',
-                'HS', 'MP', 'HCPS',
+                'HS', 'MP', 'A2K-PR', 'HCPS',
                 'CPSCC(CPS)', 'Margin', 'Stock name']
 silent_column = {
   '#TxN' : 1,
@@ -74,6 +74,19 @@ silent_column = {
   'DTP' : 1,
   '#DT' : 1,
   'CC' : 1,
+}
+
+R=0.04
+if len(sys.argv) > 1:
+  R = float(sys.argv[1]) / 100.0
+HK2RMB = 0.79
+
+A2H_code = {
+    '600036' : '03968',
+    '601988' : '03988',
+    '600016' : '01988',
+    '601939' : '00939',
+    '601398' : '01398',
 }
 
 def PrintOneLine(table_header, col_len):
@@ -107,7 +120,7 @@ def PrintTable(table_header, records):
 def GetRealTimeMarketPrice(code):
   url_prefix = 'http://xueqiu.com/S/'
   feature_str = '<div class="currentInfo"><strong data-current="'
-  st_prefix = ['SH', 'SZ']
+  st_prefix = ['SH', 'SZ', '']
   for i in range(3):
     for pr in st_prefix:
       url = url_prefix + pr + code
@@ -136,9 +149,6 @@ def GetMarketPrice(code):
 
 #print GetMarketPrice('112072')
 
-R=0.04
-if len(sys.argv) > 1:
-  R = float(sys.argv[1]) / 100.0
 
 all_records = defaultdict(list)
 for line in sys.stdin:
@@ -188,9 +198,12 @@ for key in all_records.keys():
     continue
   (net_profit, capital_cost, remain_stock, holding_cps, dtp, dt, txn_fee) = CalOneStock(R, all_records[key])
   investment = -net_profit
-  mp, mv, CPS, CPSCC, change_rate, margin = 1, 0, 0, 0, '', 0
+  mp, mp_hk, mv, CPS, CPSCC, change_rate, margin = 1, 1, 0, 0, 0, '', 0
   if code not in ignored_keys:
     mp = GetMarketPrice(code)
+    mp_hk = mp
+    if code in A2H_code:
+      mp_hk = GetMarketPrice(A2H_code[code]) * HK2RMB
   if remain_stock > 0 :
     mv = mp * remain_stock
     CPS = round(investment / remain_stock, 3)
@@ -202,6 +215,7 @@ for key in all_records.keys():
             round(dtp, 0), dt,
             remain_stock,
             str(mp) + change_rate,
+            str(round(100.0 * (mp - mp_hk) / mp_hk, 1)) + '%',
             round(holding_cps, 3),
             str(CPSCC), #+ '(' + str(CPS) + ')',
             margin,

@@ -224,7 +224,7 @@ for key in all_records.keys():
   if code not in ignored_keys or remain_stock > 0:
     stat_records.append(record)
 
-summation[11] = str(summation[0] + summation[1] - summation[2]) + '(' + str(round((summation[0] + summation[1] - summation[2]) / -summation[1] * 100, 2)) + '%)'
+summation[12] = str(summation[0] + summation[1] - summation[2]) + '(' + str(round((summation[0] + summation[1] - summation[2]) / -summation[1] * 100, 2)) + '%)'
 
 stat_records.append(summation)
 stat_records.sort(reverse = True)

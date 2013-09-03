@@ -154,7 +154,7 @@ summation = [0] * (len(table_header) - 1)
 summation.append('Summary')
 
 ignored_keys = {
-  '511880' : 1,
+  #'511880' : 1,
   '513100' : 1,
   #'601988' : 1,
   '511990' : 1,
@@ -171,6 +171,7 @@ skipped_keys = {
   '131810' : 1,
   '204001' : 1,
   '204014' : 1,
+  '131809' : 1,
 }
 
 total_capital = 0

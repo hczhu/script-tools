@@ -73,10 +73,10 @@ silent_column = {
   'TNF' : 1,
   'DTP' : 1,
   '#DT' : 1,
-  'CC' : 1,
+  #'CC' : 1,
 }
 
-R=0.04
+R = 0.05
 if len(sys.argv) > 1:
   R = float(sys.argv[1]) / 100.0
 HK2RMB = 0.79
@@ -184,6 +184,7 @@ skipped_keys = {
   '131809' : 1,
   '660001' : 1,
   '660091' : 1,
+  '660063' : 1,
 }
 
 total_capital = 0

@@ -75,7 +75,7 @@ silent_column = {
   '#DT' : 1,
   #'CC' : 1,
 }
-
+frozen_free_cash = 80000
 R = 0.05
 if len(sys.argv) > 1:
   R = float(sys.argv[1]) / 100.0
@@ -233,9 +233,11 @@ stat_records.append(summation)
 stat_records.sort(reverse = True)
 free_cash = total_capital + summation[1]
 
-print 'Total Capital: %.0fK Free cash: %.0fK Stock ratio: %.0f%%'%(
-    round(total_capital / 1000, 0), round(free_cash / 1000, 0),
-    round(100 * (total_capital -  free_cash) / total_capital, 2))
+print 'Total Capital: %.0fK Free cash: %.0fK Stock ratio: %.0f%% Frozen cash: %.0fK'%(
+    round((total_capital - frozen_free_cash) / 1000, 0),
+    round((free_cash - frozen_free_cash) / 1000, 0),
+    round(100 * (total_capital -  free_cash) / (total_capital - frozen_free_cash), 2),
+    round(frozen_free_cash / 1000, 0))
 
 PrintTable(table_header, stat_records)
 

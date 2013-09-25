@@ -73,7 +73,8 @@ silent_column = {
   'TNF' : 1,
   'DTP' : 1,
   '#DT' : 1,
-  #'CC' : 1,
+  'CC' : 1,
+  'HCPS' : 1,
 }
 frozen_free_cash = 80000
 R = 0.05
@@ -88,6 +89,11 @@ A2H_code = {
     '601939' : '00939',
     '601398' : '01398',
 }
+
+def myround(x, n):
+  if n == 0:
+    return int(x)
+  return round(x, n)
 
 def PrintOneLine(table_header, col_len):
   line = '|'
@@ -209,17 +215,17 @@ for key in all_records.keys():
       mp_hk = GetMarketPrice(A2H_code[code]) * HK2RMB
   if remain_stock > 0 :
     mv = mp * remain_stock
-    CPS = round(investment / remain_stock, 3)
-    CPSCC = round((investment + capital_cost) / remain_stock, 3)
-    change_rate = '(' + str(round((mp - holding_cps) / holding_cps * 100, 2)) + '%)'
-  margin = str(int((mv - investment - capital_cost + 30)/100)) + 'h(' + str(round((mp - CPSCC) / mp * 100, 2)) + '%)'
-  record = [round(mv, 0), round(net_profit, 0),
-            round(capital_cost, 0), len(all_records[key]), round(txn_fee, 0),
-            round(dtp, 0), dt,
+    CPS = myround(investment / remain_stock, 3)
+    CPSCC = myround((investment + capital_cost) / remain_stock, 3)
+    change_rate = '(' + str(myround((mp - holding_cps) / holding_cps * 100, 2)) + '%)'
+  margin = str(int((mv - investment - capital_cost + 30)/100)) + 'h(' + str(myround((mp - CPSCC) / mp * 100, 2)) + '%)'
+  record = [myround(mv, 0), myround(net_profit, 0),
+            myround(capital_cost, 0), len(all_records[key]), myround(txn_fee, 0),
+            myround(dtp, 0), dt,
             remain_stock,
             str(mp) + change_rate,
-            str(round(100.0 * (mp - mp_hk) / mp_hk, 1)) + '%',
-            round(holding_cps, 3),
+            str(myround(100.0 * (mp - mp_hk) / mp_hk, 1)) + '%',
+            myround(holding_cps, 3),
             str(CPSCC), #+ '(' + str(CPS) + ')',
             margin,
             key]
@@ -227,17 +233,17 @@ for key in all_records.keys():
   if code not in ignored_keys or remain_stock > 0:
     stat_records.append(record)
 
-summation[12] = str(summation[0] + summation[1] - summation[2]) + '(' + str(round((summation[0] + summation[1] - summation[2]) / -summation[1] * 100, 2)) + '%)'
+summation[12] = str(summation[0] + summation[1] - summation[2]) + '(' + str(myround((summation[0] + summation[1] - summation[2]) / -summation[1] * 100, 2)) + '%)'
 
 stat_records.append(summation)
 stat_records.sort(reverse = True)
 free_cash = total_capital + summation[1]
 
 print 'Total Capital: %.0fK Free cash: %.0fK Stock ratio: %.0f%% Frozen cash: %.0fK'%(
-    round((total_capital - frozen_free_cash) / 1000, 0),
-    round((free_cash - frozen_free_cash) / 1000, 0),
-    round(100 * (total_capital -  free_cash) / (total_capital - frozen_free_cash), 2),
-    round(frozen_free_cash / 1000, 0))
+    myround((total_capital - frozen_free_cash) / 1000, 0),
+    myround((free_cash - frozen_free_cash) / 1000, 0),
+    myround(100 * (total_capital -  free_cash) / (total_capital - frozen_free_cash), 2),
+    myround(frozen_free_cash / 1000, 0))
 
 PrintTable(table_header, stat_records)
 

@@ -66,7 +66,8 @@ def CalOneStock(R, records):
 #        (capital_cost + investment) / max(1, remain_stock))
 
 table_header = ['MV', 'NCF', 'CC', '#TxN', 'TNF', 'DTP', '#DT',
-                'HS', 'MP', 'A2K-PR', 'HCPS',
+                'HS', 'MP', 'PE', 'PB',
+                'A2H-PR', 'HCPS',
                 'CPSCC(CPS)', 'Margin', 'Stock name']
 silent_column = {
   '#TxN' : 1,
@@ -89,6 +90,33 @@ A2H_code = {
     '601939' : '00939',
     '601398' : '01398',
 }
+
+# Estimation of 2013
+EPS = {
+    # Finance ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
+    '510230' : 3.33 / 7.50,
+    # 300 ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
+    '510300' : 2.483 / 10.06,
+    # China Merchants Bank
+}
+
+# Esitmation at the end of 2013
+BVPS = {
+}
+
+# Earning(net income) growth rate
+EGR = {
+}
+
+def GetPE(code, mp):
+  if code in EPS:
+    return mp / EPS[code]
+  return 0.0
+
+def GetPB(code, mp):
+  if code in BVPS:
+    return mp / BVPS[code]
+  return 0.0
 
 def myround(x, n):
   if n == 0:
@@ -152,9 +180,6 @@ def GetMarketPrice(code):
   if mp < 0.1 and code in market_price_cache:
     mp = market_price_cache[code]
   return mp
-
-#print GetMarketPrice('112072')
-
 
 all_records = defaultdict(list)
 for line in sys.stdin:
@@ -223,7 +248,9 @@ for key in all_records.keys():
             myround(capital_cost, 0), len(all_records[key]), myround(txn_fee, 0),
             myround(dtp, 0), dt,
             remain_stock,
-            str(mp) + change_rate,
+            str(mp), #+ change_rate,
+            myround(GetPE(code, mp), 2),
+            myround(GetPB(code, mp), 2),
             str(myround(100.0 * (mp - mp_hk) / mp_hk, 1)) + '%',
             myround(holding_cps, 3),
             str(CPSCC), #+ '(' + str(CPS) + ')',
@@ -233,7 +260,7 @@ for key in all_records.keys():
   if code not in ignored_keys or remain_stock > 0:
     stat_records.append(record)
 
-summation[12] = str(summation[0] + summation[1] - summation[2]) + '(' + str(myround( 100.0 * (summation[0] + summation[1] - summation[2]) / -summation[1], 2)) + '%)'
+summation[14] = str(summation[0] + summation[1] - summation[2]) + '(' + str(myround( 100.0 * (summation[0] + summation[1] - summation[2]) / -summation[1], 2)) + '%)'
 
 stat_records.append(summation)
 stat_records.sort(reverse = True)

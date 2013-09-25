@@ -233,7 +233,7 @@ for key in all_records.keys():
   if code not in ignored_keys or remain_stock > 0:
     stat_records.append(record)
 
-summation[12] = str(summation[0] + summation[1] - summation[2]) + '(' + str(myround((summation[0] + summation[1] - summation[2]) / -summation[1] * 100, 2)) + '%)'
+summation[12] = str(summation[0] + summation[1] - summation[2]) + '(' + str(myround( 100.0 * (summation[0] + summation[1] - summation[2]) / -summation[1], 2)) + '%)'
 
 stat_records.append(summation)
 stat_records.sort(reverse = True)
@@ -242,7 +242,7 @@ free_cash = total_capital + summation[1]
 print 'Total Capital: %.0fK Free cash: %.0fK Stock ratio: %.0f%% Frozen cash: %.0fK'%(
     myround((total_capital - frozen_free_cash) / 1000, 0),
     myround((free_cash - frozen_free_cash) / 1000, 0),
-    myround(100 * (total_capital -  free_cash) / (total_capital - frozen_free_cash), 2),
+    myround(100.0 * (total_capital -  free_cash) / (total_capital - frozen_free_cash), 2),
     myround(frozen_free_cash / 1000, 0))
 
 PrintTable(table_header, stat_records)

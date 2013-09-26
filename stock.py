@@ -66,9 +66,10 @@ def CalOneStock(R, records):
 #        (capital_cost + investment) / max(1, remain_stock))
 
 table_header = ['MV', 'NCF', 'CC', '#TxN', 'TNF', 'DTP', '#DT',
-                'HS', 'MP', 'PE', 'PB',
+                'HS', 'MP', 'P/E', 'P/B',
                 'A2H-PR', 'HCPS',
-                'CPSCC(CPS)', 'Margin', 'Stock name']
+                'CPSCC(CPS)',
+                'Margin', 'Stock name']
 silent_column = {
   '#TxN' : 1,
   'TNF' : 1,
@@ -76,6 +77,7 @@ silent_column = {
   '#DT' : 1,
   'CC' : 1,
   'HCPS' : 1,
+  'CPSCC(CPS)' : 1,
 }
 frozen_free_cash = 80000
 R = 0.05

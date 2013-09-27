@@ -1,4 +1,5 @@
 #!/usr/bin/python
+# -*- coding: utf-8 -*-
 import sys
 from datetime import timedelta
 from datetime import date
@@ -94,16 +95,20 @@ A2H_code = {
 }
 
 # Estimation of 2013
+# 统一
 EPS = {
     # Finance ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
     '510230' : 3.33 / 7.50,
     # 300 ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
     '510300' : 2.483 / 10.06,
-    # China Merchants Bank
+    # 招商银行
 }
 
 # Esitmation at the end of 2013
+# 2013H的值加上估计利润
 BVPS = {
+    # 兴业银行，7月份10送5分红5.7 再乘以估计的ROE
+    '601166' : (14.51 * 10 - 5.7)/15 * ( 1 + 0.1),
 }
 
 # Earning(net income) growth rate

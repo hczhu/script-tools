@@ -80,12 +80,12 @@ silent_column = {
   #'HCPS' : 1,
   'CPSCC(CPS)' : 1,
 }
-frozen_free_cash = 80000
+FROZEN_FREE_CASH = 80000
 R = 0.05
 if len(sys.argv) > 1:
   R = float(sys.argv[1]) / 100.0
 HK2RMB = 0.79
-MAX_MARKET_VAELUE = 300000
+MAX_MARKET_VAELUE = 360000
 
 A2H_code = {
     '600036' : '03968',
@@ -275,10 +275,10 @@ stat_records.sort(reverse = True)
 free_cash = total_capital + summation[1]
 
 print 'Total Capital: %.0fK Free cash: %.0fK Stock ratio: %.0f%% Frozen cash: %.0fK'%(
-    myround((total_capital - frozen_free_cash) / 1000, 0),
-    myround((free_cash - frozen_free_cash) / 1000, 0),
-    myround(100.0 * (total_capital -  free_cash) / (total_capital - frozen_free_cash), 2),
-    myround(frozen_free_cash / 1000, 0))
+    myround((total_capital - FROZEN_FREE_CASH) / 1000, 0),
+    myround((free_cash - FROZEN_FREE_CASH) / 1000, 0),
+    myround(100.0 * (total_capital -  free_cash) / (total_capital - FROZEN_FREE_CASH), 2),
+    myround(FROZEN_FREE_CASH / 1000, 0))
 print 'Over investment: %.0fK'%(myround((summation[0] - MAX_MARKET_VAELUE) / 1000.0, 0))
 
 PrintTable(table_header, stat_records)

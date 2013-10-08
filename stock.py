@@ -279,7 +279,9 @@ print 'Total Capital: %.0fK Free cash: %.0fK Stock ratio: %.0f%% Frozen cash: %.
     myround((free_cash - FROZEN_FREE_CASH) / 1000, 0),
     myround(100.0 * (total_capital -  free_cash) / (total_capital - FROZEN_FREE_CASH), 2),
     myround(FROZEN_FREE_CASH / 1000, 0))
-print 'Over investment: %.0fK'%(myround((summation[0] - MAX_MARKET_VAELUE) / 1000.0, 0))
+print 'Over investment: %.0fK(%.2f%%)'%(
+    myround((summation[0] - MAX_MARKET_VAELUE) / 1000.0, 0),
+    myround((summation[0] - MAX_MARKET_VAELUE) * 100.0 / summation[0], 0))
 
 PrintTable(table_header, stat_records)
 

@@ -85,7 +85,7 @@ R = 0.05
 if len(sys.argv) > 1:
   R = float(sys.argv[1]) / 100.0
 HK2RMB = 0.79
-MAX_MARKET_VAELUE = 360000
+MAX_MARKET_VAELUE = 400000
 
 A2H_code = {
     '600036' : '03968',

@@ -66,9 +66,19 @@ def CalOneStock(R, records):
 #        remain_stock,
 #        (capital_cost + investment) / max(1, remain_stock))
 
-table_header = ['MV', 'NCF', 'CC', '#TxN', 'TNF', 'DTP', '#DT',
-                'HS', 'MP', 'P/E', 'P/B',
-                'A2H-PR', 'HCPS',
+table_header = ['MV',
+                'NCF',
+                'CC',
+                '#TxN',
+                'TNF',
+                'DTP',
+                '#DT',
+                'HS',
+                'MP',
+                'P/E',
+                'P/B',
+                'A2H-PR',
+                'HCPS',
                 'CPSCC(CPS)',
                 'Margin',
                 'Overflow',
@@ -285,6 +295,7 @@ for key in all_records.keys():
             str(myround(overflow / 1000, 0)) + 'K(' + str(myround(100.0 * overflow / target_market_value, 0)) + '%)',
             key]
   for i in range(7): summation[i] += record[i]
+  summation[15] += overflow
   if code not in ignored_keys or remain_stock > 0:
     stat_records.append(record)
 

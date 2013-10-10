@@ -70,7 +70,9 @@ table_header = ['MV', 'NCF', 'CC', '#TxN', 'TNF', 'DTP', '#DT',
                 'HS', 'MP', 'P/E', 'P/B',
                 'A2H-PR', 'HCPS',
                 'CPSCC(CPS)',
-                'Margin', 'Stock name']
+                'Margin',
+                'Overflow',
+                'Stock name']
 silent_column = {
   '#TxN' : 1,
   'TNF' : 1,
@@ -85,7 +87,20 @@ R = 0.05
 if len(sys.argv) > 1:
   R = float(sys.argv[1]) / 100.0
 HK2RMB = 0.79
-MAX_MARKET_VAELUE = 400000
+
+MAX_OFFSET_PERCENT = 0.1
+TARGET_MARKET_VALUE = {
+    # 招商银行
+    '600036' : 130000,
+    # 兴业银行
+    '601166' : 130000,
+    # 民生银行
+    '600016' : 20000,
+    # 金融ETF
+    '510230' : 140000,
+    # 300ETF
+    '510300' : 50000,
+}
 
 A2H_code = {
     '600036' : '03968',
@@ -240,6 +255,8 @@ for key in all_records.keys():
     continue
   (net_profit, capital_cost, remain_stock, holding_cps, dtp, dt, txn_fee) = CalOneStock(R, all_records[key])
   investment = -net_profit
+  if code not in TARGET_MARKET_VALUE:
+    continue
   mp, mp_hk, mv, CPS, CPSCC, change_rate, margin = 1, 1, 0, 0, 0, '', 0
   if code not in ignored_keys:
     mp = GetMarketPrice(code)
@@ -251,7 +268,9 @@ for key in all_records.keys():
     CPS = myround(investment / remain_stock, 3)
     CPSCC = myround((investment + capital_cost) / remain_stock, 3)
     change_rate = '(' + str(myround((mp - holding_cps) / holding_cps * 100, 2)) + '%)'
+  target_market_value = TARGET_MARKET_VALUE[code]
   margin = str(int((mv - investment - capital_cost + 30)/100)) + 'h(' + str(myround((mp - CPSCC) / mp * 100, 2)) + '%)'
+  overflow = mv - target_market_value
   record = [myround(mv, 0), myround(net_profit, 0),
             myround(capital_cost, 0), len(all_records[key]), myround(txn_fee, 0),
             myround(dtp, 0), dt,
@@ -263,6 +282,7 @@ for key in all_records.keys():
             myround(holding_cps, 3),
             str(CPSCC), #+ '(' + str(CPS) + ')',
             margin,
+            str(myround(overflow / 1000, 0)) + 'K(' + str(myround(100.0 * overflow / target_market_value, 0)) + '%)',
             key]
   for i in range(7): summation[i] += record[i]
   if code not in ignored_keys or remain_stock > 0:
@@ -279,9 +299,6 @@ print 'Total Capital: %.0fK Free cash: %.0fK Stock ratio: %.0f%% Frozen cash: %.
     myround((free_cash - FROZEN_FREE_CASH) / 1000, 0),
     myround(100.0 * (total_capital -  free_cash) / (total_capital - FROZEN_FREE_CASH), 2),
     myround(FROZEN_FREE_CASH / 1000, 0))
-print 'Over investment: %.0fK(%.0f%%)'%(
-    myround((summation[0] - MAX_MARKET_VAELUE) / 1000.0, 0),
-    myround((summation[0] - MAX_MARKET_VAELUE) * 100.0 / summation[0], 0))
 
 PrintTable(table_header, stat_records)
 

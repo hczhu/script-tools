@@ -295,7 +295,7 @@ for key in all_records.keys():
             str(myround(overflow / 1000, 0)) + 'K(' + str(myround(100.0 * overflow / target_market_value, 0)) + '%)',
             key]
   for i in range(7): summation[i] += record[i]
-  summation[15] += overflow
+  summation[15] += int(overflow)
   if code not in ignored_keys or remain_stock > 0:
     stat_records.append(record)
 

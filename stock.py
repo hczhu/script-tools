@@ -84,14 +84,18 @@ table_header = ['MV',
                 'Overflow',
                 'Stock name']
 silent_column = {
-  '#TxN' : 1,
+  #'#TxN' : 1,
   'TNF' : 1,
   'DTP' : 1,
   '#DT' : 1,
-  'CC' : 1,
+  #'CC' : 1,
   'HCPS' : 1,
   'CPSCC(CPS)' : 1,
+  'NCF' : 1,
+  'Margin' : 1,
+  'HS' : 1,
 }
+
 FROZEN_FREE_CASH = 80000
 R = 0.05
 if len(sys.argv) > 1:

@@ -1,0 +1,46 @@
+#!/usr/bin/bc
+define power (n, m, mod) {
+  auto p2, ret;
+  p2 = (n + mod)%mod;
+  ret = 1;
+  while (m > 0) {
+    if ((m%2) == 1) {
+      ret = (ret * p2) % mod;
+    }
+    p2 = (p2 * p2) % mod;
+    m /= 2;
+  }
+  return ret;
+}
+
+define euclid (a, b) {
+  auto x1, y1, k, tx, ty, r;
+  x1 = 1;
+  y1 = 0;
+  gx = 0;
+  gy = 1;
+  while (b > 0) {
+    k = a / b;
+    r = a % b;
+    tx = (x1 - k * gx);
+    ty = (y1 - k * gy);
+    x1 = gx;
+    y1 = gy;
+    gx = tx;
+    gy = ty;
+    a = b;
+    b = r;
+  }
+  gx = x1
+  gy = y1
+  return a;
+}
+
+define invert (a, n) {
+  auto x, y, r;
+  r = euclid (a, n);
+  x = gx;
+  y = gy;
+  return ((x % n) + n) % n;
+}
+

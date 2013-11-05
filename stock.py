@@ -84,7 +84,7 @@ table_header = ['MV',
                 'Overflow',
                 'Stock name']
 silent_column = {
-  #'#TxN' : 1,
+  '#TxN' : 1,
   'TNF' : 1,
   'DTP' : 1,
   '#DT' : 1,
@@ -109,7 +109,7 @@ TARGET_MARKET_VALUE = {
     # 兴业银行
     '601166' : 140000,
     # 民生银行
-    '600016' : 50000,
+    '600016' : 140000,
     # 金融ETF
     '510230' : 140000,
     # 300ETF

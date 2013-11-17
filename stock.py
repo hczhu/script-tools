@@ -88,12 +88,7 @@ silent_column = {
   'TNF' : 1,
   'DTP' : 1,
   '#DT' : 1,
-  'CC' : 1,
-  'HCPS' : 1,
-  'CPSCC(CPS)' : 1,
   'NCF' : 1,
-  #'Margin' : 1,
-  'HS' : 1,
 }
 
 FROZEN_FREE_CASH = 25000

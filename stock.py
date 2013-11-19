@@ -105,7 +105,7 @@ MAX_OFFSET_PERCENT = 0.1
 TARGET_MARKET_VALUE = {
     # 300ETF,融资买入，考虑买入杠杆基金。
     '510300' : 300000,
-    # 招商银行
+    # 招商银行，相对H股有较大折价
     '600036' : 200000,
     # 兴业银行
     '601166' : 160000,
@@ -132,6 +132,7 @@ AH_PAIR = {
     '601939' : '00939',
     '601398' : '01398',
     '601318' : '02318',
+    '601288' : '01288',
 }
 for key in AH_PAIR.keys():
   AH_PAIR[AH_PAIR[key]] = key
@@ -274,22 +275,28 @@ skipped_keys = {
   '660063' : 1,
 }
 
-total_capital = 0
-total_capital_cost = 0
+total_capital = {
+}
+total_capital_cost = {
+}
+total_investment = {
+  'RMB' : 0, 'USD' : 0, 'HKD' : 0,
+}
 
 
 for key in all_records.keys():
   sys.stderr.write('Processing [' + key + ']\n')
   name = all_records[key][0][3]
+  currency = all_records[key][0][7]
   # All in CURRENCY
   (net_profit, capital_cost, remain_stock, holding_cps, dtp, dt, txn_fee) = CalOneStock(R, all_records[key])
-  if key == '':
+  if key in total_investment:
     # 现金流
-    total_capital = -net_profit
-    total_capital_cost = capital_cost
+    total_capital[currency] = -net_profit
+    total_capital_cost[currency] = capital_cost
     continue
   investment = -net_profit
-  currency = all_records[key][0][7]
+  total_investment[currency] += investment
   ex_rate = EX_RATE[currency + '-' + CURRENCY]
   mp, mp_pair_rmb, mv, CPS, change_rate, margin = 1, 1, 0, 0, '', 0
   mp = GetMarketPrice(key)
@@ -327,14 +334,20 @@ summation[14] = str(summation[0] + summation[1]) + '(' + str(myround( 100.0 * (s
 
 stat_records.append(summation)
 stat_records.sort(reverse = True)
-total_investment = -summation[1]
-free_cash = total_capital - total_investment
+total_investment['USD'] += total_investment['HKD']
 
-print 'Total Capital: %.0fK Free cash: %.0fK Total investment: %.0fK Capital cost: %.0fH'%(
-    myround(total_capital / 1000, 0),
-    myround(free_cash / 1000, 0),
-    myround(total_investment / 1000, 0),
-    myround(total_capital_cost / 100, 0))
-
+capital_header = ['Currency', 'Cash', 'Investment', 'Free Cash', 'Capital Cost']
+capital_table = []
+for currency in ['USD', 'RMB']:
+  capital_table.append(
+    [
+    currency,
+    str(myround(total_capital[currency] / 1000, 0)) + 'K',
+    str(myround(total_investment[currency] / 1000, 0)) + 'K',
+    str(myround((total_capital[currency] - total_investment[currency]) / 1000, 0)) + 'K',
+    str(myround(total_capital_cost[currency] / 100, 0)) + 'H',
+    ]
+  )
+PrintTable(capital_header, capital_table)
 PrintTable(table_header, stat_records)
 

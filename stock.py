@@ -319,7 +319,7 @@ for key in all_records.keys():
             str(mp), #+ change_rate,
             myround(GetPE(key, mp), 2),
             myround(GetPB(key, mp), 2),
-            str(myround(100.0 * (mp_pair_rmb - mp * ex_rate) / mp / ex_rate, 1)) + '%',
+            str(myround(100.0 * (mp * ex_rate - mp_pair_rmb) / mp / ex_rate, 1)) + '%',
             myround(holding_cps / ex_rate, 3),
             str(CPS),
             margin,

@@ -122,10 +122,10 @@ TARGET_MARKET_VALUE = {
     '601318' : 50000,
     # 现金数量
     '' : 600000,
-    'FB' : 30000,
+    'FB' : 200000,
 }
 
-A2H_code = {
+AH_PAIR = {
     '600036' : '03968',
     '601988' : '03988',
     '600016' : '01988',
@@ -133,6 +133,8 @@ A2H_code = {
     '601398' : '01398',
     '601318' : '02318',
 }
+for key in AH_PAIR.keys():
+  AH_PAIR[AH_PAIR[key]] = key
 
 # Estimation of 2013
 # 统一
@@ -227,6 +229,14 @@ def GetMarketPrice(code):
     mp = market_price_cache[code]
   return mp
 
+def GetMarketPriceInRMB(code):
+  mp = GetMarketPrice(code)
+  if code.isdigit() and code[0] == '0':
+    mp *= EX_RATE['HKD-RMB']
+  elif not code.isdigit():
+    mp *= EX_RATE['USD-RMB']
+  return mp
+
 all_records = defaultdict(list)
 for line in sys.stdin:
   cells = line.strip().split(',')
@@ -266,7 +276,7 @@ skipped_keys = {
 
 total_capital = 0
 total_capital_cost = 0
-HK2RMB = EX_RATE['HKD-RMB']
+
 
 for key in all_records.keys():
   sys.stderr.write('Processing [' + key + ']\n')
@@ -281,12 +291,11 @@ for key in all_records.keys():
   investment = -net_profit
   currency = all_records[key][0][7]
   ex_rate = EX_RATE[currency + '-' + CURRENCY]
-  mp, mp_hk, mv, CPS, change_rate, margin = 1, 1, 0, 0, '', 0
-  if key not in ignored_keys:
-    mp = GetMarketPrice(key)
-    mp_hk = mp
-    if key in A2H_code:
-      mp_hk = GetMarketPrice(A2H_code[key]) * HK2RMB
+  mp, mp_pair_rmb, mv, CPS, change_rate, margin = 1, 1, 0, 0, '', 0
+  mp = GetMarketPrice(key)
+  mp_pair_rmb = mp * ex_rate
+  if key in AH_PAIR:
+    mp_pair_rmb = GetMarketPriceInRMB(AH_PAIR[key])
   if remain_stock > 0 :
     mv = mp * remain_stock * ex_rate
     CPS = myround(investment / ex_rate / remain_stock, 3)
@@ -303,8 +312,8 @@ for key in all_records.keys():
             str(mp), #+ change_rate,
             myround(GetPE(key, mp), 2),
             myround(GetPB(key, mp), 2),
-            str(myround(100.0 * (mp - mp_hk) / mp_hk, 1)) + '%',
-            myround(holding_cps, 3),
+            str(myround(100.0 * (mp_pair_rmb - mp * ex_rate) / mp / ex_rate, 1)) + '%',
+            myround(holding_cps / ex_rate, 3),
             str(CPS),
             margin,
             str(myround(overflow / 1000, 0)) + 'K(' + str(myround(100.0 * overflow / target_market_value, 0)) + '%)',

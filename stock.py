@@ -282,6 +282,9 @@ total_capital_cost = {
 total_investment = {
   'RMB' : 0, 'USD' : 0, 'HKD' : 0,
 }
+total_market_value = {
+  'RMB' : 0, 'USD' : 0, 'HKD' : 0,
+}
 
 
 for key in all_records.keys():
@@ -307,6 +310,7 @@ for key in all_records.keys():
     mv = mp * remain_stock * ex_rate
     CPS = myround(investment / ex_rate / remain_stock, 3)
     change_rate = '(' + str(myround((mp - holding_cps) / holding_cps * 100, 2)) + '%)'
+  total_market_value[currency] += mv
   target_market_value = 1
   if key in TARGET_MARKET_VALUE:
     target_market_value = TARGET_MARKET_VALUE[key]
@@ -335,8 +339,9 @@ summation[14] = str(summation[0] + summation[1]) + '(' + str(myround( 100.0 * (s
 stat_records.append(summation)
 stat_records.sort(reverse = True)
 total_investment['USD'] += total_investment['HKD']
+total_market_value['USD'] += total_market_value['HKD']
 
-capital_header = ['Currency', 'Cash', 'Investment', 'Free Cash', 'Capital Cost']
+capital_header = ['Currency', 'Cash', 'Investment', 'Free Cash', 'Capital Cost', 'Market Value']
 capital_table = []
 for currency in ['USD', 'RMB']:
   capital_table.append(
@@ -346,6 +351,7 @@ for currency in ['USD', 'RMB']:
     str(myround(total_investment[currency] / 1000, 0)) + 'K',
     str(myround((total_capital[currency] - total_investment[currency]) / 1000, 0)) + 'K',
     str(myround(total_capital_cost[currency] / 100, 0)) + 'H',
+    str(myround(total_market_value[currency] / 1000, 0)) + 'K',
     ]
   )
 PrintTable(capital_header, capital_table)

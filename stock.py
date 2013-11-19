@@ -21,14 +21,14 @@ def CalOneStock(R, records):
   day_trade_time = -1
   sum_fee = 0
   for cell in records:
+    currency = cell[7]
+    ex_rate = EX_RATE[currency + '-' + CURRENCY]
     trans_date = date(int(cell[0][0:4]), int(cell[0][4:6]), int(cell[0][6:8]))
-    fee = sum(map(float, cell[9:14]))
+    fee = sum(map(float, cell[6:7])) * ex_rate
     sum_fee += fee
-    buy_shares = int(cell[6])
-    flow_in = 0
-    if buy_shares != 0:
-      flow_in = -abs(buy_shares) / buy_shares
-    value = flow_in * float(cell[7]) - fee
+    buy_shares = int(cell[5])
+    price = float(cell[4]) * ex_rate
+    value = -price * buy_shares - fee
     if investment > 0.0:
       diff_days = (trans_date - prev_date).days
       capital_cost  += investment * R / 365 * diff_days
@@ -56,15 +56,7 @@ def CalOneStock(R, records):
   if day_trade_net_shares == 0:
     sum_day_trade_profit += day_trade_profit
     day_trade_time += 1
-
   return (net_profit, capital_cost, holding_shares, holding_cost, sum_day_trade_profit, day_trade_time, sum_fee)
-#  print 'Net cash flow: %f\nCapital cost: %f\nInvestment: %f\n\
-#  Remaining stock shares: %d\nCost per share: %f'\
-#      %(net_profit,
-#        capital_cost,
-#        investment,
-#        remain_stock,
-#        (capital_cost + investment) / max(1, remain_stock))
 
 table_header = ['MV',
                 'NCF',
@@ -79,7 +71,7 @@ table_header = ['MV',
                 'P/B',
                 'A2H-PR',
                 'HCPS',
-                'CPSCC(CPS)',
+                'CPS',
                 'Margin',
                 'Overflow',
                 'Stock name']
@@ -89,18 +81,25 @@ silent_column = {
   'DTP' : 1,
   '#DT' : 1,
   'CC' : 1,
-  'HCPS' : 1,
-  'CPSCC(CPS)' : 1,
+  #'HCPS' : 1,
+  'CPS' : 1,
   'NCF' : 1,
   #'Margin' : 1,
   'HS' : 1,
 }
 
-FROZEN_FREE_CASH = 25000
+FROZEN_FREE_CASH = 0
 R = 0.05
 if len(sys.argv) > 1:
   R = float(sys.argv[1]) / 100.0
-HK2RMB = 0.785
+
+EX_RATE = {
+  'RMB-RMB' : 1.0,
+  'HKD-RMB' : 0.79,
+  'USD-RMB' : 6.09,
+}
+
+CURRENCY = 'RMB'
 
 MAX_OFFSET_PERCENT = 0.1
 TARGET_MARKET_VALUE = {
@@ -121,6 +120,9 @@ TARGET_MARKET_VALUE = {
     '510230' : 10000,
     # 中国平安，观察仓位，需要理解保险业务，所谓牛市的放大器。
     '601318' : 50000,
+    # 现金数量
+    '' : 600000,
+    'FB' : 30000,
 }
 
 A2H_code = {
@@ -217,7 +219,6 @@ def GetRealTimeMarketPrice(code):
   return 0.001
 
 market_price_cache = {
-    '600036' : 10.6,
 }
 
 def GetMarketPrice(code):
@@ -229,9 +230,7 @@ def GetMarketPrice(code):
 all_records = defaultdict(list)
 for line in sys.stdin:
   cells = line.strip().split(',')
-  all_records[cells[4] + ',' + cells[3]].append(cells)
-  ctime = map(int, cells[1].split(':'))
-  cells[1] = time(ctime[0], ctime[1], ctime[2]).isoformat()
+  all_records[cells[2]].append(cells)
 #sys.stderr.write('There are ' + str(len(all_records)) + ' records.\n')
 
 stat_records = []
@@ -240,6 +239,8 @@ summation = [0] * (len(table_header) - 1)
 summation.append('Summary')
 
 ignored_keys = {
+  #现金流
+  '' : 1,
   #'511880' : 1,
   '513100' : 1,
   #'601988' : 1,
@@ -264,64 +265,67 @@ skipped_keys = {
 }
 
 total_capital = 0
+total_capital_cost = 0
+HK2RMB = EX_RATE['HKD-RMB']
 
 for key in all_records.keys():
   sys.stderr.write('Processing [' + key + ']\n')
-  if len(key.split(',')) < 2: continue
-  code = key.split(',')[1]
-  if code == '':
-    for cells in all_records[key]:
-      total_capital += float(cells[14])
-    continue
-  if code in skipped_keys:
-    continue
+  name = all_records[key][0][3]
+  # All in CURRENCY
   (net_profit, capital_cost, remain_stock, holding_cps, dtp, dt, txn_fee) = CalOneStock(R, all_records[key])
-  investment = -net_profit
-  if code not in TARGET_MARKET_VALUE:
+  if key == '':
+    # 现金流
+    total_capital = -net_profit
+    total_capital_cost = capital_cost
     continue
-  mp, mp_hk, mv, CPS, CPSCC, change_rate, margin = 1, 1, 0, 0, 0, '', 0
-  if code not in ignored_keys:
-    mp = GetMarketPrice(code)
+  investment = -net_profit
+  currency = all_records[key][0][7]
+  ex_rate = EX_RATE[currency + '-' + CURRENCY]
+  mp, mp_hk, mv, CPS, change_rate, margin = 1, 1, 0, 0, '', 0
+  if key not in ignored_keys:
+    mp = GetMarketPrice(key)
     mp_hk = mp
-    if code in A2H_code:
-      mp_hk = GetMarketPrice(A2H_code[code]) * HK2RMB
+    if key in A2H_code:
+      mp_hk = GetMarketPrice(A2H_code[key]) * HK2RMB
   if remain_stock > 0 :
-    mv = mp * remain_stock
-    CPS = myround(investment / remain_stock, 3)
-    CPSCC = myround((investment + capital_cost) / remain_stock, 3)
+    mv = mp * remain_stock * ex_rate
+    CPS = myround(investment / ex_rate / remain_stock, 3)
     change_rate = '(' + str(myround((mp - holding_cps) / holding_cps * 100, 2)) + '%)'
-  target_market_value = TARGET_MARKET_VALUE[code]
-  margin = str(int((mv - investment - capital_cost + 30)/100)) + 'h(' + str(myround((mp - CPSCC) / mp * 100, 2)) + '%)'
+  target_market_value = 1
+  if key in TARGET_MARKET_VALUE:
+    target_market_value = TARGET_MARKET_VALUE[key]
+  margin = str(int((mv - investment + 30)/100)) + 'h(' + str(myround((mp - CPS) / mp * 100, 2)) + '%)'
   overflow = mv - target_market_value
   record = [myround(mv, 0), myround(net_profit, 0),
             myround(capital_cost, 0), len(all_records[key]), myround(txn_fee, 0),
             myround(dtp, 0), dt,
             remain_stock,
             str(mp), #+ change_rate,
-            myround(GetPE(code, mp), 2),
-            myround(GetPB(code, mp), 2),
+            myround(GetPE(key, mp), 2),
+            myround(GetPB(key, mp), 2),
             str(myround(100.0 * (mp - mp_hk) / mp_hk, 1)) + '%',
             myround(holding_cps, 3),
-            str(CPSCC), #+ '(' + str(CPS) + ')',
+            str(CPS),
             margin,
             str(myround(overflow / 1000, 0)) + 'K(' + str(myround(100.0 * overflow / target_market_value, 0)) + '%)',
-            key]
+            name]
   for i in range(7): summation[i] += record[i]
   summation[15] += int(overflow)
-  if code not in ignored_keys or remain_stock > 0:
+  if key in TARGET_MARKET_VALUE or remain_stock > 0:
     stat_records.append(record)
 
-summation[14] = str(summation[0] + summation[1] - summation[2]) + '(' + str(myround( 100.0 * (summation[0] + summation[1] - summation[2]) / -summation[1], 2)) + '%)'
+summation[14] = str(summation[0] + summation[1]) + '(' + str(myround( 100.0 * (summation[0] + summation[1] - summation[2]) / -summation[1], 2)) + '%)'
 
 stat_records.append(summation)
 stat_records.sort(reverse = True)
-free_cash = total_capital + summation[1]
+total_investment = -summation[1]
+free_cash = total_capital - total_investment
 
-print 'Total Capital: %.0fK Free cash: %.0fK Stock ratio: %.0f%% Frozen cash: %.0fK'%(
-    myround((total_capital - FROZEN_FREE_CASH) / 1000, 0),
-    myround((free_cash - FROZEN_FREE_CASH) / 1000, 0),
-    myround(100.0 * (total_capital -  free_cash) / (total_capital - FROZEN_FREE_CASH), 2),
-    myround(FROZEN_FREE_CASH / 1000, 0))
+print 'Total Capital: %.0fK Free cash: %.0fK Total investment: %.0fK Capital cost: %.0fH'%(
+    myround(total_capital / 1000, 0),
+    myround(free_cash / 1000, 0),
+    myround(total_investment / 1000, 0),
+    myround(total_capital_cost / 100, 0))
 
 PrintTable(table_header, stat_records)
 

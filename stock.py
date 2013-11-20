@@ -82,7 +82,7 @@ silent_column = {
   '#DT' : 1,
   'CC' : 1,
   #'HCPS' : 1,
-  'CPS' : 1,
+  #'CPS' : 1,
   'NCF' : 1,
   #'Margin' : 1,
   'HS' : 1,
@@ -119,10 +119,10 @@ TARGET_MARKET_VALUE = {
     # 少量头寸作为机动资金，随时不计成本卖出
     '510230' : 10000,
     # 中国平安，观察仓位，需要理解保险业务，所谓牛市的放大器。
-    '601318' : 50000,
-    # 现金数量
-    '' : 600000,
+    '601318' : 10000,
     'FB' : 200000,
+    # 农业银行，财报较好，在年报前低点买入
+    '601288' : 100000,
 }
 
 AH_PAIR = {
@@ -140,10 +140,10 @@ for key in AH_PAIR.keys():
 # Estimation of 2013
 # 统一
 EPS = {
-    # Finance ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
-    '510230' : 3.33 / 7.50,
-    # 300 ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
-    '510300' : 2.483 / 10.06,
+    # 金融ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
+    '510230' : 3.309 / 7.51,
+    # 300ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
+    '510300' : 2.477 / 10.59,
     # 招商银行
 }
 
@@ -328,7 +328,7 @@ for key in all_records.keys():
             str(CPS),
             margin,
             str(myround(overflow / 1000, 0)) + 'K(' + str(myround(100.0 * overflow / target_market_value, 0)) + '%)',
-            name]
+            name + '(' + key + ')']
   for i in range(7): summation[i] += record[i]
   summation[15] += int(overflow)
   if key in TARGET_MARKET_VALUE or remain_stock > 0:

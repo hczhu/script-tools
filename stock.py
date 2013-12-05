@@ -73,7 +73,8 @@ table_header = ['MV',
                 'HCPS',
                 'CPS',
                 'Margin',
-                'Overflow',
+                'Sell',
+		'Buy',
                 'Stock name']
 silent_column = {
   '#TxN' : 1,
@@ -89,6 +90,7 @@ silent_column = {
 }
 
 FROZEN_FREE_CASH = 0
+MIN_HOLD_RATIO = 0.5
 R = 0.05
 if len(sys.argv) > 1:
   R = float(sys.argv[1]) / 100.0
@@ -317,7 +319,8 @@ for key in all_records.keys():
   if key in TARGET_MARKET_VALUE:
     target_market_value = TARGET_MARKET_VALUE[key]
   margin = str(int((mv - investment + 30)/100)) + 'h(' + str(myround((mp - CPS) / mp * 100, 2)) + '%)'
-  overflow = mv - target_market_value
+  sell = max(mv - target_market_value * MIN_HOLD_RATIO, 0)
+  buy = max(0, target_market_value - mv)
   record = [myround(mv, 0), myround(net_profit, 0),
             myround(capital_cost, 0), len(all_records[key]), myround(txn_fee, 0),
             myround(dtp, 0), dt,
@@ -329,10 +332,12 @@ for key in all_records.keys():
             myround(holding_cps / ex_rate, 3),
             str(CPS),
             margin,
-            str(myround(overflow / 1000, 0)) + 'K(' + str(myround(100.0 * overflow / target_market_value, 0)) + '%)',
+            str(myround(sell / 1000, 0)) + 'K',
+            str(myround(buy / 1000, 0)) + 'K',
             name + '(' + key + ')']
   for i in range(7): summation[i] += record[i]
-  summation[15] += int(overflow)
+  summation[15] += int(sell)
+  summation[16] += int(buy)
   if key in TARGET_MARKET_VALUE or remain_stock > 0:
     stat_records.append(record)
 

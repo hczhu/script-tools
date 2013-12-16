@@ -83,7 +83,7 @@ silent_column = {
   '#DT' : 1,
   'CC' : 1,
   'HCPS' : 1,
-  'CPS' : 1,
+  #'CPS' : 1,
   'NCF' : 1,
   'Margin' : 1,
   #'HS' : 1,
@@ -91,7 +91,7 @@ silent_column = {
 
 FROZEN_FREE_CASH = 0
 MIN_HOLD_RATIO = 0.5
-R = 0.05
+R = 0.10
 if len(sys.argv) > 1:
   R = float(sys.argv[1]) / 100.0
 

@@ -85,7 +85,7 @@ silent_column = {
   'HCPS' : 1,
   #'CPS' : 1,
   'NCF' : 1,
-  'Margin' : 1,
+  #'Margin' : 1,
   #'HS' : 1,
 }
 

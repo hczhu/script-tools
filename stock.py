@@ -97,8 +97,8 @@ if len(sys.argv) > 1:
 
 EX_RATE = {
   'RMB-RMB' : 1.0,
-  'HKD-RMB' : 0.79,
-  'USD-RMB' : 6.09,
+  'HKD-RMB' : 0.78,
+  'USD-RMB' : 6.07,
 }
 
 CURRENCY = 'RMB'
@@ -145,9 +145,9 @@ for key in AH_PAIR.keys():
 # 统一
 EPS = {
     # 金融ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
-    '510230' : 3.309 / 7.51,
+    '510230' : 3.119 / 7.10,
     # 300ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
-    '510300' : 2.477 / 10.59,
+    '510300' : 2.347 / 10.28,
     # 招商银行
 }
 

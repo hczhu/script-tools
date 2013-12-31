@@ -1,52 +1,54 @@
+
+set smartindent
+set tabstop=2
+set shiftwidth=2
+set expandtab
+
 filetype plugin on
 syntax on
 set foldmethod=indent
-"au FileType cc,lex,cpp,h,proto,borg,y set foldmethod=indent
-au FileType cc,lex,cpp highlight Folded guibg=blue guifg=green
+"au FileType php,cc,lex,cpp,h,proto,borg,y set foldmethod=indent
+au FileType php,cc,lex,cpp highlight Folded guibg=blue guifg=green
 "set foldlevelstart=30
-set scrolloff=40
+set scrolloff=100
 "Use clipboard as default copy
 set clipboard=unnamedplus
 " mystuff
-au FileType cc,lex,cpp,c,java,python imap "" ""<Esc>ha
-au FileType cc,lex,cpp,c,java,python imap () ()<Esc>ha
-au FileType cc,lex,cpp,c,java,python imap [] []<Esc>ha
-au FileType cc,lex,cpp,c,java,python imap <> <><Esc>ha
-au FileType cc,lex,cpp,c,java,python imap '' ''<Esc>ha
-au FileType cc,lex,cpp,c,java imap { {<CR>}<Esc>O
-"au FileType cpp,c,java,python map <C-r> :!gedit %<CR>
+au FileType php,cc,lex,cpp,c,java,python imap "" ""<Esc>ha
+au FileType php,cc,lex,cpp,c,java,python imap () ()<Esc>ha
+au FileType php,cc,lex,cpp,c,java,python imap [] []<Esc>ha
+au FileType php,cc,lex,cpp,c,java,python imap <> <><Esc>ha
+au FileType php,cc,lex,cpp,c,java,python imap '' ''<Esc>ha
+au FileType php,cc,lex,cpp,c,java imap { {<CR>}<Esc>O
+"au FileType php,cpp,c,java,python map <C-r> :!gedit %<CR>
 map <F6> <Esc>elDyyp0dwi<BS> = vars.<Esc>j
-au FileType cpp,python map <F3> <Esc>0dwi<BS><Esc>
-au FileType cpp,python map <F4> 0dwi<BS><CR><Esc>
+au FileType php,cpp,python map <F3> <Esc>0dwi<BS><Esc>
+au FileType php,cpp,python map <F4> 0dwi<BS><CR><Esc>
 
 
-"au FileType cpp map <C-u> :w<CR>:!g++ -o %:r -g -O0 -Wall -lprofiler -lpthread %
-au FileType cpp map <C-u> :w<CR>:!g++ -o %:r -g -O0 -Wall %<CR>
-"au FileType c map <C-u> :w<CR>:!gcc -o %:r -g -O0 -Wall -lpthread %
-au FileType cpp,c map <F5> :!./%:r
-au FileType python map <F5> :!./%
+"au FileType php,cpp map <C-u> :w<CR>:!g++ -o %:r -g -O0 -Wall -lprofiler -lpthread %
+au FileType php,cpp map <C-u> :w<CR>:!g++ -o %:r -g -O0 -Wall %<CR>
+"au FileType php,c map <C-u> :w<CR>:!gcc -o %:r -g -O0 -Wall -lpthread %
+au FileType php,cpp,c map <F5> :!./%:r
+au FileType php,python map <F5> :!./%
 "
-"au FileType cpp map <C-u> :w<CR>:!g++ -o %:r -O2 -DNDEBUG -lprofiler -lpthread %;echo "No debug\!\!\!"
-"au FileType cpp map <C-u> :w<CR>:!g++ -o %:r -O2 -DNDEBUG %;echo "No debug\!\!\!"<CR>
-"au FileType c map <C-u> :w<CR>:!gcc -o %:r -O2 -DNDEBUG -lpthread %;echo "No debug\!\!\!"
+"au FileType php,cpp map <C-u> :w<CR>:!g++ -o %:r -O2 -DNDEBUG -lprofiler -lpthread %;echo "No debug\!\!\!"
+"au FileType php,cpp map <C-u> :w<CR>:!g++ -o %:r -O2 -DNDEBUG %;echo "No debug\!\!\!"<CR>
+"au FileType php,c map <C-u> :w<CR>:!gcc -o %:r -O2 -DNDEBUG -lpthread %;echo "No debug\!\!\!"
 
 
-"au FileType java map <C-u> :w<CR>:!javac %<CR>
-au FileType java map <F6> :!java -enableassertions -Xmx1024M %:r
+"au FileType php,java map <C-u> :w<CR>:!javac %<CR>
+au FileType php,java map <F6> :!java -enableassertions -Xmx1024M %:r
 " check spell
 "
-"au FileType tex map <C-b> :w<CR>:!pdflatex %<CR>
-"au FileType tex map <C-r> :w<CR>:!acroread %:r.pdf<CR>
-"au FileType tex imap {} {}<Esc>ha
-"au FileType tex imap [] []<Esc>ha
-"au FileType tex imap () ()<Esc>ha
-"au FileType tex imap $$ $$<Esc>ha
-"au FileType tex set spell
+"au FileType php,tex map <C-b> :w<CR>:!pdflatex %<CR>
+"au FileType php,tex map <C-r> :w<CR>:!acroread %:r.pdf<CR>
+"au FileType php,tex imap {} {}<Esc>ha
+"au FileType php,tex imap [] []<Esc>ha
+"au FileType php,tex imap () ()<Esc>ha
+"au FileType php,tex imap $$ $$<Esc>ha
+"au FileType php,tex set spell
 autocmd BufNewFile,BufRead *.html,*htm set spell
-"
-" = <C-v><C-m>
-command RemoveCtrlM %,%s///g
-command GenerateTags !ctags -R *
 command Cs !look <cword>
 " Create a variable name for type: AaaBbbCaa ===> aaa_bbb_ccc
 map Va wbveyea <CR><Esc>O<Esc>p:.s/\([a-z]\)\([A-Z]\)/\1_\2/g<CR>VuA <Esc>JkJ
@@ -84,3 +86,4 @@ let g:ctrlp_clear_cache_on_exit = 0
 "Auto save the file which is being edited when vim loses focus.
 au FocusLost * silent! wa
 
+command GenerateTags !ctags -R *

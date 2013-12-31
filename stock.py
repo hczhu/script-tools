@@ -302,6 +302,8 @@ for key in all_records.keys():
     total_capital[currency] = -net_profit
     total_capital_cost[currency] = capital_cost
     continue
+  if key not in TARGET_MARKET_VALUE:
+    continue;
   investment = -net_profit
   total_investment[currency] += investment
   ex_rate = EX_RATE[currency + '-' + CURRENCY]
@@ -315,9 +317,7 @@ for key in all_records.keys():
     CPS = myround(investment / ex_rate / remain_stock, 3)
     change_rate = '(' + str(myround((mp - holding_cps) / holding_cps * 100, 2)) + '%)'
   total_market_value[currency] += mv
-  target_market_value = 1
-  if key in TARGET_MARKET_VALUE:
-    target_market_value = TARGET_MARKET_VALUE[key]
+  target_market_value = TARGET_MARKET_VALUE[key]
   margin = str(int((mv - investment + 30)/100)) + 'h(' + str(myround((mp - CPS) / mp * 100, 2)) + '%)'
   sell = max(mv - target_market_value * MIN_HOLD_RATIO, 0)
   buy = max(0, target_market_value - mv)

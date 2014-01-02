@@ -89,7 +89,6 @@ silent_column = {
   #'HS' : 1,
 }
 
-FROZEN_FREE_CASH = 0
 MIN_HOLD_RATIO = 0.5
 R = 0.10
 if len(sys.argv) > 1:
@@ -110,15 +109,15 @@ TARGET_MARKET_VALUE = {
     # 300ETF,融资买入，考虑买入杠杆基金。
     '510300' : 300000,
     # 招商银行，相对H股有较大折价，服务和口碑。
-    '600036' : 200000,
+    '600036' : 300000,
     # 兴业银行
-    '601166' : 200000,
+    '601166' : 300000,
     # 民生银行
     '600016' : 1000,
     # 浦发银行
     '600000' : 50000,
     # 民生银行H股，相对A股有较大折价。
-    '01988' : 200000,
+    '01988' : 300000,
     # 金融ETF，银行开始差异化竞争，行业整体走下坡路，需要选择竞争力强的银行.
     # 少量头寸作为机动资金，随时不计成本卖出
     '510230' : 10000,
@@ -127,6 +126,8 @@ TARGET_MARKET_VALUE = {
     'FB' : 300000,
     # 农业银行，财报较好，在年报前低点买入
     '601288' : 100000,
+    # 中行转债，相当于先进仓位，银行股大跌是卖出补仓
+    '113001' : 300000,
 }
 
 AH_PAIR = {
@@ -229,9 +230,10 @@ market_price_cache = {
 }
 
 def GetMarketPrice(code):
+  if code in market_price_cache:
+    return market_price_cache[code]
   mp = GetRealTimeMarketPrice(code)
-  if mp < 0.1 and code in market_price_cache:
-    mp = market_price_cache[code]
+  market_price_cache[code] = mp
   return mp
 
 def GetMarketPriceInRMB(code):

@@ -58,37 +58,6 @@ def CalOneStock(R, records):
     day_trade_time += 1
   return (net_profit, capital_cost, holding_shares, holding_cost, sum_day_trade_profit, day_trade_time, sum_fee)
 
-table_header = ['MV',
-                'NCF',
-                'CC',
-                '#TxN',
-                'TNF',
-                'DTP',
-                '#DT',
-                'HS',
-                'MP',
-                'P/E',
-                'P/B',
-                'A2H-PR',
-                'HCPS',
-                'CPS',
-                'Margin',
-                'Sell',
-		'Buy',
-                'Stock name']
-silent_column = {
-  '#TxN' : 1,
-  'TNF' : 1,
-  'DTP' : 1,
-  '#DT' : 1,
-  'CC' : 1,
-  'HCPS' : 1,
-  #'CPS' : 1,
-  'NCF' : 1,
-  #'Margin' : 1,
-  #'HS' : 1,
-}
-
 MIN_HOLD_RATIO = 0.5
 R = 0.10
 if len(sys.argv) > 1:
@@ -128,6 +97,12 @@ TARGET_MARKET_VALUE = {
     '601288' : 100000,
     # 中行转债，相当于先进仓位，银行股大跌是卖出补仓
     '113001' : 300000,
+}
+
+WATCH_LIST_STOCK = {
+}
+
+WATCH_LIST_CB = {
 }
 
 AH_PAIR = {
@@ -178,19 +153,19 @@ def myround(x, n):
     return int(x)
   return round(x, n)
 
-def PrintOneLine(table_header, col_len):
+def PrintOneLine(table_header, col_len, silent_column):
   line = '|'
   for i in range(len(col_len)):
     if table_header[i] in silent_column: continue
     line += '-' * col_len[i] + '|'
   return line
 
-def PrintTable(table_header, records):
+def PrintTable(table_header, records, silent_column):
   col_len = map(len, table_header)
   for cells in records:
     for i in range(len(cells)):
       col_len[i] = max(col_len[i], len(str(cells[i])))
-  line = PrintOneLine(table_header, col_len)
+  line = PrintOneLine(table_header, col_len, silent_column)
   header = '+' + line[1:len(line) - 1] + '+'
   print header
   records.insert(0, table_header)
@@ -244,16 +219,13 @@ def GetMarketPriceInRMB(code):
     mp *= EX_RATE['USD-RMB']
   return mp
 
-all_records = defaultdict(list)
-for line in sys.stdin:
-  cells = line.strip().split(',')
-  all_records[cells[2]].append(cells)
+def ReadRecords(input):
+  all_records = defaultdict(list)
+  for line in input:
+    cells = line.strip().split(',')
+    all_records[cells[2]].append(cells)
+  return all_records
 #sys.stderr.write('There are ' + str(len(all_records)) + ' records.\n')
-
-stat_records = []
-
-summation = [0] * (len(table_header) - 1)
-summation.append('Summary')
 
 ignored_keys = {
   #现金流
@@ -292,77 +264,113 @@ total_market_value = {
   'RMB' : 0, 'USD' : 0, 'HKD' : 0,
 }
 
+def PrintHoldingSecurities(all_records):
+  table_header = ['MV',
+                  'NCF',
+                  'CC',
+                  '#TxN',
+                  'TNF',
+                  'DTP',
+                  '#DT',
+                  'HS',
+                  'MP',
+                  'P/E',
+                  'P/B',
+                  'A2H-PR',
+                  'HCPS',
+                  'CPS',
+                  'Margin',
+                  'Sell',
+  		'Buy',
+                  'Stock name']
+  silent_column = {
+    '#TxN' : 1,
+    'TNF' : 1,
+    'DTP' : 1,
+    '#DT' : 1,
+    'CC' : 1,
+    'HCPS' : 1,
+    #'CPS' : 1,
+    'NCF' : 1,
+    #'Margin' : 1,
+    #'HS' : 1,
+  }
 
-for key in all_records.keys():
-  sys.stderr.write('Processing [' + key + ']\n')
-  name = all_records[key][0][3]
-  currency = all_records[key][0][7]
-  # All in CURRENCY
-  (net_profit, capital_cost, remain_stock, holding_cps, dtp, dt, txn_fee) = CalOneStock(R, all_records[key])
-  if key in total_investment:
-    # 现金流
-    total_capital[currency] = -net_profit
-    total_capital_cost[currency] = capital_cost
-    continue
-  if key not in TARGET_MARKET_VALUE:
-    continue;
-  investment = -net_profit
-  total_investment[currency] += investment
-  ex_rate = EX_RATE[currency + '-' + CURRENCY]
-  mp, mp_pair_rmb, mv, CPS, change_rate, margin = 1, 1, 0, 0, '', 0
-  mp = GetMarketPrice(key)
-  mp_pair_rmb = mp * ex_rate
-  if key in AH_PAIR:
-    mp_pair_rmb = GetMarketPriceInRMB(AH_PAIR[key])
-  if remain_stock > 0 :
-    mv = mp * remain_stock * ex_rate
-    CPS = myround(investment / ex_rate / remain_stock, 3)
-    change_rate = '(' + str(myround((mp - holding_cps) / holding_cps * 100, 2)) + '%)'
-  total_market_value[currency] += mv
-  target_market_value = TARGET_MARKET_VALUE[key]
-  margin = str(int((mv - investment + 30)/100)) + 'h(' + str(myround((mp - CPS) / mp * 100, 2)) + '%)'
-  sell = max(mv - target_market_value * MIN_HOLD_RATIO, 0)
-  buy = max(0, target_market_value - mv)
-  record = [myround(mv, 0), myround(net_profit, 0),
-            myround(capital_cost, 0), len(all_records[key]), myround(txn_fee, 0),
-            myround(dtp, 0), dt,
-            remain_stock,
-            str(mp), #+ change_rate,
-            myround(GetPE(key, mp), 2),
-            myround(GetPB(key, mp), 2),
-            str(myround(100.0 * (mp * ex_rate - mp_pair_rmb) / mp / ex_rate, 1)) + '%',
-            myround(holding_cps / ex_rate, 3),
-            str(CPS),
-            margin,
-            str(myround(sell / 1000, 0)) + 'K',
-            str(myround(buy / 1000, 0)) + 'K',
-            name + '(' + key + ')']
-  for i in range(7): summation[i] += record[i]
-  summation[15] += int(sell)
-  summation[16] += int(buy)
-  if key in TARGET_MARKET_VALUE or remain_stock > 0:
-    stat_records.append(record)
+  stat_records = []
+  
+  summation = [0] * (len(table_header) - 1)
+  summation.append('Summary')
+  for key in all_records.keys():
+    sys.stderr.write('Processing [' + key + ']\n')
+    name = all_records[key][0][3]
+    currency = all_records[key][0][7]
+    # All in CURRENCY
+    (net_profit, capital_cost, remain_stock, holding_cps, dtp, dt, txn_fee) = CalOneStock(R, all_records[key])
+    if key in total_investment:
+      # 现金流
+      total_capital[currency] = -net_profit
+      total_capital_cost[currency] = capital_cost
+      continue
+    if remain_stock <= 0:
+      continue;
+    investment = -net_profit
+    total_investment[currency] += investment
+    ex_rate = EX_RATE[currency + '-' + CURRENCY]
+    mp, mp_pair_rmb, mv, CPS, change_rate, margin = 1, 1, 0, 0, '', 0
+    mp = GetMarketPrice(key)
+    mp_pair_rmb = mp * ex_rate
+    if key in AH_PAIR:
+      mp_pair_rmb = GetMarketPriceInRMB(AH_PAIR[key])
+    if remain_stock > 0 :
+      mv = mp * remain_stock * ex_rate
+      CPS = myround(investment / ex_rate / remain_stock, 3)
+      change_rate = '(' + str(myround((mp - holding_cps) / holding_cps * 100, 2)) + '%)'
+    total_market_value[currency] += mv
+    target_market_value = TARGET_MARKET_VALUE[key]
+    margin = str(int((mv - investment + 30)/100)) + 'h(' + str(myround((mp - CPS) / mp * 100, 2)) + '%)'
+    sell = max(mv - target_market_value * MIN_HOLD_RATIO, 0)
+    buy = max(0, target_market_value - mv)
+    record = [myround(mv, 0), myround(net_profit, 0),
+              myround(capital_cost, 0), len(all_records[key]), myround(txn_fee, 0),
+              myround(dtp, 0), dt,
+              remain_stock,
+              str(mp), #+ change_rate,
+              myround(GetPE(key, mp), 2),
+              myround(GetPB(key, mp), 2),
+              str(myround(100.0 * (mp * ex_rate - mp_pair_rmb) / mp / ex_rate, 1)) + '%',
+              myround(holding_cps / ex_rate, 3),
+              str(CPS),
+              margin,
+              str(myround(sell / 1000, 0)) + 'K',
+              str(myround(buy / 1000, 0)) + 'K',
+              name + '(' + key + ')']
+    for i in range(7): summation[i] += record[i]
+    summation[15] += int(sell)
+    summation[16] += int(buy)
+    if key in TARGET_MARKET_VALUE or remain_stock > 0:
+      stat_records.append(record)
+  
+  summation[14] = str(summation[0] + summation[1]) + '(' + str(myround( 100.0 * (summation[0] + summation[1] - summation[2]) / -summation[1], 2)) + '%)'
+  
+  stat_records.append(summation)
+  stat_records.sort(reverse = True)
+  total_investment['USD'] += total_investment['HKD']
+  total_market_value['USD'] += total_market_value['HKD']
+  
+  capital_header = ['Currency', 'Cash', 'Investment', 'Free Cash', 'Capital Cost', 'Market Value']
+  capital_table = []
+  for currency in ['USD', 'RMB']:
+    capital_table.append(
+      [
+      currency,
+      str(myround(total_capital[currency] / 1000, 0)) + 'K',
+      str(myround(total_investment[currency] / 1000, 0)) + 'K',
+      str(myround((total_capital[currency] - total_investment[currency]) / 1000, 0)) + 'K',
+      str(myround(total_capital_cost[currency] / 100, 0)) + 'H',
+      str(myround(total_market_value[currency] / 1000, 0)) + 'K',
+      ]
+    )
+  PrintTable(capital_header, capital_table, silent_column)
+  PrintTable(table_header, stat_records, silent_column)
 
-summation[14] = str(summation[0] + summation[1]) + '(' + str(myround( 100.0 * (summation[0] + summation[1] - summation[2]) / -summation[1], 2)) + '%)'
-
-stat_records.append(summation)
-stat_records.sort(reverse = True)
-total_investment['USD'] += total_investment['HKD']
-total_market_value['USD'] += total_market_value['HKD']
-
-capital_header = ['Currency', 'Cash', 'Investment', 'Free Cash', 'Capital Cost', 'Market Value']
-capital_table = []
-for currency in ['USD', 'RMB']:
-  capital_table.append(
-    [
-    currency,
-    str(myround(total_capital[currency] / 1000, 0)) + 'K',
-    str(myround(total_investment[currency] / 1000, 0)) + 'K',
-    str(myround((total_capital[currency] - total_investment[currency]) / 1000, 0)) + 'K',
-    str(myround(total_capital_cost[currency] / 100, 0)) + 'H',
-    str(myround(total_market_value[currency] / 1000, 0)) + 'K',
-    ]
-  )
-PrintTable(capital_header, capital_table)
-PrintTable(table_header, stat_records)
-
+PrintHoldingSecurities(ReadRecords(sys.stdin))

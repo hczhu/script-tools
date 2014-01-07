@@ -105,6 +105,16 @@ WATCH_LIST_STOCK = {
 WATCH_LIST_CB = {
 }
 
+WATCH_LIST_ETF = {
+  #安硕A50 ETF
+  # http://hk.ishares.com/product_info/fund/overview/SEHK/2823.htm
+  '02823',
+  #南方A50 ETF
+  # http://www.csopasset.com/tchi/products/china_A50_etf.php
+  '02822',
+  '510300',
+}
+
 AH_PAIR = {
     '600036' : '03968',
     '601988' : '03988',
@@ -117,14 +127,15 @@ AH_PAIR = {
 for key in AH_PAIR.keys():
   AH_PAIR[AH_PAIR[key]] = key
 
-# Estimation of 2013
-# 统一
 EPS = {
-    # 金融ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
-    '510230' : 3.119 / 7.10,
-    # 300ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
-    '510300' : 2.347 / 10.28,
-    # 招商银行
+  #金融ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
+  '510230' : 3.119 / 7.10,
+  # 300ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
+  '510300' : 2.289 / 10.06,
+  # 招商银行
+  #南方A50ETF，数据来自上证月报的上证50PE，滞后
+  #http://www.sse.com.cn/researchpublications/publication/monthly/
+  '02822' : 8.8 / (1512 / 1661.41 * 8.68)    
 }
 
 # Esitmation at the end of 2013
@@ -134,8 +145,44 @@ BVPS = {
     '601166' : (14.51 * 10 - 5.7)/15 * ( 1 + 0.1),
 }
 
-# Earning(net income) growth rate
-EGR = {
+market_price_cache = {
+}
+
+ignored_keys = {
+  #现金流
+  '' : 1,
+  #'511880' : 1,
+  '513100' : 1,
+  #'601988' : 1,
+  '511990' : 1,
+  '511010' : 1,
+  '113001' : 1,
+  #'601318' : 1,
+  '112109' : 1,
+  '110023' : 1,
+  '' : 1,
+}
+
+skipped_keys = {
+  '131800' : 1,
+  '131810' : 1,
+  '204001' : 1,
+  '204014' : 1,
+  '131809' : 1,
+  '660001' : 1,
+  '660091' : 1,
+  '660063' : 1,
+}
+
+total_capital = {
+}
+total_capital_cost = {
+}
+total_investment = {
+  'RMB' : 0, 'USD' : 0, 'HKD' : 0,
+}
+total_market_value = {
+  'RMB' : 0, 'USD' : 0, 'HKD' : 0,
 }
 
 def GetPE(code, mp):
@@ -201,9 +248,6 @@ def GetRealTimeMarketPrice(code):
       time.sleep(0.3)
   return 0.001
 
-market_price_cache = {
-}
-
 def GetMarketPrice(code):
   if code in market_price_cache:
     return market_price_cache[code]
@@ -227,43 +271,6 @@ def ReadRecords(input):
   return all_records
 #sys.stderr.write('There are ' + str(len(all_records)) + ' records.\n')
 
-ignored_keys = {
-  #现金流
-  '' : 1,
-  #'511880' : 1,
-  '513100' : 1,
-  #'601988' : 1,
-  '511990' : 1,
-  '511010' : 1,
-  '113001' : 1,
-  #'601318' : 1,
-  '112109' : 1,
-  '110023' : 1,
-  '' : 1,
-}
-
-skipped_keys = {
-  '131800' : 1,
-  '131810' : 1,
-  '204001' : 1,
-  '204014' : 1,
-  '131809' : 1,
-  '660001' : 1,
-  '660091' : 1,
-  '660063' : 1,
-}
-
-total_capital = {
-}
-total_capital_cost = {
-}
-total_investment = {
-  'RMB' : 0, 'USD' : 0, 'HKD' : 0,
-}
-total_market_value = {
-  'RMB' : 0, 'USD' : 0, 'HKD' : 0,
-}
-
 def PrintHoldingSecurities(all_records):
   table_header = ['MV',
                   'NCF',
@@ -280,8 +287,6 @@ def PrintHoldingSecurities(all_records):
                   'HCPS',
                   'CPS',
                   'Margin',
-                  'Sell',
-  		'Buy',
                   'Stock name']
   silent_column = {
     '#TxN' : 1,
@@ -326,10 +331,7 @@ def PrintHoldingSecurities(all_records):
       CPS = myround(investment / ex_rate / remain_stock, 3)
       change_rate = '(' + str(myround((mp - holding_cps) / holding_cps * 100, 2)) + '%)'
     total_market_value[currency] += mv
-    target_market_value = TARGET_MARKET_VALUE[key]
     margin = str(int((mv - investment + 30)/100)) + 'h(' + str(myround((mp - CPS) / mp * 100, 2)) + '%)'
-    sell = max(mv - target_market_value * MIN_HOLD_RATIO, 0)
-    buy = max(0, target_market_value - mv)
     record = [myround(mv, 0), myround(net_profit, 0),
               myround(capital_cost, 0), len(all_records[key]), myround(txn_fee, 0),
               myround(dtp, 0), dt,
@@ -341,12 +343,8 @@ def PrintHoldingSecurities(all_records):
               myround(holding_cps / ex_rate, 3),
               str(CPS),
               margin,
-              str(myround(sell / 1000, 0)) + 'K',
-              str(myround(buy / 1000, 0)) + 'K',
               name + '(' + key + ')']
     for i in range(7): summation[i] += record[i]
-    summation[15] += int(sell)
-    summation[16] += int(buy)
     if key in TARGET_MARKET_VALUE or remain_stock > 0:
       stat_records.append(record)
   
@@ -372,5 +370,7 @@ def PrintHoldingSecurities(all_records):
     )
   PrintTable(capital_header, capital_table, silent_column)
   PrintTable(table_header, stat_records, silent_column)
+
+
 
 PrintHoldingSecurities(ReadRecords(sys.stdin))

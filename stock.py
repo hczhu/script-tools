@@ -105,15 +105,53 @@ WATCH_LIST_STOCK = {
 WATCH_LIST_CB = {
 }
 
+def GetValueFromUrl(url, feature_str, end_str, func, header):
+  try:
+    request=urllib2.Request(url, headers=header)
+    content=urllib2.urlopen(request).read()
+    print content[0:40]
+    for fs in feature_str:
+      content = content[len(fs) + content.find(fs):]
+      print content[0:20]
+    return func(content[0:content.find(end_str)])
+  except:
+    return func('0')
+
+def GetETFBookValue_02822():
+  return GetValueFromUrl(
+    'http://www.csop.mdgms.com/iopv/nav.html?l=tc',
+    ['即日估計每基金單位資產淨值', '<td id="nIopvPriceHKD">'],
+    '</td>',
+    float,
+    {})
+
+def GetETFBookValue_02823():
+  header = {
+    'Accept' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+    'Accept-Encoding' : 'gzip,deflate,sdch',
+    'Accept-Language' : 'en-US,en;q=0.8,zh-CN;q=0.6,zh-TW;q=0.4',
+    'Cache-Control' : 'max-age=0',
+    'Connection' : 'keep-alive',
+    'Cookie' : 'akmGeoCookieCC=HK; akmGeoCookieLC=tc; UnicaNIODID=8aeHkKGRgMT-YcM8m87; JSESSIONID=zSKu6EwyI-eZe5-Khc8BNg__.isharesasiapac-pea01; ticker_list_GA="; investorTypeCd=GA; COUN=HK; LANG=tc; __utma=152560486.1093619293.1389049139.1389059471.1389147725.3; __utmb=152560486.4.10.1389147725; __utmc=152560486; __utmz=152560486.1389049139.1.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided)',
+    'Host' : 'hk.ishares.com',
+    'User-Agent' : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36"',
+  },
+  return GetValueFromUrl(
+    'http://hk.ishares.com/idc.data?ticker_exchange=2823-SEHK%20%20%20%20&timezone=GMT+8%20%20%20%20%20%20%20%20%20%20%20%20%20&locale=HK_tc',
+    ['"EstimatedNAV":"'],
+    '"',
+    float,
+    header)
+
 WATCH_LIST_ETF = {
   #安硕A50 ETF
   # http://hk.ishares.com/product_info/fund/overview/SEHK/2823.htm
-  '02823',
+  '02823' : GetETFBookValue_02823,
   #南方A50 ETF
   # http://www.csopasset.com/tchi/products/china_A50_etf.php
-  '02822',
-  '510300',
-}
+  '02822' : GetETFBookValue_02822,
+  '510300': None,
+} 
 
 AH_PAIR = {
     '600036' : '03968',
@@ -132,7 +170,6 @@ EPS = {
   '510230' : 3.119 / 7.10,
   # 300ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
   '510300' : 2.289 / 10.06,
-  # 招商银行
   #南方A50ETF，数据来自上证月报的上证50PE，滞后
   #http://www.sse.com.cn/researchpublications/publication/monthly/
   '02822' : 8.8 / (1512 / 1661.41 * 8.68)    
@@ -371,6 +408,8 @@ def PrintHoldingSecurities(all_records):
   PrintTable(capital_header, capital_table, silent_column)
   PrintTable(table_header, stat_records, silent_column)
 
-
+for code in WATCH_LIST_ETF.keys():
+  if WATCH_LIST_ETF[code] != None:
+    print WATCH_LIST_ETF[code]()
 
 PrintHoldingSecurities(ReadRecords(sys.stdin))

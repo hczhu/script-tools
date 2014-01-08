@@ -109,13 +109,13 @@ def GetValueFromUrl(url, feature_str, end_str, func, header):
   try:
     request=urllib2.Request(url, headers=header)
     content=urllib2.urlopen(request).read()
-    print content[0:40]
     for fs in feature_str:
       content = content[len(fs) + content.find(fs):]
-      print content[0:20]
     return func(content[0:content.find(end_str)])
-  except:
-    return func('0')
+  except Exception, e:
+    sys.stderr.write('Exception ' + str(e) +'\n')
+    sys.stderr.write('Failed to open url: ' + url + '\n')
+    return func('0.1')
 
 def GetETFBookValue_02822():
   return GetValueFromUrl(
@@ -132,12 +132,12 @@ def GetETFBookValue_02823():
     'Accept-Language' : 'en-US,en;q=0.8,zh-CN;q=0.6,zh-TW;q=0.4',
     'Cache-Control' : 'max-age=0',
     'Connection' : 'keep-alive',
-    'Cookie' : 'akmGeoCookieCC=HK; akmGeoCookieLC=tc; UnicaNIODID=8aeHkKGRgMT-YcM8m87; JSESSIONID=zSKu6EwyI-eZe5-Khc8BNg__.isharesasiapac-pea01; ticker_list_GA="; investorTypeCd=GA; COUN=HK; LANG=tc; __utma=152560486.1093619293.1389049139.1389059471.1389147725.3; __utmb=152560486.4.10.1389147725; __utmc=152560486; __utmz=152560486.1389049139.1.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided)',
+    'Cookie' : 'akmGeoCookieCC=HK; akmGeoCookieLC=tc; UnicaNIODID=8aeHkKGRgMT-YcM8m87; investorTypeCd=GA; JSESSIONID=PZuhg+Yp869NlIF3w8HOlQ__.isharesasiapac-pea01; COUN=HK; LANG=tc; __utma=152560486.1093619293.1389049139.1389147725.1389206081.4; __utmb=152560486.1.10.1389206081; __utmc=152560486; __utmz=152560486.1389049139.1.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); ticker_list_GA="',
     'Host' : 'hk.ishares.com',
     'User-Agent' : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36"',
-  },
+  }
   return GetValueFromUrl(
-    'http://hk.ishares.com/idc.data?ticker_exchange=2823-SEHK%20%20%20%20&timezone=GMT+8%20%20%20%20%20%20%20%20%20%20%20%20%20&locale=HK_tc',
+    'http://hk.ishares.com/idc.data?ticker_exchange=2823-SEHK&timezone=GMT+8&locale=HK_tc',
     ['"EstimatedNAV":"'],
     '"',
     float,
@@ -146,10 +146,10 @@ def GetETFBookValue_02823():
 WATCH_LIST_ETF = {
   #安硕A50 ETF
   # http://hk.ishares.com/product_info/fund/overview/SEHK/2823.htm
-  '02823' : GetETFBookValue_02823,
+  '02823' : (GetETFBookValue_02823, '安硕A50'),
   #南方A50 ETF
   # http://www.csopasset.com/tchi/products/china_A50_etf.php
-  '02822' : GetETFBookValue_02822,
+  '02822' : (GetETFBookValue_02822, '南方A50'),
   '510300': None,
 } 
 
@@ -222,20 +222,20 @@ total_market_value = {
   'RMB' : 0, 'USD' : 0, 'HKD' : 0,
 }
 
+def myround(x, n):
+  if n == 0:
+    return int(x)
+  return round(x, n)
+
 def GetPE(code, mp):
   if code in EPS:
-    return mp / EPS[code]
+    return myround(mp / EPS[code], 1)
   return 0.0
 
 def GetPB(code, mp):
   if code in BVPS:
     return mp / BVPS[code]
   return 0.0
-
-def myround(x, n):
-  if n == 0:
-    return int(x)
-  return round(x, n)
 
 def PrintOneLine(table_header, col_len, silent_column):
   line = '|'
@@ -408,8 +408,22 @@ def PrintHoldingSecurities(all_records):
   PrintTable(capital_header, capital_table, silent_column)
   PrintTable(table_header, stat_records, silent_column)
 
-for code in WATCH_LIST_ETF.keys():
-  if WATCH_LIST_ETF[code] != None:
-    print WATCH_LIST_ETF[code]()
+def PrintWatchedETF():
+  table_header = ['Price',
+                  'Real Value',
+                  'Discount',
+                  'P/E',
+                  'Stock name']
+  table = []
+  for code in WATCH_LIST_ETF.keys():
+    if WATCH_LIST_ETF[code] != None:
+      price, real_value = GetMarketPrice(code), WATCH_LIST_ETF[code][0]()
+      table.append([price, real_value,
+        str(myround((real_value - price) * 100 / real_value, 0)) + '%',
+        GetPE(code, price),
+        WATCH_LIST_ETF[code][1]])
+  PrintTable(table_header, table, [])
+
+PrintWatchedETF()
 
 PrintHoldingSecurities(ReadRecords(sys.stdin))

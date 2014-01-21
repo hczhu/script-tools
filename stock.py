@@ -226,6 +226,11 @@ def myround(x, n):
     return int(x)
   return round(x, n)
 
+def myround(x, n):
+  if n == 0:
+    return int(x)
+  return round(x, n)
+
 def GetPE(code, mp):
   if code in EPS:
     return myround(mp / EPS[code], 1)

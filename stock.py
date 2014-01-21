@@ -216,7 +216,7 @@ total_capital = defaultdict(int)
 total_capital_cost = defaultdict(int)
 
 total_investment = {
-  'RMB' : 0, 'USD' : 0,
+  'RMB' : 0, 'USD' : 0, 'HKD' : 0,
 }
 
 total_market_value = defaultdict(int)

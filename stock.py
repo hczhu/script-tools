@@ -66,7 +66,7 @@ if len(sys.argv) > 1:
 EX_RATE = {
   'RMB-RMB' : 1.0,
   'HKD-RMB' : 0.78,
-  'USD-RMB' : 6.07,
+  'USD-RMB' : 6.05,
 }
 
 CURRENCY = 'RMB'
@@ -216,11 +216,10 @@ total_capital = defaultdict(int)
 total_capital_cost = defaultdict(int)
 
 total_investment = {
-  'RMB' : 0, 'USD' : 0, 'HKD' : 0,
+  'RMB', 'USD',
 }
-total_market_value = {
-  'RMB' : 0, 'USD' : 0, 'HKD' : 0,
-}
+
+total_market_value = defaultdict(int)
 
 def myround(x, n):
   if n == 0:

@@ -273,7 +273,7 @@ def GetRealTimeMarketPrice(code):
   url_prefix = 'http://xueqiu.com/S/'
   feature_str = '<div class="currentInfo"><strong data-current="'
   st_prefix = ['SH', 'SZ', '']
-  for i in range(3):
+  for i in range(1):
     for pr in st_prefix:
       url = url_prefix + pr + code
       try:
@@ -286,14 +286,15 @@ def GetRealTimeMarketPrice(code):
         return max(0.001, float(content[pos:end]))
       except:
         continue
-      time.sleep(0.3)
   return 0.001
 
 def GetMarketPrice(code):
+  sys.stderr.write('Getting market price for ' + code + '\n')
   if code in market_price_cache:
     return market_price_cache[code]
   mp = GetRealTimeMarketPrice(code)
   market_price_cache[code] = mp
+  sys.stderr.write('Got market price for ' + code + '\n')
   return mp
 
 def GetMarketPriceInRMB(code):

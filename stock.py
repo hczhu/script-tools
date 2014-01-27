@@ -106,7 +106,7 @@ WATCH_LIST_STOCK = {
 WATCH_LIST_CB = {
 }
 
-def GetValueFromUrl(url, feature_str, end_str, func, header):
+def GetValueFromUrl(url, feature_str, end_str, func, header = {}):
   try:
     request=urllib2.Request(url, headers=header)
     content=urllib2.urlopen(request).read()
@@ -126,29 +126,7 @@ def GetETFBookValue_02822():
     float,
     {})
 
-def GetETFBookValue_02823():
-  header = {
-    'Accept' : 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
-    'Accept-Encoding' : 'gzip,deflate,sdch',
-    'Accept-Language' : 'en-US,en;q=0.8,zh-CN;q=0.6,zh-TW;q=0.4',
-    'Cache-Control' : 'max-age=0',
-    'Connection' : 'keep-alive',
-    'Cookie' : 'akmGeoCookieCC=HK; akmGeoCookieLC=tc; UnicaNIODID=8aeHkKGRgMT-YcM8m87; investorTypeCd=GA; JSESSIONID=PZuhg+Yp869NlIF3w8HOlQ__.isharesasiapac-pea01; COUN=HK; LANG=tc; __utma=152560486.1093619293.1389049139.1389147725.1389206081.4; __utmb=152560486.1.10.1389206081; __utmc=152560486; __utmz=152560486.1389049139.1.1.utmcsr=google|utmccn=(organic)|utmcmd=organic|utmctr=(not%20provided); ticker_list_GA="',
-    'Host' : 'hk.ishares.com',
-    'User-Agent' : 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_8_5) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/31.0.1650.63 Safari/537.36"',
-  }
-  return GetValueFromUrl(
-    'http://hk.ishares.com/idc.data?ticker_exchange=2823-SEHK&timezone=GMT+8&locale=HK_tc',
-    ['"EstimatedNAV":"'],
-    '"',
-    float,
-    header)
-
-
 WATCH_LIST_ETF = {
-  #安硕A50 ETF
-  # http://hk.ishares.com/product_info/fund/overview/SEHK/2823.htm
-  '02823' : (GetETFBookValue_02823, '安硕A50'),
   #南方A50 ETF
   # http://www.csopasset.com/tchi/products/china_A50_etf.php
   '02822' : (GetETFBookValue_02822, '南方A50'),
@@ -174,18 +152,32 @@ EPS = {
   '510300' : 2.289 / 10.06,
   #南方A50ETF，数据来自上证月报的上证50PE，滞后
   #http://www.sse.com.cn/researchpublications/publication/monthly/
-  '02822' : 8.8 / (1512 / 1661.41 * 8.68)    
+  '02822' : 8.8 / (1512 / 1661.41 * 8.68),
+  # 来自DeNA 2013H1财报估计
+  '2432' : 199.51 * 4 / 3,
+}
+
+# Sales per share.
+SPS = {
+  # 来自DeNA 2013H1财报估计
+  '2432' : 143100 * 10**6 * 4 / 3 / 131402874,
 }
 
 # Esitmation at the end of 2013
 # 2013H的值加上估计利润
 BVPS = {
-    # 兴业银行，7月份10送5分红5.7 再乘以估计的ROE
-    '601166' : (14.51 * 10 - 5.7)/15 * ( 1 + 0.1),
+  # 兴业银行，7月份10送5分红5.7 再乘以估计的ROE
+  '601166' : (14.51 * 10 - 5.7)/15 * ( 1 + 0.1),
 }
 
 market_price_cache = {
-  '2432' : 2156.0,
+  #'2432' : 2156.0,
+}
+
+market_price_func = {
+  '2432' : lambda: GetValueFromUrl('http://jp.reuters.com/investing/quotes/quote?symbol=2432.T',
+                                   ['<div id="priceQuote">', '<span class="valueContent">'],
+                                   '</span>', lambda s: float(s.replace(',', ''))),
 }
 
 ignored_keys = {
@@ -238,6 +230,12 @@ def GetPE(code, mp):
   if code in EPS:
     return myround(mp / EPS[code], 1)
   return 0.0
+
+def GetPS(code, mp):
+  if code in SPS:
+    return myround(mp / SPS[code], 1)
+  return 0.0
+
 
 def GetPB(code, mp):
   if code in BVPS:
@@ -295,7 +293,10 @@ def GetMarketPrice(code):
   sys.stderr.write('Getting market price for ' + code + '\n')
   if code in market_price_cache:
     return market_price_cache[code]
-  mp = GetRealTimeMarketPrice(code)
+  func = lambda: GetRealTimeMarketPrice(code)
+  if code in market_price_func:
+    func = market_price_func[code] 
+  mp = func()
   market_price_cache[code] = mp
   sys.stderr.write('Got market price for ' + code + '\n')
   return mp
@@ -327,6 +328,7 @@ def PrintHoldingSecurities(all_records):
                   'HS',
                   'MP',
                   'P/E',
+                  'P/S',
                   'P/B',
                   'A2H-PR',
                   'HCPS',
@@ -380,6 +382,7 @@ def PrintHoldingSecurities(all_records):
               remain_stock,
               str(mp), #+ change_rate,
               myround(GetPE(key, mp), 2),
+              myround(GetPS(key, mp), 2),
               myround(GetPB(key, mp), 2),
               str(myround(100.0 * (mp * ex_rate - mp_pair_rmb) / mp / ex_rate, 1)) + '%',
               myround(holding_cps / ex_rate, 3),
@@ -390,7 +393,7 @@ def PrintHoldingSecurities(all_records):
     if remain_stock > 0:
       stat_records.append(record)
   
-  summation[14] = str(summation[0] + summation[1]) + '(' + str(myround( 100.0 * (summation[0] + summation[1] - summation[2]) / -summation[1], 2)) + '%)'
+  summation[14] = str(summation[0] + summation[1]) + '(' + str(myround( 100.0 * (summation[0] + summation[1]) / -summation[1], 2)) + '%)'
   
   stat_records.append(summation)
   stat_records.sort(reverse = True)
@@ -399,7 +402,7 @@ def PrintHoldingSecurities(all_records):
   total_market_value['USD'] += total_market_value['HKD']
   total_market_value['USD'] += total_market_value['YEN']
   
-  capital_header = ['Currency', 'Cash', 'Investment', 'Free Cash', 'Capital Cost', 'Market Value']
+  capital_header = ['Currency', 'Cash', 'Investment', 'Free Cash', 'Capital Cost', 'Market Value', 'Max Decline']
   capital_table = []
   for currency in ['USD', 'RMB']:
     capital_table.append(
@@ -408,8 +411,9 @@ def PrintHoldingSecurities(all_records):
       str(myround(total_capital[currency] / 1000, 0)) + 'K',
       str(myround(total_investment[currency] / 1000, 0)) + 'K',
       str(myround((total_capital[currency] - total_investment[currency]) / 1000, 0)) + 'K',
-      str(myround(total_capital_cost[currency] / 100, 0)) + 'H',
+      str(myround(total_capital_cost[currency] / 1000, 0)) + 'K',
       str(myround(total_market_value[currency] / 1000, 0)) + 'K',
+      str(myround((total_market_value[currency] + 2 * total_capital[currency] - 2 * total_investment[currency]) * 100.0 / total_market_value[currency], 0)) + '%',
       ]
     )
   PrintTable(capital_header, capital_table, silent_column)

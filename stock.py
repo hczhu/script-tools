@@ -67,6 +67,7 @@ EX_RATE = {
   'RMB-RMB' : 1.0,
   'HKD-RMB' : 0.78,
   'USD-RMB' : 6.05,
+  'YEN-RMB' : 0.06,
 }
 
 CURRENCY = 'RMB'
@@ -143,6 +144,7 @@ def GetETFBookValue_02823():
     float,
     header)
 
+
 WATCH_LIST_ETF = {
   #安硕A50 ETF
   # http://hk.ishares.com/product_info/fund/overview/SEHK/2823.htm
@@ -183,6 +185,7 @@ BVPS = {
 }
 
 market_price_cache = {
+  '2432' : 2156.0,
 }
 
 ignored_keys = {
@@ -216,7 +219,7 @@ total_capital = defaultdict(int)
 total_capital_cost = defaultdict(int)
 
 total_investment = {
-  'RMB' : 0, 'USD' : 0, 'HKD' : 0,
+  'RMB' : 0, 'USD' : 0, 'HKD' : 0, 'YEN' : 0,
 }
 
 total_market_value = defaultdict(int)
@@ -337,7 +340,7 @@ def PrintHoldingSecurities(all_records):
     '#DT' : 1,
     'CC' : 1,
     'HCPS' : 1,
-    #'CPS' : 1,
+    'CPS' : 1,
     'NCF' : 1,
     #'Margin' : 1,
     #'HS' : 1,
@@ -392,7 +395,9 @@ def PrintHoldingSecurities(all_records):
   stat_records.append(summation)
   stat_records.sort(reverse = True)
   total_investment['USD'] += total_investment['HKD']
+  total_investment['USD'] += total_investment['YEN']
   total_market_value['USD'] += total_market_value['HKD']
+  total_market_value['USD'] += total_market_value['YEN']
   
   capital_header = ['Currency', 'Cash', 'Investment', 'Free Cash', 'Capital Cost', 'Market Value']
   capital_table = []

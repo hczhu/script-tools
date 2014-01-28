@@ -7,68 +7,25 @@ from datetime import time
 from collections import defaultdict
 import urllib2
 
-def CalOneStock(R, records):
-  capital_cost = 0.0
-  net_profit = 0.0
-  investment = 0.0
-  prev_date = date(2000, 1, 1)
-  holding_cost = 0.0
-  holding_shares = 0
-  records.sort()
-  day_trade_profit = 0
-  day_trade_net_shares = 0
-  sum_day_trade_profit = 0
-  day_trade_time = -1
-  sum_fee = 0
-  for cell in records:
-    currency = cell[7]
-    ex_rate = EX_RATE[currency + '-' + CURRENCY]
-    trans_date = date(int(cell[0][0:4]), int(cell[0][4:6]), int(cell[0][6:8]))
-    fee = sum(map(float, cell[6:7])) * ex_rate
-    sum_fee += fee
-    buy_shares = int(cell[5])
-    price = float(cell[4]) * ex_rate
-    value = -price * buy_shares - fee
-    if investment > 0.0:
-      diff_days = (trans_date - prev_date).days
-      capital_cost  += investment * R / 365 * diff_days
-    if prev_date == trans_date:
-      day_trade_net_shares += buy_shares
-      day_trade_profit += value
-    else:
-      if day_trade_net_shares == 0:
-        sum_day_trade_profit += day_trade_profit
-        day_trade_time += 1
-      day_trade_profit = value
-      day_trade_net_shares = buy_shares
+def GetValueFromUrl(url, feature_str, end_str, func, header = {}):
+  try:
+    request=urllib2.Request(url, headers=header)
+    content=urllib2.urlopen(request).read()
+    for fs in feature_str:
+      content = content[len(fs) + content.find(fs):]
+    return func(content[0:content.find(end_str)])
+  except Exception, e:
+    sys.stderr.write('Exception ' + str(e) +'\n')
+    sys.stderr.write('Failed to open url: ' + url + '\n')
+    return func('0.1')
 
-    investment -= value
-    #assert investment >= 0.0
-    net_profit += value
-    prev_date = trans_date
-    if buy_shares > 0:
-      assert value < 0.0
-      holding_cost = (holding_cost * holding_shares - value) / (holding_shares + buy_shares)
-    holding_shares += buy_shares
-    assert holding_shares >= 0.0
-  if investment > 0.0:
-    capital_cost  += investment * R / 365 *(date.today() - prev_date).days
-  if day_trade_net_shares == 0:
-    sum_day_trade_profit += day_trade_profit
-    day_trade_time += 1
-  return (net_profit, capital_cost, holding_shares, holding_cost, sum_day_trade_profit, day_trade_time, sum_fee)
-
-MIN_HOLD_RATIO = 0.5
-R = 0.10
-if len(sys.argv) > 1:
-  R = float(sys.argv[1]) / 100.0
-
-EX_RATE = {
-  'RMB-RMB' : 1.0,
-  'HKD-RMB' : 0.78,
-  'USD-RMB' : 6.05,
-  'YEN-RMB' : 0.06,
-}
+def GetETFBookValue_02822():
+  return GetValueFromUrl(
+    'http://www.csop.mdgms.com/iopv/nav.html?l=tc',
+    ['即日估計每基金單位資產淨值', '<td id="nIopvPriceHKD">'],
+    '</td>',
+    float,
+    {})
 
 CURRENCY = 'RMB'
 
@@ -106,25 +63,17 @@ WATCH_LIST_STOCK = {
 WATCH_LIST_CB = {
 }
 
-def GetValueFromUrl(url, feature_str, end_str, func, header = {}):
-  try:
-    request=urllib2.Request(url, headers=header)
-    content=urllib2.urlopen(request).read()
-    for fs in feature_str:
-      content = content[len(fs) + content.find(fs):]
-    return func(content[0:content.find(end_str)])
-  except Exception, e:
-    sys.stderr.write('Exception ' + str(e) +'\n')
-    sys.stderr.write('Failed to open url: ' + url + '\n')
-    return func('0.1')
+EX_RATE = {
+  'RMB-RMB' : 1.0,
+  'HKD-RMB' : 0.78,
+  'USD-RMB' : 6.05,
+  'YEN-RMB' : 0.06,
+}
 
-def GetETFBookValue_02822():
-  return GetValueFromUrl(
-    'http://www.csop.mdgms.com/iopv/nav.html?l=tc',
-    ['即日估計每基金單位資產淨值', '<td id="nIopvPriceHKD">'],
-    '</td>',
-    float,
-    {})
+MIN_HOLD_RATIO = 0.5
+R = 0.10
+if len(sys.argv) > 1:
+  R = float(sys.argv[1]) / 100.0
 
 WATCH_LIST_ETF = {
   #南方A50 ETF
@@ -216,6 +165,57 @@ total_investment = {
 
 total_market_value = defaultdict(int)
 
+def CalOneStock(R, records):
+  capital_cost = 0.0
+  net_profit = 0.0
+  investment = 0.0
+  prev_date = date(2000, 1, 1)
+  holding_cost = 0.0
+  holding_shares = 0
+  records.sort()
+  day_trade_profit = 0
+  day_trade_net_shares = 0
+  sum_day_trade_profit = 0
+  day_trade_time = -1
+  sum_fee = 0
+  for cell in records:
+    currency = cell[7]
+    ex_rate = EX_RATE[currency + '-' + CURRENCY]
+    trans_date = date(int(cell[0][0:4]), int(cell[0][4:6]), int(cell[0][6:8]))
+    fee = sum(map(float, cell[6:7])) * ex_rate
+    sum_fee += fee
+    buy_shares = int(cell[5])
+    price = float(cell[4]) * ex_rate
+    value = -price * buy_shares - fee
+    if investment > 0.0:
+      diff_days = (trans_date - prev_date).days
+      capital_cost  += investment * R / 365 * diff_days
+    if prev_date == trans_date:
+      day_trade_net_shares += buy_shares
+      day_trade_profit += value
+    else:
+      if day_trade_net_shares == 0:
+        sum_day_trade_profit += day_trade_profit
+        day_trade_time += 1
+      day_trade_profit = value
+      day_trade_net_shares = buy_shares
+
+    investment -= value
+    #assert investment >= 0.0
+    net_profit += value
+    prev_date = trans_date
+    if buy_shares > 0:
+      assert value < 0.0
+      holding_cost = (holding_cost * holding_shares - value) / (holding_shares + buy_shares)
+    holding_shares += buy_shares
+    assert holding_shares >= 0.0
+  if investment > 0.0:
+    capital_cost  += investment * R / 365 *(date.today() - prev_date).days
+  if day_trade_net_shares == 0:
+    sum_day_trade_profit += day_trade_profit
+    day_trade_time += 1
+  return (net_profit, capital_cost, holding_shares, holding_cost, sum_day_trade_profit, day_trade_time, sum_fee)
+
 def myround(x, n):
   if n == 0:
     return int(x)
@@ -269,6 +269,13 @@ def PrintTable(table_header, records, silent_column):
     else: print line
     print row
   print header
+
+# 'records_map' are an array of map.
+def PrintTableMap(table_header, records_map, silent_column):
+  records = []
+  for r in records_map:
+    records.append([r.get(col, '') for col in table_header])
+  PrintTable(table_header, records, silent_column)
 
 def GetRealTimeMarketPrice(code):
   url_prefix = 'http://xueqiu.com/S/'
@@ -348,10 +355,10 @@ def PrintHoldingSecurities(all_records):
     #'HS' : 1,
   }
 
-  stat_records = []
+  stat_records_map = []
   
-  summation = [0] * (len(table_header) - 1)
-  summation.append('Summary')
+  summation = {}
+  summation['Stock name'] = 'Summary'
   for key in all_records.keys():
     sys.stderr.write('Processing [' + key + ']\n')
     name = all_records[key][0][3]
@@ -364,6 +371,7 @@ def PrintHoldingSecurities(all_records):
       continue;
     investment = -net_profit
     total_investment[currency] += investment
+    if remain_stock <= 0: continue
     ex_rate = EX_RATE[currency + '-' + CURRENCY]
     mp, mp_pair_rmb, mv, CPS, change_rate, margin = 1, 1, 0, 0, '', 0
     mp = GetMarketPrice(key)
@@ -375,28 +383,36 @@ def PrintHoldingSecurities(all_records):
       CPS = myround(investment / ex_rate / remain_stock, 3)
       change_rate = '(' + str(myround((mp - holding_cps) / holding_cps * 100, 2)) + '%)'
     total_market_value[currency] += mv
-    margin = str(int((mv - investment + 30)/100)) + 'h(' + str(myround((mp - CPS) / mp * 100, 2)) + '%)'
-    record = [myround(mv, 0), myround(net_profit, 0),
-              myround(capital_cost, 0), len(all_records[key]), myround(txn_fee, 0),
-              myround(dtp, 0), dt,
-              remain_stock,
-              str(mp), #+ change_rate,
-              myround(GetPE(key, mp), 2),
-              myround(GetPS(key, mp), 2),
-              myround(GetPB(key, mp), 2),
-              str(myround(100.0 * (mp * ex_rate - mp_pair_rmb) / mp / ex_rate, 1)) + '%',
-              myround(holding_cps / ex_rate, 3),
-              str(CPS),
-              margin,
-              name + '(' + key + ')']
-    for i in range(7): summation[i] += record[i]
-    if remain_stock > 0:
-      stat_records.append(record)
+    margin = mv - investment
+    margin_lit = str(int((mv - investment + 30)/100)) + 'h(' + str(myround((mp - CPS) / mp * 100, 2)) + '%)'
+    record = {
+        'MV' : myround(mv, 0),
+        'NCF' : myround(net_profit, 0),
+        'CC' : myround(capital_cost, 0),
+        '#TxN' : len(all_records[key]),
+        'TNF' : myround(txn_fee, 0),
+        'DTP' : myround(dtp, 0),
+        '#DT' : dt,
+        'HS' : remain_stock,
+        'MP' : str(mp),
+        'P/E' : myround(GetPE(key, mp), 2),
+        'P/S' : myround(GetPS(key, mp), 2),
+        'P/B' : myround(GetPB(key, mp), 2),
+        'A2H-PR' : str(myround(100.0 * (mp * ex_rate - mp_pair_rmb) / mp / ex_rate, 1)) + '%',
+        'HCPS' : myround(holding_cps / ex_rate, 3),
+        'CPS' : str(CPS),
+        'rMargin' : margin,
+        'Margin' : margin_lit,
+        'Stock name' : name + '(' + key + ')',
+    }
+    stat_records_map.append(record)
+    for col in ['MV', 'NCF', 'CC', '#TxN', 'TNF', 'DTP', '#DT', 'rMargin']:
+      summation[col] = summation.get(col, 0) + record[col]
   
-  summation[14] = str(summation[0] + summation[1]) + '(' + str(myround( 100.0 * (summation[0] + summation[1]) / -summation[1], 2)) + '%)'
+  summation['Margin'] = str(summation['rMargin']) + '(' + str(myround( 100.0 * summation['rMargin'] / -summation['NCF'], 2)) + '%)'
   
-  stat_records.append(summation)
-  stat_records.sort(reverse = True)
+  stat_records_map.append(summation)
+  stat_records_map.sort(reverse = True, key = lambda record : record.get('MV', 0))
   total_investment['USD'] += total_investment['HKD']
   total_investment['USD'] += total_investment['YEN']
   total_market_value['USD'] += total_market_value['HKD']
@@ -417,7 +433,7 @@ def PrintHoldingSecurities(all_records):
       ]
     )
   PrintTable(capital_header, capital_table, silent_column)
-  PrintTable(table_header, stat_records, silent_column)
+  PrintTableMap(table_header, stat_records_map, silent_column)
 
 def PrintWatchedETF():
   table_header = ['Price',

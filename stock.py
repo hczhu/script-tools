@@ -99,9 +99,9 @@ EPS = {
   '510230' : 3.119 / 7.10,
   # 300ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
   '510300' : 2.289 / 10.06,
-  #南方A50ETF，数据来自上证月报的上证50PE，滞后
-  #http://www.sse.com.cn/researchpublications/publication/monthly/
-  '02822' : 8.8 / (1512 / 1661.41 * 8.68),
+  #南方A50ETF，数据来自sse 50ETF统计页面
+  # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
+  '02822' : 8.743 / 8.11,
   # 来自DeNA 2013H1财报估计
   '2432' : 199.51 * 4 / 3,
 }

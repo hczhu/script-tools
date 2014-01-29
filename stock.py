@@ -58,6 +58,15 @@ TARGET_MARKET_VALUE = {
 }
 
 WATCH_LIST_STOCK = {
+  '01398' : '工商银行H',
+  '01288' : '农业银行H',
+  '03988' : '中国银行H',
+  '00939' : '建设银行H',
+  '03968' : '招商银行H',
+  '01988' : '民生银行H',
+  '600015' : '民生银行',
+  '600000' : '浦发银行',
+  '601328' : '交通银行',
 }
 
 WATCH_LIST_CB = {
@@ -104,6 +113,10 @@ EPS = {
   '02822' : 8.743 / 8.11,
   # 来自DeNA 2013H1财报估计
   '2432' : 199.51 * 4 / 3,
+}
+
+# The portion of EPS used for dividend.
+DR = {
 }
 
 # Sales per share.
@@ -236,6 +249,11 @@ def GetPS(code, mp):
     return myround(mp / SPS[code], 1)
   return 0.0
 
+def GetDR(code, mp):
+  if code in DR and code in EPS:
+    return round(DR[code] * EPS[code] / mp, 3)
+  return 0.0
+  
 
 def GetPB(code, mp):
   if code in BVPS:
@@ -316,6 +334,13 @@ def GetMarketPriceInRMB(code):
     mp *= EX_RATE['USD-RMB']
   return mp
 
+def GetCurrency(code):
+  if code.isdigit() and code[0] == '0':
+    return 'HKD'
+  elif code.isalpha():
+    return 'USD'
+  return 'RMB'
+
 def ReadRecords(input):
   all_records = defaultdict(list)
   for line in input:
@@ -337,7 +362,7 @@ def PrintHoldingSecurities(all_records):
                   'P/E',
                   'P/S',
                   'P/B',
-                  'A2H-PR',
+                  'AH-discount',
                   'HCPS',
                   'CPS',
                   'Margin',
@@ -398,7 +423,7 @@ def PrintHoldingSecurities(all_records):
         'P/E' : myround(GetPE(key, mp), 2),
         'P/S' : myround(GetPS(key, mp), 2),
         'P/B' : myround(GetPB(key, mp), 2),
-        'A2H-PR' : str(myround(100.0 * (mp * ex_rate - mp_pair_rmb) / mp / ex_rate, 1)) + '%',
+        'AH-discount' : str(myround(100.0 * (mp_pair_rmb - mp * ex_rate ) / mp / ex_rate, 1)) + '%',
         'HCPS' : myround(holding_cps / ex_rate, 3),
         'CPS' : str(CPS),
         'rMargin' : margin,
@@ -451,6 +476,36 @@ def PrintWatchedETF():
         WATCH_LIST_ETF[code][1]])
   PrintTable(table_header, table, [])
 
+def PrintWatchedStocks():
+  table_header = ['MP',
+                  'P/E',
+                  'P/B',
+                  'P/S',
+                  'DR',
+                  'AH-discount',
+                  'Stock name']
+  table = []
+  for code in WATCH_LIST_STOCK.keys():
+    mp = GetMarketPrice(code)
+    record = {
+      'MP' : mp,
+      'P/E' : myround(GetPE(code, mp), 2),
+      'P/S' : myround(GetPS(code, mp), 2),
+      'P/B' : myround(GetPB(code, mp), 2),
+      'DR' :  myround(GetDR(code, mp), 2),
+      'Stock name' : WATCH_LIST_STOCK[code],
+    }
+    if code in AH_PAIR:
+      currency = GetCurrency(code)
+      ex_rate = EX_RATE[currency + '-' + CURRENCY]
+      mp_pair_rmb = GetMarketPriceInRMB(AH_PAIR[code])
+      record['AH-discount'] = str(myround(100.0 * (mp_pair_rmb - mp * ex_rate ) / mp / ex_rate, 1)) + '%',
+    table.append(record)
+  PrintTableMap(table_header, table, [])
+  
+
 PrintWatchedETF()
+
+PrintWatchedStocks()
 
 PrintHoldingSecurities(ReadRecords(sys.stdin))

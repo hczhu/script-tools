@@ -493,7 +493,7 @@ def PrintWatchedStocks():
       'P/S' : myround(GetPS(code, mp), 2),
       'P/B' : myround(GetPB(code, mp), 2),
       'DR' :  myround(GetDR(code, mp), 2),
-      'Stock name' : WATCH_LIST_STOCK[code],
+      'Stock name' : WATCH_LIST_STOCK[code] + '(' + code + ')',
     }
     if code in AH_PAIR:
       currency = GetCurrency(code)

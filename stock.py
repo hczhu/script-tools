@@ -497,12 +497,11 @@ def PrintWatchedStocks():
     }
     if code in AH_PAIR:
       currency = GetCurrency(code)
-      ex_rate = EX_RATE[currency + '-' + CURRENCY]
+      ex_rate = EX_RATE[currency + '-' + 'RMB']
       mp_pair_rmb = GetMarketPriceInRMB(AH_PAIR[code])
-      record['AH-discount'] = str(myround(100.0 * (mp_pair_rmb - mp * ex_rate ) / mp / ex_rate, 1)) + '%',
+      record['AH-discount'] = str(myround(100.0 * (mp_pair_rmb - mp * ex_rate ) / mp / ex_rate, 1)) + '%'
     table.append(record)
   PrintTableMap(table_header, table, [])
-  
 
 PrintWatchedETF()
 

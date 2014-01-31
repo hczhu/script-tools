@@ -443,7 +443,7 @@ def PrintHoldingSecurities(all_records):
   total_market_value['USD'] += total_market_value['HKD']
   total_market_value['USD'] += total_market_value['YEN']
   
-  capital_header = ['Currency', 'Cash', 'Investment', 'Free Cash', 'Capital Cost', 'Market Value', 'Max Decline']
+  capital_header = ['Currency', 'Cash', 'Investment', 'Free Cash', 'Capital Cost', 'Market Value', 'Max Decline', 'ROE']
   capital_table = []
   for currency in ['USD', 'RMB']:
     capital_table.append(
@@ -455,6 +455,7 @@ def PrintHoldingSecurities(all_records):
       str(myround(total_capital_cost[currency] / 1000, 0)) + 'K',
       str(myround(total_market_value[currency] / 1000, 0)) + 'K',
       str(myround((total_market_value[currency] + 2 * total_capital[currency] - 2 * total_investment[currency]) * 100.0 / total_market_value[currency], 0)) + '%',
+      str(myround((total_market_value[currency] - total_investment[currency] - total_capital_cost[currency]) * 100.0 / total_capital[currency], 0)) + '%',
       ]
     )
   PrintTable(capital_header, capital_table, silent_column)

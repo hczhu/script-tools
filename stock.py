@@ -80,9 +80,10 @@ EX_RATE = {
 }
 
 MIN_HOLD_RATIO = 0.5
-R = 0.10
+NO_RISK_RATE = 0.10
 if len(sys.argv) > 1:
-  R = float(sys.argv[1]) / 100.0
+  NO_RISK_RATE = float(sys.argv[1]) / 100.0
+LOAN_RATE = 0.016
 
 WATCH_LIST_ETF = {
   #南方A50 ETF
@@ -178,7 +179,7 @@ total_investment = {
 
 total_market_value = defaultdict(int)
 
-def CalOneStock(R, records):
+def CalOneStock(NO_RISK_RATE, records):
   capital_cost = 0.0
   net_profit = 0.0
   investment = 0.0
@@ -202,7 +203,7 @@ def CalOneStock(R, records):
     value = -price * buy_shares - fee
     if investment > 0.0:
       diff_days = (trans_date - prev_date).days
-      capital_cost  += investment * R / 365 * diff_days
+      capital_cost  += investment * NO_RISK_RATE / 365 * diff_days
     if prev_date == trans_date:
       day_trade_net_shares += buy_shares
       day_trade_profit += value
@@ -223,7 +224,7 @@ def CalOneStock(R, records):
     holding_shares += buy_shares
     assert holding_shares >= 0.0
   if investment > 0.0:
-    capital_cost  += investment * R / 365 *(date.today() - prev_date).days
+    capital_cost  += investment * NO_RISK_RATE / 365 *(date.today() - prev_date).days
   if day_trade_net_shares == 0:
     sum_day_trade_profit += day_trade_profit
     day_trade_time += 1
@@ -349,6 +350,37 @@ def ReadRecords(input):
   return all_records
 #sys.stderr.write('There are ' + str(len(all_records)) + ' records.\n')
 
+def GetIRR(market_value, cash_flow_records):
+  if len(cash_flow_records) == 0:
+    return 0.0
+  cash_flow_records.sort()
+  low, high = -1.0, 5.0
+  day_loan_rate = pow(LOAN_RATE + 1, 1.0 / 365)
+  now = date.today()
+  while low + 0.004 < high:
+    mid = (low + high) / 2
+    day_rate = pow(mid + 1, 1.0 / 365)
+    balance = 0
+    prev_date = cash_flow_records[0][0]
+    dcf = 0
+    for record in cash_flow_records:
+      if balance < 0:
+        balance *= pow(day_loan_rate, (record[0] - prev_date).days)
+      prev_date = record[0]
+      if record[1] in total_investment:
+        #invest money or withdraw cash
+        balance -= record[2]
+        dcf += record[2] * pow(day_rate, (now - record[0]).days)
+      else:
+        balance += record[2]
+    if balance < 0:
+      balance *= pow(day_loan_rate, (now - prev_date).days)
+    if balance + market_value + dcf > 0:
+      low = mid
+    else:
+      high = mid
+  return low
+
 def PrintHoldingSecurities(all_records):
   table_header = ['MV',
                   'NCF',
@@ -389,7 +421,7 @@ def PrintHoldingSecurities(all_records):
     name = all_records[key][0][3]
     currency = all_records[key][0][7]
     # All in CURRENCY
-    (net_profit, capital_cost, remain_stock, holding_cps, dtp, dt, txn_fee) = CalOneStock(R, all_records[key])
+    (net_profit, capital_cost, remain_stock, holding_cps, dtp, dt, txn_fee) = CalOneStock(NO_RISK_RATE, all_records[key])
     if key in total_investment:
       total_capital[currency] += -net_profit
       total_capital_cost[currency] += capital_cost
@@ -443,19 +475,37 @@ def PrintHoldingSecurities(all_records):
   total_market_value['USD'] += total_market_value['HKD']
   total_market_value['USD'] += total_market_value['YEN']
   
-  capital_header = ['Currency', 'Cash', 'Investment', 'Free Cash', 'Capital Cost', 'Market Value', 'Max Decline', 'ROE']
+  capital_header = ['Currency', 'Cash', 'Investment', 'Free Cash',
+                    'Capital Cost', 'Market Value', 'Max Decline', 'IRR']
   capital_table = []
+  # All are in CURRENCY
+  cash_flow = defaultdict(list)
+  for key in all_records.keys():
+    for cell in all_records[key]:
+      currency = cell[7]
+      ex_rate = EX_RATE[currency + '-' + CURRENCY]
+      trans_date = date(int(cell[0][0:4]), int(cell[0][4:6]), int(cell[0][6:8]))
+      fee = sum(map(float, cell[6:7])) * ex_rate
+      buy_shares = int(cell[5])
+      price = float(cell[4]) * ex_rate
+      value = -price * buy_shares - fee
+      cash_flow[currency].append([trans_date, key, value]);
+  
+  cash_flow['USD'] += cash_flow['HKD']
+  cash_flow['USD'] += cash_flow['YEN']
+  
   for currency in ['USD', 'RMB']:
     capital_table.append(
-      [
-      currency,
-      str(myround(total_capital[currency] / 1000, 0)) + 'K',
-      str(myround(total_investment[currency] / 1000, 0)) + 'K',
-      str(myround((total_capital[currency] - total_investment[currency]) / 1000, 0)) + 'K',
-      str(myround(total_capital_cost[currency] / 1000, 0)) + 'K',
-      str(myround(total_market_value[currency] / 1000, 0)) + 'K',
-      str(myround((total_market_value[currency] + 2 * total_capital[currency] - 2 * total_investment[currency]) * 100.0 / total_market_value[currency], 0)) + '%',
-      str(myround((total_market_value[currency] - total_investment[currency] - total_capital_cost[currency]) * 100.0 / total_capital[currency], 0)) + '%',
+        [
+        currency,
+        str(myround(total_capital[currency] / 1000, 0)) + 'K',
+        str(myround(total_investment[currency] / 1000, 0)) + 'K',
+        str(myround((total_capital[currency] - total_investment[currency]) / 1000, 0)) + 'K',
+        str(myround(total_capital_cost[currency] / 1000, 0)) + 'K',
+        str(myround(total_market_value[currency] / 1000, 0)) + 'K',
+        str(myround((total_market_value[currency] + 2 * total_capital[currency] - 2 * total_investment[currency]) * 100.0 / total_market_value[currency], 0)) + '%',
+        str(myround(GetIRR(total_market_value[currency],
+                           cash_flow[currency]) * 100, 2)) + '%',
       ]
     )
   PrintTable(capital_header, capital_table, silent_column)

@@ -118,6 +118,12 @@ EPS = {
 
 # The portion of EPS used for dividend.
 DR = {
+  # Apple once a quarter.
+  # 20140206 - 3.05
+  'AAPL' : 3.05 * 4,
+  # :DeNA once a year.
+  # 20140327 - 40.0
+  '2432' : 40.0,
 }
 
 # Sales per share.
@@ -251,8 +257,8 @@ def GetPS(code, mp):
   return 0.0
 
 def GetDR(code, mp):
-  if code in DR and code in EPS:
-    return round(DR[code] * EPS[code] / mp, 3)
+  if code in DR:
+    return round(DR[code] / mp, 3)
   return 0.0
   
 
@@ -394,6 +400,7 @@ def PrintHoldingSecurities(all_records):
                   'P/E',
                   'P/S',
                   'P/B',
+                  'DR',
                   'AH-discount',
                   'HCPS',
                   'CPS',
@@ -455,6 +462,7 @@ def PrintHoldingSecurities(all_records):
         'P/E' : myround(GetPE(key, mp), 2),
         'P/S' : myround(GetPS(key, mp), 2),
         'P/B' : myround(GetPB(key, mp), 2),
+        'DR' :  myround(GetDR(key, mp) * 100 , 2),
         'AH-discount' : str(myround(100.0 * (mp_pair_rmb - mp * ex_rate ) / mp / ex_rate, 1)) + '%',
         'HCPS' : myround(holding_cps / ex_rate, 3),
         'CPS' : str(CPS),
@@ -543,7 +551,7 @@ def PrintWatchedStocks():
       'P/E' : myround(GetPE(code, mp), 2),
       'P/S' : myround(GetPS(code, mp), 2),
       'P/B' : myround(GetPB(code, mp), 2),
-      'DR' :  myround(GetDR(code, mp), 2),
+      'DR' :  myround(GetDR(code, mp) * 100 , 2),
       'Stock name' : WATCH_LIST_STOCK[code] + '(' + code + ')',
     }
     if code in AH_PAIR:

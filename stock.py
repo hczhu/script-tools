@@ -520,7 +520,7 @@ def PrintHoldingSecurities(all_records):
   PrintTable(capital_header, capital_table, silent_column)
   net_asset = total_market_value['USD'] + total_market_value['RMB'] + total_capital['USD']  + total_capital['RMB'] - total_investment['USD'] - total_investment['RMB'];
   for record in stat_records_map:
-    record['Percent'] = str(myround(record['MV'] * 100 / net_asset, 0)) + '%'
+    record['Percent'] = str(myround(record['MV'] * 100 / net_asset, 1)) + '%'
   PrintTableMap(table_header, stat_records_map, silent_column)
 
 def PrintWatchedETF():

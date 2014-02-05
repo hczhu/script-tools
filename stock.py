@@ -113,7 +113,9 @@ EPS = {
   # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
   '02822' : 8.743 / 8.11,
   # 来自DeNA 2013H1财报估计
-  '2432' : 199.51 * 4 / 3,
+  # '2432' : 199.51 * 4 / 3,
+  # 来自DeNA 2013Q3财报估计，打八折
+  '2432' : 241.34 * 0.8,
 }
 
 # The portion of EPS used for dividend.
@@ -122,14 +124,17 @@ DR = {
   # 20140206 - 3.05
   'AAPL' : 3.05 * 4,
   # :DeNA once a year.
-  # 20140327 - 40.0
-  '2432' : 40.0,
+  # For FY2013
+  '2432' : 37.0,
 }
 
 # Sales per share.
 SPS = {
   # 来自DeNA 2013H1财报估计
-  '2432' : 143100 * 10**6 * 4 / 3 / 131402874,
+  # '2432' : 143100 * 10**6 * 4 / 3 / 131402874,
+  # Guidance for Full Year Ending March 31, 2014 (2013Q3 report)
+  # 打八折
+  '2432' : 182.6 * 10 ** 9 / 130828462 * 0.8,
 }
 
 # Esitmation at the end of 2013

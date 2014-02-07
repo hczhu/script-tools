@@ -406,7 +406,7 @@ def PrintHoldingSecurities(all_records):
                   'P/S',
                   'P/B',
                   'DR',
-                  'AHd',
+                  'AHD',
                   'HCPS',
                   'CPS',
                   'Margin',

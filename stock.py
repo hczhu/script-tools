@@ -406,7 +406,7 @@ def PrintHoldingSecurities(all_records):
                   'P/S',
                   'P/B',
                   'DR',
-                  'AH-discount',
+                  'AHD',
                   'HCPS',
                   'CPS',
                   'Margin',
@@ -469,7 +469,7 @@ def PrintHoldingSecurities(all_records):
         'P/S' : myround(GetPS(key, mp), 2),
         'P/B' : myround(GetPB(key, mp), 2),
         'DR' :  myround(GetDR(key, mp) * 100 , 2),
-        'AH-discount' : str(myround(100.0 * (mp_pair_rmb - mp * ex_rate ) / mp / ex_rate, 1)) + '%',
+        'AHD' : str(myround(100.0 * (mp_pair_rmb - mp * ex_rate ) / mp / ex_rate, 1)) + '%',
         'HCPS' : myround(holding_cps / ex_rate, 3),
         'CPS' : str(CPS),
         'rMargin' : margin,
@@ -550,7 +550,7 @@ def PrintWatchedStocks():
                   'P/B',
                   'P/S',
                   'DR',
-                  'AH-discount',
+                  'AHD',
                   'Stock name']
   table = []
   for code in WATCH_LIST_STOCK.keys():
@@ -567,7 +567,7 @@ def PrintWatchedStocks():
       currency = GetCurrency(code)
       ex_rate = EX_RATE[currency + '-' + 'RMB']
       mp_pair_rmb = GetMarketPriceInRMB(AH_PAIR[code])
-      record['AH-discount'] = str(myround(100.0 * (mp_pair_rmb - mp * ex_rate ) / mp / ex_rate, 1)) + '%'
+      record['AHD'] = str(myround(100.0 * (mp_pair_rmb - mp * ex_rate ) / mp / ex_rate, 1)) + '%'
     table.append(record)
   PrintTableMap(table_header, table, [])
 

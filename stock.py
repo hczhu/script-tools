@@ -68,6 +68,8 @@ WATCH_LIST_STOCK = {
   '600000' : '浦发银行',
   '601328' : '交通银行',
   '2432' : ':DeNA',
+  'FB' : 'Facebook',
+  'GOOG' : 'Google',
 }
 
 WATCH_LIST_CB = {
@@ -188,6 +190,8 @@ total_capital_cost = defaultdict(int)
 total_investment = {
   'RMB' : 0, 'USD' : 0, 'HKD' : 0, 'YEN' : 0,
 }
+
+total_transaction_fee = defaultdict(float)
 
 total_market_value = defaultdict(int)
 
@@ -442,6 +446,7 @@ def PrintHoldingSecurities(all_records):
       continue;
     investment = -net_profit
     total_investment[currency] += investment
+    total_transaction_fee[currency] += txn_fee
     ex_rate = EX_RATE[currency + '-' + CURRENCY]
     mp, mp_pair_rmb, mv, CPS, change_rate, margin = 1, 1, 0, 0, '', 0
     mp = GetMarketPrice(key)
@@ -489,10 +494,12 @@ def PrintHoldingSecurities(all_records):
   total_investment['USD'] += total_investment['YEN']
   total_market_value['USD'] += total_market_value['HKD']
   total_market_value['USD'] += total_market_value['YEN']
+  total_transaction_fee['USD'] += total_transaction_fee['HKD']
+  total_transaction_fee['USD'] += total_transaction_fee['YEN']
   
-  capital_header = ['Currency', 'Cash', 'Investment', 'Free Cash',
-                    'Capital Cost', 'Market Value', 'Max Decline', 'IRR']
-  capital_table = []
+  capital_header = ['Currency', 'Market Value', 'Cash', 'Investment', 'Free Cash',
+                    'Transaction Fee', 'Max Decline', 'IRR']
+  capital_table_map = []
   # All are in CURRENCY
   cash_flow = defaultdict(list)
   for key in all_records.keys():
@@ -510,20 +517,20 @@ def PrintHoldingSecurities(all_records):
   cash_flow['USD'] += cash_flow['YEN']
   
   for currency in ['USD', 'RMB']:
-    capital_table.append(
-        [
-        currency,
-        str(myround(total_capital[currency] / 1000, 0)) + 'K',
-        str(myround(total_investment[currency] / 1000, 0)) + 'K',
-        str(myround((total_capital[currency] - total_investment[currency]) / 1000, 0)) + 'K',
-        str(myround(total_capital_cost[currency] / 1000, 0)) + 'K',
-        str(myround(total_market_value[currency] / 1000, 0)) + 'K',
-        str(myround((total_market_value[currency] + 2 * total_capital[currency] - 2 * total_investment[currency]) * 100.0 / total_market_value[currency], 0)) + '%',
-        str(myround(GetIRR(total_market_value[currency],
-                           cash_flow[currency]) * 100, 2)) + '%',
-      ]
+    capital_table_map.append(
+        {
+        'Currency' : currency,
+        'Market Value' : str(myround(total_market_value[currency] / 1000, 0)) + 'K',
+        'Cash' : str(myround(total_capital[currency] / 1000, 0)) + 'K',
+        'Investment' : str(myround(total_investment[currency] / 1000, 0)) + 'K',
+        'Free Cash' : str(myround((total_capital[currency] - total_investment[currency]) / 1000, 0)) + 'K',
+        'Transaction Fee' : str(myround(total_transaction_fee[currency] / 100.0, 0)) + 'h(' +
+          str(myround(100.0 * total_transaction_fee[currency] / total_investment[currency], 2)) + '%)',
+        'Max Decline' : str(myround((total_market_value[currency] + 2 * total_capital[currency] - 2 * total_investment[currency]) * 100.0 / total_market_value[currency], 0)) + '%',
+        'IRR' : str(myround(GetIRR(total_market_value[currency], cash_flow[currency]) * 100, 2)) + '%',
+        }
     )
-  PrintTable(capital_header, capital_table, silent_column)
+  PrintTableMap(capital_header, capital_table_map, silent_column)
   net_asset = total_market_value['USD'] + total_market_value['RMB'] + total_capital['USD']  + total_capital['RMB'] - total_investment['USD'] - total_investment['RMB'];
   for record in stat_records_map:
     record['Percent'] = str(myround(record['MV'] * 100 / net_asset, 1)) + '%'

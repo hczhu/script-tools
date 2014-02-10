@@ -415,7 +415,7 @@ def PrintHoldingSecurities(all_records):
                   'Stock name']
   silent_column = {
     '#TxN' : 1,
-    'TNF' : 1,
+    #'TNF' : 1,
     'DTP' : 1,
     '#DT' : 1,
     'CC' : 1,
@@ -442,17 +442,16 @@ def PrintHoldingSecurities(all_records):
       continue;
     investment = -net_profit
     total_investment[currency] += investment
-    if remain_stock <= 0: continue
     ex_rate = EX_RATE[currency + '-' + CURRENCY]
     mp, mp_pair_rmb, mv, CPS, change_rate, margin = 1, 1, 0, 0, '', 0
     mp = GetMarketPrice(key)
     mp_pair_rmb = mp * ex_rate
-    if key in AH_PAIR:
-      mp_pair_rmb = GetMarketPriceInRMB(AH_PAIR[key])
     if remain_stock > 0 :
       mv = mp * remain_stock * ex_rate
       CPS = myround(investment / ex_rate / remain_stock, 3)
       change_rate = '(' + str(myround((mp - holding_cps) / holding_cps * 100, 2)) + '%)'
+      if key in AH_PAIR:
+        mp_pair_rmb = GetMarketPriceInRMB(AH_PAIR[key])
     total_market_value[currency] += mv
     margin = mv - investment
     margin_lit = str(int((mv - investment + 30)/100)) + 'h(' + str(myround((mp - CPS) / mp * 100, 2)) + '%)'
@@ -477,9 +476,10 @@ def PrintHoldingSecurities(all_records):
         'Margin' : margin_lit,
         'Stock name' : name + '(' + key + ')',
     }
-    stat_records_map.append(record)
     for col in ['MV', 'NCF', 'CC', '#TxN', 'TNF', 'DTP', '#DT', 'rMargin']:
       summation[col] = summation.get(col, 0) + record[col]
+    if remain_stock > 0:
+      stat_records_map.append(record)
   
   summation['Margin'] = str(summation['rMargin']) + '(' + str(myround( 100.0 * summation['rMargin'] / -summation['NCF'], 2)) + '%)'
   

@@ -7,9 +7,9 @@ from datetime import time
 from collections import defaultdict
 import urllib2
 
-def GetValueFromUrl(url, feature_str, end_str, func, header = {}):
+def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = False):
   try:
-    request=urllib2.Request(url, headers=header)
+    request=urllib2.Request(url)
     content=urllib2.urlopen(request).read()
     for fs in feature_str:
       content = content[len(fs) + content.find(fs):]
@@ -17,7 +17,8 @@ def GetValueFromUrl(url, feature_str, end_str, func, header = {}):
   except Exception, e:
     sys.stderr.write('Exception ' + str(e) +'\n')
     sys.stderr.write('Failed to open url: ' + url + '\n')
-    return func('0.1')
+    if throw_exp: raise
+    return func('0.0001')
 
 def GetETFBookValue_02822():
   return GetValueFromUrl(
@@ -69,6 +70,7 @@ WATCH_LIST_STOCK = {
   '601328' : '交通银行',
   '601318' : '中国平安',
   '00998' : '中信银行H',
+  '601998' : '中信银行',
   '06818' : '光大银行H',
   '2432' : ':DeNA',
   'FB' : 'Facebook',
@@ -153,14 +155,17 @@ BVPS = {
   '601166' : (14.51 * 10 - 5.7)/15 * ( 1 + 0.1),
 }
 
+# In the form of '2432' : [price, change].
 market_price_cache = {
-  #'2432' : 2156.0,
 }
 
 market_price_func = {
-  '2432' : lambda: GetValueFromUrl('http://jp.reuters.com/investing/quotes/quote?symbol=2432.T',
+  '2432' : lambda: [GetValueFromUrl('http://jp.reuters.com/investing/quotes/quote?symbol=2432.T',
                                    ['<div id="priceQuote">', '<span class="valueContent">'],
                                    '</span>', lambda s: float(s.replace(',', ''))),
+                    GetValueFromUrl('http://jp.reuters.com/investing/quotes/quote?symbol=2432.T',
+                                   ['<div class="title">前日比</div>', '%<span class="valueContent"><span class="pos">'],
+                                   '</span>', lambda s: float(s.replace(',', '')))]
 }
 
 ignored_keys = {
@@ -320,34 +325,38 @@ def PrintTableMap(table_header, records_map, silent_column):
 
 def GetRealTimeMarketPrice(code):
   url_prefix = 'http://xueqiu.com/S/'
-  feature_str = '<div class="currentInfo"><strong data-current="'
-  st_prefix = ['SH', 'SZ', '']
-  for i in range(1):
-    for pr in st_prefix:
-      url = url_prefix + pr + code
-      try:
-        content=urllib2.urlopen(url).read()
-        pos = content.find(feature_str)
-        if pos < 0: continue
-        pos += len(feature_str)
-        end = content[pos:].find('"') + pos
-        if end < 0: continue
-        return max(0.001, float(content[pos:end]))
-      except:
-        continue
-  return 0.001
+  price_feature_str = ['<div class="currentInfo"><strong data-current="']
+  price_end_str = '"'
+  change_feature_str = ['<span class="quote-percentage">&nbsp;&nbsp;(']
+  change_end_str = '%)'
+  for pr in ['SH', '', 'SZ']:
+    url = url_prefix + pr + code
+    try:
+      price = GetValueFromUrl(url, price_feature_str, price_end_str, float, True)
+      change = GetValueFromUrl(url, change_feature_str, change_end_str, float ,True)
+      return [price, change]
+    except:
+      continue
+  return [0.00001, 0.0]
 
 def GetMarketPrice(code):
   sys.stderr.write('Getting market price for ' + code + '\n')
   if code in market_price_cache:
-    return market_price_cache[code]
+    return market_price_cache[code][0]
   func = lambda: GetRealTimeMarketPrice(code)
   if code in market_price_func:
     func = market_price_func[code] 
   mp = func()
   market_price_cache[code] = mp
   sys.stderr.write('Got market price for ' + code + '\n')
-  return mp
+  return mp[0]
+
+def GetMarketPriceChange(code):
+  if code not in market_price_cache:
+    GetMarketPrice(code)
+  if code in market_price_cache:
+    return market_price_cache[code][1]
+  return 0.0
 
 def GetMarketPriceInRMB(code):
   mp = GetMarketPrice(code)
@@ -413,6 +422,7 @@ def PrintHoldingSecurities(all_records):
                   '#DT',
                   'HS',
                   'MP',
+                  'Chg',
                   'P/E',
                   'P/S',
                   'P/B',
@@ -430,7 +440,7 @@ def PrintHoldingSecurities(all_records):
     '#DT' : 1,
     'CC' : 1,
     'HCPS' : 1,
-    #'CPS' : 1,
+    'CPS' : 1,
     'NCF' : 1,
     #'Margin' : 1,
     #'HS' : 1,
@@ -454,10 +464,11 @@ def PrintHoldingSecurities(all_records):
     total_investment[currency] += investment
     total_transaction_fee[currency] += txn_fee
     ex_rate = EX_RATE[currency + '-' + CURRENCY]
-    mp, mp_pair_rmb, mv, CPS, change_rate, margin = 1, 1, 0, 0, '', 0
-    mp = GetMarketPrice(key)
-    mp_pair_rmb = mp * ex_rate
+    mp, chg, mp_pair_rmb, mv, CPS, change_rate, margin = 0.0001, 0, 1, 0, 0, '', 0
     if remain_stock > 0 :
+      mp = GetMarketPrice(key)
+      chg = GetMarketPriceChange(key)
+      mp_pair_rmb = mp * ex_rate
       mv = mp * remain_stock * ex_rate
       CPS = myround(investment / ex_rate / remain_stock, 3)
       change_rate = '(' + str(myround((mp - holding_cps) / holding_cps * 100, 2)) + '%)'
@@ -468,6 +479,7 @@ def PrintHoldingSecurities(all_records):
     margin_lit = str(int((mv - investment + 30)/100)) + 'h(' + str(myround((mp - CPS) / mp * 100, 2)) + '%)'
     record = {
         'MV' : myround(mv, 0),
+        'Chg' : str(round(chg, 1)) + '%',
         'NCF' : myround(net_profit, 0),
         'CC' : myround(capital_cost, 0),
         '#TxN' : len(all_records[key]),
@@ -544,6 +556,7 @@ def PrintHoldingSecurities(all_records):
 
 def PrintWatchedETF():
   table_header = ['Price',
+                  'Change',
                   'Real Value',
                   'Discount',
                   'P/E',
@@ -551,8 +564,8 @@ def PrintWatchedETF():
   table = []
   for code in WATCH_LIST_ETF.keys():
     if WATCH_LIST_ETF[code] != None:
-      price, real_value = GetMarketPrice(code), WATCH_LIST_ETF[code][0]()
-      table.append([price, real_value,
+      price, change, real_value = GetMarketPrice(code), GetMarketPriceChange(code), WATCH_LIST_ETF[code][0]()
+      table.append([price, str(round(change, 1)) + '%', real_value,
         str(myround((real_value - price) * 100 / real_value, 0)) + '%',
         GetPE(code, price),
         WATCH_LIST_ETF[code][1]])
@@ -560,6 +573,7 @@ def PrintWatchedETF():
 
 def PrintWatchedStocks():
   table_header = ['MP',
+                  'Change',
                   'P/E',
                   'P/B',
                   'P/S',
@@ -571,6 +585,7 @@ def PrintWatchedStocks():
     mp = GetMarketPrice(code)
     record = {
       'MP' : mp,
+      'Change' : str(GetMarketPriceChange(code)) + '%',
       'P/E' : myround(GetPE(code, mp), 2),
       'P/S' : myround(GetPS(code, mp), 2),
       'P/B' : myround(GetPB(code, mp), 2),

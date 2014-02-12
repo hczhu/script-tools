@@ -1,4 +1,3 @@
-
 set smartindent
 set tabstop=2
 set shiftwidth=2
@@ -14,12 +13,12 @@ set scrolloff=100
 "Use clipboard as default copy
 set clipboard=unnamedplus
 " mystuff
-au FileType php,cc,lex,cpp,c,java,python imap "" ""<Esc>ha
-au FileType php,cc,lex,cpp,c,java,python imap () ()<Esc>ha
-au FileType php,cc,lex,cpp,c,java,python imap [] []<Esc>ha
-au FileType php,cc,lex,cpp,c,java,python imap <> <><Esc>ha
-au FileType php,cc,lex,cpp,c,java,python imap '' ''<Esc>ha
-au FileType php,cc,lex,cpp,c,java imap { {<CR>}<Esc>O
+au FileType sh,php,cc,lex,cpp,c,java,python imap "" ""<Esc>ha
+au FileType sh,php,cc,lex,cpp,c,java,python imap () ()<Esc>ha
+au FileType sh,php,cc,lex,cpp,c,java,python imap [] []<Esc>ha
+au FileType sh,php,cc,lex,cpp,c,java,python imap <> <><Esc>ha
+au FileType sh,php,cc,lex,cpp,c,java,python imap '' ''<Esc>ha
+au FileType sh,php,cc,lex,cpp,c,java imap { {<CR>}<Esc>O
 "au FileType php,cpp,c,java,python map <C-r> :!gedit %<CR>
 map <F6> <Esc>elDyyp0dwi<BS> = vars.<Esc>j
 au FileType php,cpp,python map <F3> <Esc>0dwi<BS><Esc>
@@ -50,8 +49,10 @@ au FileType php,java map <F6> :!java -enableassertions -Xmx1024M %:r
 "au FileType php,tex set spell
 autocmd BufNewFile,BufRead *.html,*htm set spell
 command Cs !look <cword>
+command Fl !grep "^DEFINE_[a-zA-Z0-9]\+($(echo <cword> | sed 's/FLAGS_//')" % -A 3
 " Create a variable name for type: AaaBbbCaa ===> aaa_bbb_ccc
 map Va wbveyea <CR><Esc>O<Esc>p:.s/\([a-z]\)\([A-Z]\)/\1_\2/g<CR>VuA <Esc>JkJ
+map Fl wbiFLAGS_<Esc>
 "map <C-s> :!look <cword>
 "command Backup !suffix=`date | tr ' ' '-'`; echo $suffix; cp % .%-$suffix 
 
@@ -87,3 +88,12 @@ let g:ctrlp_clear_cache_on_exit = 0
 au FocusLost * silent! wa
 
 command GenerateTags !ctags -R *
+"
+"----- Tips ------
+":%s/\<\([A-Z]\)\>/tag_\1/g                Regular expression back reference
+"a3yy                                      Copy the following 3 lines to buffer a
+"ap                                        Paste the buffer a.
+"\r                                        new line
+":10go                                     jump to the position of byte offset 10
+":%s/^\([^a-z]\+\)\([a-z]\+\)/\1\U\2       Replace the first lower word to upper 
+"-----------------

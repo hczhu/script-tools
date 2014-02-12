@@ -164,8 +164,8 @@ market_price_func = {
                                    ['<div id="priceQuote">', '<span class="valueContent">'],
                                    '</span>', lambda s: float(s.replace(',', ''))),
                     GetValueFromUrl('http://jp.reuters.com/investing/quotes/quote?symbol=2432.T',
-                                   ['<div class="title">前日比</div>', '%<span class="valueContent"><span class="pos">'],
-                                   '</span>', lambda s: float(s.replace(',', '')))]
+                                   ['<div id="percentChange">', '<span class="valueContent"><span class="pos">'],
+                                   '%', lambda s: float(s.replace(',', '')))]
 }
 
 ignored_keys = {

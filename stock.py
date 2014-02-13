@@ -29,6 +29,7 @@ def GetETFBookValue_02822():
     {})
 
 CURRENCY = 'RMB'
+NO_RISK_RATE = 0.05
 
 MAX_OFFSET_PERCENT = 0.1
 TARGET_MARKET_VALUE = {
@@ -89,8 +90,6 @@ AH_PAIR = {
     '601328' : '03328',
     '601818' : '06818',
 }
-for key in AH_PAIR.keys():
-  AH_PAIR[AH_PAIR[key]] = key
 
 WATCH_LIST_CB = {
 }
@@ -102,10 +101,6 @@ EX_RATE = {
   'YEN-RMB' : 0.06,
 }
 
-MIN_HOLD_RATIO = 0.5
-NO_RISK_RATE = 0.10
-if len(sys.argv) > 1:
-  NO_RISK_RATE = float(sys.argv[1]) / 100.0
 LOAN_RATE = 0.016
 
 WATCH_LIST_ETF = {
@@ -130,7 +125,7 @@ EPS = {
 }
 
 # The portion of EPS used for dividend.
-DR = {
+DVPS = {
   # Apple once a quarter.
   # 20140206 - 3.05
   'AAPL' : 3.05 * 4,
@@ -164,7 +159,7 @@ market_price_func = {
                                    ['<div id="priceQuote">', '<span class="valueContent">'],
                                    '</span>', lambda s: float(s.replace(',', ''))),
                     GetValueFromUrl('http://jp.reuters.com/investing/quotes/quote?symbol=2432.T',
-                                   ['<div id="percentChange">', '<span class="valueContent"><span class="pos">'],
+                                   ['<div id="percentChange">', '<span class="valueContent"><span class="', '>'],
                                    '%', lambda s: float(s.replace(',', '')))]
 }
 
@@ -205,6 +200,22 @@ total_investment = {
 total_transaction_fee = defaultdict(float)
 
 total_market_value = defaultdict(int)
+
+def GetCurrency(code):
+  if code.isdigit() and code[0] == '0':
+    return 'HKD'
+  elif code.isalpha():
+    return 'USD'
+  return 'RMB'
+
+def InitAll():
+  for key in AH_PAIR.keys():
+    AH_PAIR[AH_PAIR[key]] = key
+  for dt in [EPS, DVPS, SPS, BVPS]:
+    for key in dt.keys():
+      if key in AH_PAIR:
+        dt[AH_PAIR[key]] = dt[key] * EX_RATE[GetCurrency(key) + '-' + GetCurrency[AH_PAIR[key]]]
+
 
 def CalOneStock(NO_RISK_RATE, records):
   capital_cost = 0.0
@@ -278,8 +289,8 @@ def GetPS(code, mp):
   return 0.0
 
 def GetDR(code, mp):
-  if code in DR:
-    return round(DR[code] / mp, 3)
+  if code in DVPS:
+    return round(DVPS[code] / mp, 3)
   return 0.0
   
 
@@ -289,6 +300,7 @@ def GetPB(code, mp):
   return 0.0
 
 def PrintOneLine(table_header, col_len, silent_column):
+  silent_column = set(silent_column)
   line = '|'
   for i in range(len(col_len)):
     if table_header[i] in silent_column: continue
@@ -296,6 +308,7 @@ def PrintOneLine(table_header, col_len, silent_column):
   return line
 
 def PrintTable(table_header, records, silent_column):
+  silent_column = set(silent_column)
   col_len = map(len, table_header)
   for cells in records:
     for i in range(len(cells)):
@@ -366,13 +379,6 @@ def GetMarketPriceInRMB(code):
     mp *= EX_RATE['USD-RMB']
   return mp
 
-def GetCurrency(code):
-  if code.isdigit() and code[0] == '0':
-    return 'HKD'
-  elif code.isalpha():
-    return 'USD'
-  return 'RMB'
-
 def ReadRecords(input):
   all_records = defaultdict(list)
   for line in input:
@@ -433,18 +439,20 @@ def PrintHoldingSecurities(all_records):
                   'Margin',
                   'Percent',
                   'Stock name']
-  silent_column = {
-    '#TxN' : 1,
-    #'TNF' : 1,
-    'DTP' : 1,
-    '#DT' : 1,
-    'CC' : 1,
-    'HCPS' : 1,
-    'CPS' : 1,
-    'NCF' : 1,
-    #'Margin' : 1,
-    #'HS' : 1,
-  }
+  silent_column = [
+    'MV',
+    'MP',
+    'HS',
+    '#TxN',
+    'TNF',
+    'DTP',
+    '#DT',
+    'CC',
+    'HCPS',
+    'CPS',
+    'NCF',
+    'Margin',
+  ]
 
   stat_records_map = []
   
@@ -548,11 +556,13 @@ def PrintHoldingSecurities(all_records):
         'IRR' : str(myround(GetIRR(total_market_value[currency], cash_flow[currency]) * 100, 2)) + '%',
         }
     )
-  PrintTableMap(capital_header, capital_table_map, silent_column)
+  
+  PrintTableMap(capital_header, capital_table_map, set())
   net_asset = total_market_value['USD'] + total_market_value['RMB'] + total_capital['USD']  + total_capital['RMB'] - total_investment['USD'] - total_investment['RMB'];
   for record in stat_records_map:
     record['Percent'] = str(myround(record['MV'] * 100 / net_asset, 1)) + '%'
-  PrintTableMap(table_header, stat_records_map, silent_column)
+  if 'hold' in set(sys.argv):
+    PrintTableMap(table_header, stat_records_map, silent_column)
 
 def PrintWatchedETF():
   table_header = ['Price',
@@ -569,7 +579,7 @@ def PrintWatchedETF():
         str(myround((real_value - price) * 100 / real_value, 0)) + '%',
         GetPE(code, price),
         WATCH_LIST_ETF[code][1]])
-  PrintTable(table_header, table, [])
+  PrintTable(table_header, table, ['Price'])
 
 def PrintWatchedStocks():
   table_header = ['MP',
@@ -598,10 +608,14 @@ def PrintWatchedStocks():
       mp_pair_rmb = GetMarketPriceInRMB(AH_PAIR[code])
       record['AHD'] = str(myround(100.0 * (mp_pair_rmb - mp * ex_rate ) / mp / ex_rate, 1)) + '%'
     table.append(record)
-  PrintTableMap(table_header, table, [])
+  PrintTableMap(table_header, table, ['MP'])
 
-PrintWatchedETF()
+InitAll()
 
-PrintWatchedStocks()
+if 'etf' in set(sys.argv):
+  PrintWatchedETF()
+
+if 'stock' in set(sys.argv):
+  PrintWatchedStocks()
 
 PrintHoldingSecurities(ReadRecords(sys.stdin))

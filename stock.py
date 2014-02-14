@@ -246,7 +246,7 @@ def GetXueqiuMarketPrice(code):
   url_prefix = 'http://xueqiu.com/S/'
   price_feature_str = ['<div class="currentInfo"><strong data-current="']
   price_end_str = '"'
-  change_feature_str = ['<span class="quote-percentage">&nbsp;&nbsp;(']
+  change_feature_str = ['<span class="quote-percentage">', '(']
   change_end_str = '%)'
   for pr in GetXueqiuUrlPrefix(code):
     url = url_prefix + pr + code

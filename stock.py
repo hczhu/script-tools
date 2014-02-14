@@ -319,7 +319,6 @@ def GetIRR(market_value, cash_flow_records):
 def GetAHDiscount(code):
   mp_rmb, mp_pair_rmb = GetMarketPriceInRMB(code), GetMarketPriceInRMB(AH_PAIR[code])
   return (mp_pair_rmb - mp_rmb) / mp_rmb
-  
 
 #--------------End of logic util functions---------------
 
@@ -395,7 +394,7 @@ def BuyBankH():
 def BuyCMBH():
   code = NAME_TO_CODE['招商银行H']
   dis = GetAHDiscount(code)
-  if dis > -0.005:
+  if dis > -0.01:
     return '@%.2f AH discount=%.1f%%'%(round(GetMarketPrice(code), 2), round(dis * 100, 1))
   return ''
 

@@ -131,9 +131,9 @@ WATCH_LIST_BANK = {
   '600015' : '民生银行',
   '601166' : '兴业银行',
   '600000' : '浦发银行',
-  '601328' : '交通银行',
-  '601998' : '中信银行',
-  '601818' : '光大银行',
+  #'601328' : '交通银行',
+  #'601998' : '中信银行',
+  #'601818' : '光大银行',
 }
 
 WATCH_LIST_INSURANCE = {
@@ -256,12 +256,12 @@ def myround(x, n):
 def GetPE(code, mp):
   if code in EPS:
     return myround(mp / EPS[code], 1)
-  return 1000.0
+  return float('inf')
 
 def GetPS(code, mp):
   if code in SPS:
     return myround(mp / SPS[code], 1)
-  return 1000.0
+  return float('inf')
 
 def GetDR(code, mp):
   if code in DVPS:
@@ -271,7 +271,7 @@ def GetDR(code, mp):
 def GetPB(code, mp):
   if code in BVPS:
     return mp / BVPS[code]
-  return 10000.0
+  return float('inf')
  
 def GetCAP(code, mp):
   if code in CAP:

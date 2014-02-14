@@ -80,7 +80,7 @@ DVPS = {
 
 #----------Beginning of crawler util functions-----------------
 
-def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = False):
+def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True):
   try:
     request=urllib2.Request(url)
     content=urllib2.urlopen(request).read()
@@ -91,7 +91,7 @@ def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = False):
     sys.stderr.write('Exception ' + str(e) +'\n')
     sys.stderr.write('Failed to open url: ' + url + '\n')
     if throw_exp: raise
-    return func('0.0001')
+    return func('0.0')
 
 def GetETFBookValue_02822():
   return GetValueFromUrl(
@@ -103,10 +103,13 @@ def GetETFBookValue_02822():
 
 def GetJapanStockPriceAndChange(code):
   url = 'http://jp.reuters.com/investing/quotes/quote?symbol=%s.T'%(str(code))
-  return (GetValueFromUrl(url, ['<div id="priceQuote">', '<span class="valueContent">'],
-                          '</span>', lambda s: float(s.replace(',', ''))),
-          GetValueFromUrl(url, ['<div id="percentChange">', '<span class="valueContent"><span class="', '>'],
-                          '%', lambda s: float(s.replace(',', ''))))
+  try:
+    return (GetValueFromUrl(url, ['<div id="priceQuote">', '<span class="valueContent">'],
+                            '</span>', lambda s: float(s.replace(',', ''))),
+            GetValueFromUrl(url, ['<div id="percentChange">', '<span class="valueContent"><span class="', '>'],
+                            '%', lambda s: float(s.replace(',', ''))))
+  except:
+    return [float('inf'), 0.0]
 
 #----------End of crawler util functions-----------------
 
@@ -292,12 +295,12 @@ def GetXueqiuMarketPrice(code):
   for pr in GetXueqiuUrlPrefix(code):
     url = url_prefix + pr + code
     try:
-      price = GetValueFromUrl(url, price_feature_str, price_end_str, float, True)
-      change = GetValueFromUrl(url, change_feature_str, change_end_str, float ,True)
+      price = GetValueFromUrl(url, price_feature_str, price_end_str, float)
+      change = GetValueFromUrl(url, change_feature_str, change_end_str, float)
       return [price, change]
     except:
       continue
-  return [0.00001, 0.0]
+  return [float('inf'), 0.0]
 
 def GetMarketPrice(code):
   sys.stderr.write('Getting market price for ' + code + '\n')

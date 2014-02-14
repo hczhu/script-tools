@@ -7,6 +7,8 @@ from datetime import time
 from collections import defaultdict
 import urllib2
 
+#----------Beginning of crawler util functions-----------------
+
 def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = False):
   try:
     request=urllib2.Request(url)
@@ -28,36 +30,27 @@ def GetETFBookValue_02822():
     float,
     {})
 
+def GetJapanStockPriceAndChange(code):
+  url = 'http://jp.reuters.com/investing/quotes/quote?symbol=%s.T'%(str(code))
+  return (GetValueFromUrl(url, ['<div id="priceQuote">', '<span class="valueContent">'],
+                          '</span>', lambda s: float(s.replace(',', ''))),
+          GetValueFromUrl(url, ['<div id="percentChange">', '<span class="valueContent"><span class="', '>'],
+                          '%', lambda s: float(s.replace(',', ''))))
+
+#----------End of crawler util functions-----------------
+
+#----------Begining of global variables------------------
+
 CURRENCY = 'RMB'
 NO_RISK_RATE = 0.05
+LOAN_RATE = 0.016
 
-MAX_OFFSET_PERCENT = 0.1
-TARGET_MARKET_VALUE = {
-    # 风险！不可能完全了解每个公司内部。
-    # 目前单指股票投资额不超过24万。
-    # 300ETF,融资买入，考虑买入杠杆基金。
-    '510300' : 300000,
-    # 招商银行，相对H股有较大折价，服务和口碑。
-    '600036' : 300000,
-    # 兴业银行
-    '601166' : 300000,
-    # 民生银行
-    '600016' : 1000,
-    # 浦发银行
-    '600000' : 50000,
-    # 民生银行H股，相对A股有较大折价。
-    '01988' : 300000,
-    # 金融ETF，银行开始差异化竞争，行业整体走下坡路，需要选择竞争力强的银行.
-    # 少量头寸作为机动资金，随时不计成本卖出
-    '510230' : 10000,
-    # 中国平安，观察仓位，需要理解保险业务，所谓牛市的放大器。
-    '601318' : 10000,
-    'FB' : 300000,
-    # 农业银行，财报较好，在年报前低点买入
-    '601288' : 100000,
-    # 中行转债，相当于先进仓位，银行股大跌是卖出补仓
-    '113001' : 300000,
+CODE_TO_NAME = {
 }
+
+NAME_TO_CODE = {
+}
+
 
 WATCH_LIST_STOCK = {
   '01398' : '工商银行H',
@@ -66,16 +59,18 @@ WATCH_LIST_STOCK = {
   '00939' : '建设银行H',
   '03968' : '招商银行H',
   '01988' : '民生银行H',
+  '00998' : '中信银行H',
+  '06818' : '光大银行H',
   '600015' : '民生银行',
   '600000' : '浦发银行',
   '601328' : '交通银行',
   '601318' : '中国平安',
-  '00998' : '中信银行H',
   '601998' : '中信银行',
-  '06818' : '光大银行H',
+  '601818' : '光大银行',
   '2432' : ':DeNA',
   'FB' : 'Facebook',
   'GOOG' : 'Google',
+  'AAPL' : 'Apple',
 }
 
 AH_PAIR = {
@@ -94,6 +89,9 @@ AH_PAIR = {
 WATCH_LIST_CB = {
 }
 
+CB_INFO = {
+}
+
 EX_RATE = {
   'RMB-RMB' : 1.0,
   'HKD-RMB' : 0.78,
@@ -101,14 +99,17 @@ EX_RATE = {
   'YEN-RMB' : 0.06,
 }
 
-LOAN_RATE = 0.016
-
 WATCH_LIST_ETF = {
   #南方A50 ETF
-  # http://www.csopasset.com/tchi/products/china_A50_etf.php
-  '02822' : (GetETFBookValue_02822, '南方A50'),
-  '510300': None,
+  '02822' : '南方A50',
+  '510300': 'iShare A50 ETF',
 } 
+
+ETF_BOOK_VALUE_FUNC = {
+  #南方A50 ETF
+  # http://www.csopasset.com/tchi/products/china_A50_etf.php
+  '02822' : GetETFBookValue_02822,
+}
 
 EPS = {
   #金融ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
@@ -155,12 +156,7 @@ market_price_cache = {
 }
 
 market_price_func = {
-  '2432' : lambda: [GetValueFromUrl('http://jp.reuters.com/investing/quotes/quote?symbol=2432.T',
-                                   ['<div id="priceQuote">', '<span class="valueContent">'],
-                                   '</span>', lambda s: float(s.replace(',', ''))),
-                    GetValueFromUrl('http://jp.reuters.com/investing/quotes/quote?symbol=2432.T',
-                                   ['<div id="percentChange">', '<span class="valueContent"><span class="', '>'],
-                                   '%', lambda s: float(s.replace(',', '')))]
+  '2432' : lambda: GetJapanStockPriceAndChange('2432'),
 }
 
 ignored_keys = {
@@ -199,14 +195,226 @@ total_investment = {
 
 total_transaction_fee = defaultdict(float)
 
-total_market_value = defaultdict(int)
+total_market_value = defaultdict(int) 
 
+#----------Begining of global variables------------------
+
+#--------------Beginning of logic util functions---------------
 def GetCurrency(code):
   if code.isdigit() and code[0] == '0':
     return 'HKD'
   elif code.isalpha():
     return 'USD'
   return 'RMB'
+
+def myround(x, n):
+  if n == 0:
+    return int(x)
+  return round(x, n)
+
+def myround(x, n):
+  if n == 0:
+    return int(x)
+  return round(x, n)
+
+def GetPE(code, mp):
+  if code in EPS:
+    return myround(mp / EPS[code], 1)
+  return 0.0
+
+def GetPS(code, mp):
+  if code in SPS:
+    return myround(mp / SPS[code], 1)
+  return 0.0
+
+def GetDR(code, mp):
+  if code in DVPS:
+    return round(DVPS[code] / mp, 3)
+  return 0.0
+  
+def GetPB(code, mp):
+  if code in BVPS:
+    return mp / BVPS[code]
+  return 0.0
+
+def GetXueqiuUrlPrefix(code):
+  currency = GetCurrency(code)
+  if currency == 'RMB': return ['SH', 'SZ']
+  return ['']
+
+def GetXueqiuMarketPrice(code):
+  url_prefix = 'http://xueqiu.com/S/'
+  price_feature_str = ['<div class="currentInfo"><strong data-current="']
+  price_end_str = '"'
+  change_feature_str = ['<span class="quote-percentage">&nbsp;&nbsp;(']
+  change_end_str = '%)'
+  for pr in GetXueqiuUrlPrefix(code):
+    url = url_prefix + pr + code
+    try:
+      price = GetValueFromUrl(url, price_feature_str, price_end_str, float, True)
+      change = GetValueFromUrl(url, change_feature_str, change_end_str, float ,True)
+      return [price, change]
+    except:
+      continue
+  return [0.00001, 0.0]
+
+def GetMarketPrice(code):
+  sys.stderr.write('Getting market price for ' + code + '\n')
+  if code in market_price_cache:
+    return market_price_cache[code][0]
+  func = lambda: GetXueqiuMarketPrice(code)
+  if code in market_price_func:
+    func = market_price_func[code] 
+  mp = func()
+  market_price_cache[code] = mp
+  sys.stderr.write('Got market price for ' + code + '\n')
+  return mp[0]
+
+def GetMarketPriceChange(code):
+  if code not in market_price_cache:
+    GetMarketPrice(code)
+  if code in market_price_cache:
+    return market_price_cache[code][1]
+  return 0.0
+
+def GetMarketPriceInRMB(code):
+  mp = GetMarketPrice(code)
+  if code.isdigit() and code[0] == '0':
+    mp *= EX_RATE['HKD-RMB']
+  elif not code.isdigit():
+    mp *= EX_RATE['USD-RMB']
+  return mp
+
+def GetIRR(market_value, cash_flow_records):
+  if len(cash_flow_records) == 0:
+    return 0.0
+  cash_flow_records.sort()
+  low, high = -1.0, 5.0
+  day_loan_rate = pow(LOAN_RATE + 1, 1.0 / 365)
+  now = date.today()
+  while low + 0.004 < high:
+    mid = (low + high) / 2
+    day_rate = pow(mid + 1, 1.0 / 365)
+    balance = 0
+    prev_date = cash_flow_records[0][0]
+    dcf = 0
+    for record in cash_flow_records:
+      if balance < 0:
+        balance *= pow(day_loan_rate, (record[0] - prev_date).days)
+      prev_date = record[0]
+      if record[1] in total_investment:
+        #invest money or withdraw cash
+        balance -= record[2]
+        dcf += record[2] * pow(day_rate, (now - record[0]).days)
+      else:
+        balance += record[2]
+    if balance < 0:
+      balance *= pow(day_loan_rate, (now - prev_date).days)
+    if balance + market_value + dcf > 0:
+      low = mid
+    else:
+      high = mid
+  return low
+
+def GetAHDiscount(code):
+  mp_rmb, mp_pair_rmb = GetMarketPriceInRMB(code), GetMarketPriceInRMB(AH_PAIR[code])
+  return (mp_pair_rmb - mp_rmb) / mp_rmb
+  
+
+#--------------End of logic util functions---------------
+
+#--------------Beginning of print functions-------------
+
+def PrintOneLine(table_header, col_len, silent_column):
+  silent_column = set(silent_column)
+  line = '|'
+  for i in range(len(col_len)):
+    if table_header[i] in silent_column: continue
+    line += '-' * col_len[i] + '|'
+  return line
+
+def PrintTable(table_header, records, silent_column):
+  silent_column = set(silent_column)
+  col_len = map(len, table_header)
+  for cells in records:
+    for i in range(len(cells)):
+      col_len[i] = max(col_len[i], len(str(cells[i])))
+  line = PrintOneLine(table_header, col_len, silent_column)
+  header = '+' + line[1:len(line) - 1] + '+'
+  print header
+  records.insert(0, table_header)
+  first = True
+  for cells in records:
+    assert len(cells) == len(records[0])
+    row = '|'
+    for i in range(len(cells)):
+      if table_header[i] in silent_column: continue
+      row += (' ' * (col_len[i] - len(str(cells[i])))) + str(cells[i]) + '|'
+    if first: first = False
+    else: print line
+    print row
+  print header
+
+# 'records_map' are an array of map.
+def PrintTableMap(table_header, records_map, silent_column):
+  records = []
+  for r in records_map:
+    records.append([r.get(col, '') for col in table_header])
+  PrintTable(table_header, records, silent_column)
+
+#--------------End of print functions-------------
+
+#--------------Beginning of strategy functions-----
+
+def BuyApple():
+  code = NAME_TO_CODE['Apple']
+  price, change = GetMarketPrice(code), GetMarketPriceChange(code)
+  dr = GetDR(code, price)
+  if dr > 0.02 and change < -0.01:
+    return '@%.1f, DR = %.1f%%, Change = %.1f%%'%(round(price, 2), round(dr * 100.0, 1), round(change * 100.0, 1))
+  return ''
+
+def BuyBankH():
+  codes = map(lambda name : NAME_TO_CODE[name],
+              [
+               '中国银行H',
+               '工商银行H',
+               '建设银行H',
+               '农业银行H',
+              ])
+  discount, buy = -1, ''
+  for code in codes:
+    dis = GetAHDiscount(code)
+    if dis > discount:
+      discount = dis
+      buy = code
+  if discount > 0:
+    return '%s @%.2f AH discount=%.1f%%'%(CODE_TO_NAME[buy], round(GetMarketPrice(buy), 2), round(discount * 100.0, 1))
+  return ''
+
+def BuyCMBH():
+  code = NAME_TO_CODE['招商银行H']
+  dis = GetAHDiscount(code)
+  if dis > -0.005:
+    return '@%.2f AH discount=%.1f%%'%(round(GetMarketPrice(code), 2), round(dis * 100, 1))
+  return ''
+
+def BuyDeNA():
+  code = NAME_TO_CODE[':DeNA']
+  mp, change = GetMarketPrice(code), GetMarketPriceChange(code)
+  pe = GetPE(code, mp)
+  if pe < 8.0 and change < -.02:
+    return '@%.2f PE = %.1f DR = %.1f%%'%(round(mp, 1), round(pe, 1), round(GetDR(code, mp) * 100, 1))
+  return ''
+
+STRATEGY_FUNCS = {
+  BuyApple : 'Buy Apple',
+  BuyBankH : 'Buy 四大行H股',
+  BuyDeNA :  'Buy :DeNA',
+  BuyCMBH :  'Buy 招商银行H',
+}
+
+#--------------End of strategy functions-----
 
 def InitAll():
   for key in AH_PAIR.keys():
@@ -215,7 +423,19 @@ def InitAll():
     for key in dt.keys():
       if key in AH_PAIR:
         dt[AH_PAIR[key]] = dt[key] * EX_RATE[GetCurrency(key) + '-' + GetCurrency[AH_PAIR[key]]]
-
+  for dt in [WATCH_LIST_STOCK, WATCH_LIST_ETF, WATCH_LIST_CB]:
+    for code in dt.keys():
+      CODE_TO_NAME[code] = dt[code]
+      if code in AH_PAIR:
+        CODE_TO_NAME[AH_PAIR[code]] = dt[code] + 'H'
+  for code in CODE_TO_NAME.keys():
+    NAME_TO_CODE[CODE_TO_NAME[code]] = code
+  if 'all' in set(sys.argv):
+    sys.argv += ['stock', 'hold', 'etf', 'Margin']
+  for pr in EX_RATE.keys():
+    currencies = pr.split('-')
+    assert(len(currencies) == 2)
+    EX_RATE[currencies[1] + '-' + currencies[0]] = 1.0 / EX_RATE[pr]
 
 def CalOneStock(NO_RISK_RATE, records):
   capital_cost = 0.0
@@ -268,155 +488,12 @@ def CalOneStock(NO_RISK_RATE, records):
     day_trade_time += 1
   return (net_profit, capital_cost, holding_shares, holding_cost, sum_day_trade_profit, day_trade_time, sum_fee)
 
-def myround(x, n):
-  if n == 0:
-    return int(x)
-  return round(x, n)
-
-def myround(x, n):
-  if n == 0:
-    return int(x)
-  return round(x, n)
-
-def GetPE(code, mp):
-  if code in EPS:
-    return myround(mp / EPS[code], 1)
-  return 0.0
-
-def GetPS(code, mp):
-  if code in SPS:
-    return myround(mp / SPS[code], 1)
-  return 0.0
-
-def GetDR(code, mp):
-  if code in DVPS:
-    return round(DVPS[code] / mp, 3)
-  return 0.0
-  
-
-def GetPB(code, mp):
-  if code in BVPS:
-    return mp / BVPS[code]
-  return 0.0
-
-def PrintOneLine(table_header, col_len, silent_column):
-  silent_column = set(silent_column)
-  line = '|'
-  for i in range(len(col_len)):
-    if table_header[i] in silent_column: continue
-    line += '-' * col_len[i] + '|'
-  return line
-
-def PrintTable(table_header, records, silent_column):
-  silent_column = set(silent_column)
-  col_len = map(len, table_header)
-  for cells in records:
-    for i in range(len(cells)):
-      col_len[i] = max(col_len[i], len(str(cells[i])))
-  line = PrintOneLine(table_header, col_len, silent_column)
-  header = '+' + line[1:len(line) - 1] + '+'
-  print header
-  records.insert(0, table_header)
-  first = True
-  for cells in records:
-    assert len(cells) == len(records[0])
-    row = '|'
-    for i in range(len(cells)):
-      if table_header[i] in silent_column: continue
-      row += (' ' * (col_len[i] - len(str(cells[i])))) + str(cells[i]) + '|'
-    if first: first = False
-    else: print line
-    print row
-  print header
-
-# 'records_map' are an array of map.
-def PrintTableMap(table_header, records_map, silent_column):
-  records = []
-  for r in records_map:
-    records.append([r.get(col, '') for col in table_header])
-  PrintTable(table_header, records, silent_column)
-
-def GetRealTimeMarketPrice(code):
-  url_prefix = 'http://xueqiu.com/S/'
-  price_feature_str = ['<div class="currentInfo"><strong data-current="']
-  price_end_str = '"'
-  change_feature_str = ['<span class="quote-percentage">&nbsp;&nbsp;(']
-  change_end_str = '%)'
-  for pr in ['SH', '', 'SZ']:
-    url = url_prefix + pr + code
-    try:
-      price = GetValueFromUrl(url, price_feature_str, price_end_str, float, True)
-      change = GetValueFromUrl(url, change_feature_str, change_end_str, float ,True)
-      return [price, change]
-    except:
-      continue
-  return [0.00001, 0.0]
-
-def GetMarketPrice(code):
-  sys.stderr.write('Getting market price for ' + code + '\n')
-  if code in market_price_cache:
-    return market_price_cache[code][0]
-  func = lambda: GetRealTimeMarketPrice(code)
-  if code in market_price_func:
-    func = market_price_func[code] 
-  mp = func()
-  market_price_cache[code] = mp
-  sys.stderr.write('Got market price for ' + code + '\n')
-  return mp[0]
-
-def GetMarketPriceChange(code):
-  if code not in market_price_cache:
-    GetMarketPrice(code)
-  if code in market_price_cache:
-    return market_price_cache[code][1]
-  return 0.0
-
-def GetMarketPriceInRMB(code):
-  mp = GetMarketPrice(code)
-  if code.isdigit() and code[0] == '0':
-    mp *= EX_RATE['HKD-RMB']
-  elif not code.isdigit():
-    mp *= EX_RATE['USD-RMB']
-  return mp
-
 def ReadRecords(input):
   all_records = defaultdict(list)
   for line in input:
     cells = line.strip().split(',')
     all_records[cells[2]].append(cells)
   return all_records
-#sys.stderr.write('There are ' + str(len(all_records)) + ' records.\n')
-
-def GetIRR(market_value, cash_flow_records):
-  if len(cash_flow_records) == 0:
-    return 0.0
-  cash_flow_records.sort()
-  low, high = -1.0, 5.0
-  day_loan_rate = pow(LOAN_RATE + 1, 1.0 / 365)
-  now = date.today()
-  while low + 0.004 < high:
-    mid = (low + high) / 2
-    day_rate = pow(mid + 1, 1.0 / 365)
-    balance = 0
-    prev_date = cash_flow_records[0][0]
-    dcf = 0
-    for record in cash_flow_records:
-      if balance < 0:
-        balance *= pow(day_loan_rate, (record[0] - prev_date).days)
-      prev_date = record[0]
-      if record[1] in total_investment:
-        #invest money or withdraw cash
-        balance -= record[2]
-        dcf += record[2] * pow(day_rate, (now - record[0]).days)
-      else:
-        balance += record[2]
-    if balance < 0:
-      balance *= pow(day_loan_rate, (now - prev_date).days)
-    if balance + market_value + dcf > 0:
-      low = mid
-    else:
-      high = mid
-  return low
 
 def PrintHoldingSecurities(all_records):
   table_header = ['MV',
@@ -451,8 +528,9 @@ def PrintHoldingSecurities(all_records):
     'HCPS',
     'CPS',
     'NCF',
-    'Margin',
   ]
+  if 'Margin' not in set(sys.argv):
+    silent_column.append('Margin')
 
   stat_records_map = []
   
@@ -573,8 +651,8 @@ def PrintWatchedETF():
                   'Stock name']
   table = []
   for code in WATCH_LIST_ETF.keys():
-    if WATCH_LIST_ETF[code] != None:
-      price, change, real_value = GetMarketPrice(code), GetMarketPriceChange(code), WATCH_LIST_ETF[code][0]()
+    if code in ETF_BOOK_VALUE_FUNC:
+      price, change, real_value = GetMarketPrice(code), GetMarketPriceChange(code), ETF_BOOK_VALUE_FUNC[code]()
       table.append([price, str(round(change, 1)) + '%', real_value,
         str(myround((real_value - price) * 100 / real_value, 0)) + '%',
         GetPE(code, price),
@@ -610,6 +688,13 @@ def PrintWatchedStocks():
     table.append(record)
   PrintTableMap(table_header, table, ['MP'])
 
+def RunStrategies():
+  for strategy in STRATEGY_FUNCS.keys():
+    sys.stderr.write("Running straregy: %s\n"%(STRATEGY_FUNCS[strategy]))
+    suggestion = strategy()
+    if suggestion != '':
+      print '%s : %s'%(STRATEGY_FUNCS[strategy], suggestion)
+
 InitAll()
 
 if 'etf' in set(sys.argv):
@@ -618,4 +703,7 @@ if 'etf' in set(sys.argv):
 if 'stock' in set(sys.argv):
   PrintWatchedStocks()
 
-PrintHoldingSecurities(ReadRecords(sys.stdin))
+if 'quiet' not in set(sys.argv):
+  PrintHoldingSecurities(ReadRecords(sys.stdin))
+
+RunStrategies()

@@ -129,10 +129,11 @@ EPS = {
 DVPS = {
   # Apple once a quarter.
   # 20140206 - 3.05
-  'AAPL' : 3.05 * 4,
+  # Tax rate 0.1
+  'AAPL' : 3.05 * 4 * 0.9,
   # :DeNA once a year.
   # For FY2013
-  '2432' : 37.0,
+  '2432' : 37.0 * 0.9,
 }
 
 # Sales per share.
@@ -369,8 +370,8 @@ def BuyApple():
   code = NAME_TO_CODE['Apple']
   price, change = GetMarketPrice(code), GetMarketPriceChange(code)
   dr = GetDR(code, price)
-  if dr > 0.02 and change < -0.01:
-    return '@%.1f, DR = %.1f%%, Change = %.1f%%'%(round(price, 2), round(dr * 100.0, 1), round(change * 100.0, 1))
+  if dr > 0.02 and change < -1:
+    return '@%.1f, DR = %.1f%%, Change = %.1f%%'%(round(price, 2), round(dr * 100.0, 1), round(change, 1))
   return ''
 
 def BuyBankH():
@@ -402,7 +403,7 @@ def BuyDeNA():
   code = NAME_TO_CODE[':DeNA']
   mp, change = GetMarketPrice(code), GetMarketPriceChange(code)
   pe = GetPE(code, mp)
-  if pe < 8.0 and change < -.02:
+  if pe < 8.0 and change < -2:
     return '@%.2f PE = %.1f DR = %.1f%%'%(round(mp, 1), round(pe, 1), round(GetDR(code, mp) * 100, 1))
   return ''
 

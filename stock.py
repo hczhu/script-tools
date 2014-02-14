@@ -15,6 +15,10 @@ SHARES = {
   '600036' : 25219845680,
 }
 
+# 最大市值估计
+CAP = {
+}
+
 BVPS = {
   # 兴业银行，7月份10送5分红5.7 再乘以估计的ROE
   '601166' : (14.51 * 10 - 5.7)/15 * ( 1 + 0.1),
@@ -118,22 +122,26 @@ CODE_TO_NAME = {
 NAME_TO_CODE = {
 }
 
-
-WATCH_LIST_STOCK = {
-  '01398' : '工商银行H',
-  '01288' : '农业银行H',
-  '03988' : '中国银行H',
-  '00939' : '建设银行H',
-  '03968' : '招商银行H',
-  '01988' : '民生银行H',
-  '00998' : '中信银行H',
-  '06818' : '光大银行H',
+WATCH_LIST_BANK = {
+  '601398' : '工商银行',
+  '601288' : '农业银行',
+  '601988' : '中国银行',
+  '601939' : '建设银行',
+  '600036' : '招商银行',
   '600015' : '民生银行',
+  '601166' : '兴业银行',
   '600000' : '浦发银行',
   '601328' : '交通银行',
-  '601318' : '中国平安',
   '601998' : '中信银行',
   '601818' : '光大银行',
+}
+
+WATCH_LIST_INSURANCE = {
+  '601318' : '中国平安',
+  '601336' : '新华保险',
+}
+
+WATCH_LIST_INTERNET = {
   '2432' : ':DeNA',
   'FB' : 'Facebook',
   'GOOG' : 'Google',
@@ -151,6 +159,7 @@ AH_PAIR = {
     '601998' : '00998',
     '601328' : '03328',
     '601818' : '06818',
+    '601336' : '01336',
 }
 
 WATCH_LIST_CB = {
@@ -247,12 +256,12 @@ def myround(x, n):
 def GetPE(code, mp):
   if code in EPS:
     return myround(mp / EPS[code], 1)
-  return 0.0
+  return 1000.0
 
 def GetPS(code, mp):
   if code in SPS:
     return myround(mp / SPS[code], 1)
-  return 0.0
+  return 1000.0
 
 def GetDR(code, mp):
   if code in DVPS:
@@ -262,7 +271,12 @@ def GetDR(code, mp):
 def GetPB(code, mp):
   if code in BVPS:
     return mp / BVPS[code]
-  return 0.0
+  return 10000.0
+ 
+def GetCAP(code, mp):
+  if code in CAP:
+    return CAP[code]
+  return 0
 
 def GetXueqiuUrlPrefix(code):
   currency = GetCurrency(code)
@@ -343,9 +357,20 @@ def GetIRR(market_value, cash_flow_records):
       high = mid
   return low
 
-def GetAHDiscount(code):
+def GetAHDiscount(code, mp = 0):
+  if code not in AH_PAIR:
+     return 0
   mp_rmb, mp_pair_rmb = GetMarketPriceInRMB(code), GetMarketPriceInRMB(AH_PAIR[code])
   return (mp_pair_rmb - mp_rmb) / mp_rmb
+
+FINANCIAL_FUNC = {
+  'P/E' : GetPE,
+  'P/B' : GetPB,
+  'P/S' : GetPS,
+  'CAP' : GetCAP,
+  'AHD' : GetAHDiscount,
+  'DR' : GetDR,
+}
 
 #--------------End of logic util functions---------------
 
@@ -449,11 +474,16 @@ def InitAll():
     EX_RATE[currencies[1] + '-' + currencies[0]] = 1.0 / EX_RATE[pr]
   for key in AH_PAIR.keys():
     AH_PAIR[AH_PAIR[key]] = key
+  for dt in [WATCH_LIST_BANK, WATCH_LIST_INSURANCE]:
+    keys = dt.keys()
+    for code in keys:
+      if code in AH_PAIR:
+        dt[AH_PAIR[code]] = dt[code] + 'H'.encode('utf-8')
   for dt in [EPS, DVPS, SPS, BVPS]:
     for key in dt.keys():
       if key in AH_PAIR:
         dt[AH_PAIR[key]] = dt[key] * EX_RATE[GetCurrency(key) + '-' + GetCurrency(AH_PAIR[key])]
-  for dt in [WATCH_LIST_STOCK, WATCH_LIST_ETF, WATCH_LIST_CB]:
+  for dt in [WATCH_LIST_BANK, WATCH_LIST_INSURANCE, WATCH_LIST_INTERNET, WATCH_LIST_ETF, WATCH_LIST_CB]:
     for code in dt.keys():
       CODE_TO_NAME[code] = dt[code]
       if code in AH_PAIR:
@@ -685,34 +715,54 @@ def PrintWatchedETF():
         CODE_TO_NAME[code]])
   PrintTable(table_header, table, ['Price'])
 
-def PrintWatchedStocks():
-  table_header = ['MP',
+def PrintWatchedStocks(watch_list, table_header, sort_key, rev = False):
+  table = []
+  for code in watch_list.keys():
+    mp = GetMarketPrice(code)
+    record = {}
+    for col in table_header:
+      if col == 'Change':
+        record[col] = str(GetMarketPriceChange(code)) + '%'
+      elif col in FINANCIAL_FUNC:
+        record[col] = round(FINANCIAL_FUNC[col](code, mp), 2)
+      record['Stock name'] = watch_list[code] + ('(' + code + ')').encode('utf-8')
+    table.append(record)
+  table.sort(reverse = rev, key = lambda record : record.get(sort_key, 0))
+  PrintTableMap(table_header, table, [])
+
+def PrintWatchedBank():
+  table_header = [
+                  'Change',
+                  'P/E',
+                  'P/B',
+                  'DR',
+                  'AHD',
+                  'Stock name'
+                  ]
+  PrintWatchedStocks(WATCH_LIST_BANK, table_header, 'P/B')
+
+def PrintWatchedInsurance():
+  table_header = [
                   'Change',
                   'P/E',
                   'P/B',
                   'P/S',
                   'DR',
                   'AHD',
-                  'Stock name']
-  table = []
-  for code in WATCH_LIST_STOCK.keys():
-    mp = GetMarketPrice(code)
-    record = {
-      'MP' : mp,
-      'Change' : str(GetMarketPriceChange(code)) + '%',
-      'P/E' : myround(GetPE(code, mp), 2),
-      'P/S' : myround(GetPS(code, mp), 2),
-      'P/B' : myround(GetPB(code, mp), 2),
-      'DR' :  myround(GetDR(code, mp) * 100 , 2),
-      'Stock name' : WATCH_LIST_STOCK[code] + '(' + code + ')',
-    }
-    if code in AH_PAIR:
-      currency = GetCurrency(code)
-      ex_rate = EX_RATE[currency + '-' + 'RMB']
-      mp_pair_rmb = GetMarketPriceInRMB(AH_PAIR[code])
-      record['AHD'] = str(myround(100.0 * (mp_pair_rmb - mp * ex_rate ) / mp / ex_rate, 1)) + '%'
-    table.append(record)
-  PrintTableMap(table_header, table, ['MP'])
+                  'Stock name'
+                  ]
+  PrintWatchedStocks(WATCH_LIST_INSURANCE, table_header, 'P/S')
+
+def PrintWatchedInternet():
+  table_header = [
+                  'Change',
+                  'P/E',
+                  'P/S',
+                  'CAP',
+                  'DR',
+                  'Stock name'
+                  ]
+  PrintWatchedStocks(WATCH_LIST_INTERNET, table_header, 'CAP')
 
 def RunStrategies():
   for strategy in STRATEGY_FUNCS.keys():
@@ -726,8 +776,14 @@ InitAll()
 if 'etf' in set(sys.argv):
   PrintWatchedETF()
 
-if 'stock' in set(sys.argv):
-  PrintWatchedStocks()
+if 'stock' in set(sys.argv) or 'insurance' in set(sys.argv):
+  PrintWatchedInsurance()
+
+if 'stock' in set(sys.argv) or 'internet' in set(sys.argv):
+  PrintWatchedInternet()
+
+if 'stock' in set(sys.argv) or 'bank' in set(sys.argv):
+  PrintWatchedBank()
 
 if 'quiet' not in set(sys.argv):
   PrintHoldingSecurities(ReadRecords(sys.stdin))

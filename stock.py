@@ -7,6 +7,73 @@ from datetime import time
 from collections import defaultdict
 import urllib2
 
+#----------Beginning of manually upated financial data-------
+
+# Number of total shares
+SHARES = {
+  # 招商银行，2013年年末
+  '600036' : 25219845680,
+}
+
+BVPS = {
+  # 兴业银行，7月份10送5分红5.7 再乘以估计的ROE
+  '601166' : (14.51 * 10 - 5.7)/15 * ( 1 + 0.1),
+  # 招商银行, 2013年业绩快报数据
+  # 报告值
+  # 减去商誉
+  # 假定14年REO10%
+  # 除去不良资产带杠杆，杠杆从2012年末的17到13年末的15，不良率0.83%加上2013年的增量
+  # 除以股数
+  '600036' : ((265872 * 10**6)
+             - 9598 * 10**6)
+             * (1 + .1)
+             * (1 - (.83 / 100 + (0.83 / 100 - 0.61 / 100)) * (15 - (17 - 15)))
+             / SHARES['600036'],
+}
+
+# Sales per share.
+SPS = {
+  # 来自DeNA 2013H1财报估计
+  # '2432' : 143100 * 10**6 * 4 / 3 / 131402874,
+  # Guidance for Full Year Ending March 31, 2014 (2013Q3 report)
+  # 打八折
+  '2432' : 182.6 * 10 ** 9 / 130828462 * 0.8,
+}
+
+EPS = {
+  #金融ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
+  '510230' : 3.119 / 7.10,
+  # 300ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
+  '510300' : 2.289 / 10.06,
+  #南方A50ETF，数据来自sse 50ETF统计页面
+  # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
+  '02822' : 8.743 / 8.11,
+  # 来自DeNA 2013H1财报估计
+  # '2432' : 199.51 * 4 / 3,
+  # 来自DeNA 2013Q3财报估计，打八折
+  '2432' : 241.34 * 0.8,
+  # 招商银行, 2013年业绩快报数据
+  # 报告值
+  # 乘以报收预测增长
+  '600036' : 2.30 * (1 + 0.05),
+}
+
+# The portion of EPS used for dividend.
+DVPS = {
+  # Apple once a quarter.
+  # 20140206 - 3.05
+  # Tax rate 0.1
+  'AAPL' : 3.05 * 4 * 0.9,
+  # :DeNA once a year.
+  # For FY2013
+  '2432' : 37.0 * 0.9,
+  # 招商银行, 2013年业绩快报数据
+  # 假定30%分红率，税率10%.
+  '600036' : EPS['600036'] * 0.3 * 0.9,
+}
+
+#----------End of manually upated financial data-------
+
 #----------Beginning of crawler util functions-----------------
 
 def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = False):
@@ -109,47 +176,6 @@ ETF_BOOK_VALUE_FUNC = {
   #南方A50 ETF
   # http://www.csopasset.com/tchi/products/china_A50_etf.php
   '02822' : GetETFBookValue_02822,
-}
-
-EPS = {
-  #金融ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
-  '510230' : 3.119 / 7.10,
-  # 300ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
-  '510300' : 2.289 / 10.06,
-  #南方A50ETF，数据来自sse 50ETF统计页面
-  # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
-  '02822' : 8.743 / 8.11,
-  # 来自DeNA 2013H1财报估计
-  # '2432' : 199.51 * 4 / 3,
-  # 来自DeNA 2013Q3财报估计，打八折
-  '2432' : 241.34 * 0.8,
-}
-
-# The portion of EPS used for dividend.
-DVPS = {
-  # Apple once a quarter.
-  # 20140206 - 3.05
-  # Tax rate 0.1
-  'AAPL' : 3.05 * 4 * 0.9,
-  # :DeNA once a year.
-  # For FY2013
-  '2432' : 37.0 * 0.9,
-}
-
-# Sales per share.
-SPS = {
-  # 来自DeNA 2013H1财报估计
-  # '2432' : 143100 * 10**6 * 4 / 3 / 131402874,
-  # Guidance for Full Year Ending March 31, 2014 (2013Q3 report)
-  # 打八折
-  '2432' : 182.6 * 10 ** 9 / 130828462 * 0.8,
-}
-
-# Esitmation at the end of 2013
-# 2013H的值加上估计利润
-BVPS = {
-  # 兴业银行，7月份10送5分红5.7 再乘以估计的ROE
-  '601166' : (14.51 * 10 - 5.7)/15 * ( 1 + 0.1),
 }
 
 # In the form of '2432' : [price, change].
@@ -417,12 +443,16 @@ STRATEGY_FUNCS = {
 #--------------End of strategy functions-----
 
 def InitAll():
+  for pr in EX_RATE.keys():
+    currencies = pr.split('-')
+    assert(len(currencies) == 2)
+    EX_RATE[currencies[1] + '-' + currencies[0]] = 1.0 / EX_RATE[pr]
   for key in AH_PAIR.keys():
     AH_PAIR[AH_PAIR[key]] = key
   for dt in [EPS, DVPS, SPS, BVPS]:
     for key in dt.keys():
       if key in AH_PAIR:
-        dt[AH_PAIR[key]] = dt[key] * EX_RATE[GetCurrency(key) + '-' + GetCurrency[AH_PAIR[key]]]
+        dt[AH_PAIR[key]] = dt[key] * EX_RATE[GetCurrency(key) + '-' + GetCurrency(AH_PAIR[key])]
   for dt in [WATCH_LIST_STOCK, WATCH_LIST_ETF, WATCH_LIST_CB]:
     for code in dt.keys():
       CODE_TO_NAME[code] = dt[code]
@@ -432,10 +462,6 @@ def InitAll():
     NAME_TO_CODE[CODE_TO_NAME[code]] = code
   if 'all' in set(sys.argv):
     sys.argv += ['stock', 'hold', 'etf', 'Margin']
-  for pr in EX_RATE.keys():
-    currencies = pr.split('-')
-    assert(len(currencies) == 2)
-    EX_RATE[currencies[1] + '-' + currencies[0]] = 1.0 / EX_RATE[pr]
 
 def CalOneStock(NO_RISK_RATE, records):
   capital_cost = 0.0
@@ -656,7 +682,7 @@ def PrintWatchedETF():
       table.append([price, str(round(change, 1)) + '%', real_value,
         str(myround((real_value - price) * 100 / real_value, 0)) + '%',
         GetPE(code, price),
-        WATCH_LIST_ETF[code][1]])
+        CODE_TO_NAME[code]])
   PrintTable(table_header, table, ['Price'])
 
 def PrintWatchedStocks():

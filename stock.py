@@ -309,10 +309,13 @@ def GetMarketPrice(code):
   func = lambda: GetXueqiuMarketPrice(code)
   if code in market_price_func:
     func = market_price_func[code] 
-  mp = func()
-  market_price_cache[code] = mp
-  sys.stderr.write('Got market price for ' + code + '\n')
-  return mp[0]
+  try:
+    mp = func()
+    market_price_cache[code] = mp
+    sys.stderr.write('Got market price for ' + code + '\n')
+    return mp[0]
+  except:
+    return 0.0
 
 def GetMarketPriceChange(code):
   if code not in market_price_cache:
@@ -461,11 +464,19 @@ def BuyDeNA():
     return '@%.2f PE = %.1f DR = %.1f%%'%(round(mp, 1), round(pe, 1), round(GetDR(code, mp) * 100, 1))
   return ''
 
+def BuyMSBH():
+  code = NAME_TO_CODE['民生银行H']
+  mp, change, ahd = GetMarketPrice(code), GetMarketPriceChange(code), GetAHDiscount(code)
+  if ahd >= 0.3 and change < 2:
+    return '@%.2f AHD = %.1f%%'%(round(mp, 1), round(ahd * 100, 1))
+  return ''
+
 STRATEGY_FUNCS = {
   BuyApple : 'Buy Apple',
   BuyBankH : 'Buy 四大行H股',
   BuyDeNA :  'Buy :DeNA',
   BuyCMBH :  'Buy 招商银行H',
+  BuyMSBH : 'Buy 民生银行H',
 }
 
 #--------------End of strategy functions-----

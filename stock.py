@@ -12,7 +12,7 @@ import urllib2
 # Number of total shares
 SHARES = {
   # 招商银行，2013年年末
-  '600036' : 25219845680,
+  '招商银行' : 25219845680,
 }
 
 # 最大市值估计
@@ -21,18 +21,18 @@ CAP = {
 
 BVPS = {
   # 兴业银行，7月份10送5分红5.7 再乘以估计的ROE
-  '601166' : (14.51 * 10 - 5.7)/15 * ( 1 + 0.1),
+  '兴业银行' : (14.51 * 10 - 5.7)/15 * ( 1 + 0.1),
   # 招商银行, 2013年业绩快报数据
   # 报告值
   # 减去商誉
   # 假定14年REO10%
   # 除去不良资产带杠杆，杠杆从2012年末的17到13年末的15，不良率0.83%加上2013年的增量
   # 除以股数
-  '600036' : ((265872 * 10**6)
+  '招商银行' : ((265872 * 10**6)
              - 9598 * 10**6)
              * (1 + .1)
              * (1 - (.83 / 100 + (0.83 / 100 - 0.61 / 100)) * (15 - (17 - 15)))
-             / SHARES['600036'],
+             / SHARES['招商银行'],
 }
 
 # Sales per share.
@@ -41,25 +41,21 @@ SPS = {
   # '2432' : 143100 * 10**6 * 4 / 3 / 131402874,
   # Guidance for Full Year Ending March 31, 2014 (2013Q3 report)
   # 打八折
-  '2432' : 182.6 * 10 ** 9 / 130828462 * 0.8,
+  ':DeNA' : 182.6 * 10 ** 9 / 130828462 * 0.8,
 }
 
 EPS = {
-  #金融ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
-  '510230' : 3.119 / 7.10,
-  # 300ETF. From http://www.csindex.com.cn/sseportal/csiportal/indexquery.do
-  '510300' : 2.289 / 10.06,
   #南方A50ETF，数据来自sse 50ETF统计页面
   # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
-  '02822' : 8.743 / 8.11,
+  '南方A50' : 8.9306 / 8.27,
   # 来自DeNA 2013H1财报估计
   # '2432' : 199.51 * 4 / 3,
   # 来自DeNA 2013Q3财报估计，打八折
-  '2432' : 241.34 * 0.8,
+  ':DeNA' : 241.34 * 0.8,
   # 招商银行, 2013年业绩快报数据
   # 报告值
   # 乘以报收预测增长
-  '600036' : 2.30 * (1 + 0.05),
+  '招商银行' : 2.30 * (1 + 0.05),
 }
 
 # The portion of EPS used for dividend.
@@ -67,13 +63,13 @@ DVPS = {
   # Apple once a quarter.
   # 20140206 - 3.05
   # Tax rate 0.1
-  'AAPL' : 3.05 * 4 * 0.9,
+  'Apple' : 3.05 * 4 * 0.9,
   # :DeNA once a year.
   # For FY2013
-  '2432' : 37.0 * 0.9,
+  ':DeNA' : 37.0 * 0.9,
   # 招商银行, 2013年业绩快报数据
   # 假定30%分红率，税率10%.
-  '600036' : EPS['600036'] * 0.3 * 0.9,
+  '招商银行' : EPS['招商银行'] * 0.3 * 0.9,
 }
 
 #----------End of manually upated financial data-------
@@ -92,14 +88,6 @@ def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True):
     sys.stderr.write('Failed to open url: ' + url + '\n')
     if throw_exp: raise
     return func('0.0')
-
-def GetETFBookValue_02822():
-  return GetValueFromUrl(
-    'http://www.csop.mdgms.com/iopv/nav.html?l=tc',
-    ['即日估計每基金單位資產淨值', '<td id="nIopvPriceHKD">'],
-    '</td>',
-    float,
-    {})
 
 def GetJapanStockPriceAndChange(code):
   url = 'http://jp.reuters.com/investing/quotes/quote?symbol=%s.T'%(str(code))
@@ -131,12 +119,13 @@ WATCH_LIST_BANK = {
   '601988' : '中国银行',
   '601939' : '建设银行',
   '600036' : '招商银行',
-  '600015' : '民生银行',
+  '600016' : '民生银行',
   '601166' : '兴业银行',
   '600000' : '浦发银行',
-  #'601328' : '交通银行',
-  #'601998' : '中信银行',
-  #'601818' : '光大银行',
+  '600015' : '华夏银行',
+  '601328' : '交通银行',
+  '601998' : '中信银行',
+  '601818' : '光大银行',
 }
 
 WATCH_LIST_INSURANCE = {
@@ -150,6 +139,15 @@ WATCH_LIST_INTERNET = {
   'GOOG' : 'Google',
   'AAPL' : 'Apple',
 }
+
+WATCH_LIST_CB = {
+}
+
+WATCH_LIST_ETF = {
+  #南方A50 ETF
+  '02822' : '南方A50',
+  '510300': 'iShare A50 ETF',
+} 
 
 AH_PAIR = {
     '600036' : '03968',
@@ -165,9 +163,6 @@ AH_PAIR = {
     '601336' : '01336',
 }
 
-WATCH_LIST_CB = {
-}
-
 CB_INFO = {
 }
 
@@ -178,16 +173,14 @@ EX_RATE = {
   'YEN-RMB' : 0.06,
 }
 
-WATCH_LIST_ETF = {
-  #南方A50 ETF
-  '02822' : '南方A50',
-  '510300': 'iShare A50 ETF',
-} 
-
 ETF_BOOK_VALUE_FUNC = {
   #南方A50 ETF
   # http://www.csopasset.com/tchi/products/china_A50_etf.php
-  '02822' : GetETFBookValue_02822,
+  '南方A50' : lambda: GetValueFromUrl('http://www.csop.mdgms.com/iopv/nav.html?l=tc',
+                                      ['即日估計每基金單位資產淨值', '<td id="nIopvPriceHKD">'],
+                                      '</td>',
+                                      float,
+                                      )
 }
 
 # In the form of '2432' : [price, change].
@@ -486,26 +479,38 @@ def InitAll():
     currencies = pr.split('-')
     assert(len(currencies) == 2)
     EX_RATE[currencies[1] + '-' + currencies[0]] = 1.0 / EX_RATE[pr]
+
   for key in AH_PAIR.keys():
     AH_PAIR[AH_PAIR[key]] = key
+
+  for dt in [WATCH_LIST_BANK, WATCH_LIST_INSURANCE, WATCH_LIST_INTERNET,
+             WATCH_LIST_ETF, WATCH_LIST_CB]:
+    for code in dt.keys():
+      CODE_TO_NAME[code] = dt[code]
+      if code in AH_PAIR:
+        CODE_TO_NAME[AH_PAIR[code]] = dt[code] + 'H'.encode('utf-8')
+
+  for code in CODE_TO_NAME.keys():
+    NAME_TO_CODE[CODE_TO_NAME[code]] = code
+
   for dt in [WATCH_LIST_BANK, WATCH_LIST_INSURANCE]:
     keys = dt.keys()
     for code in keys:
       if code in AH_PAIR:
         dt[AH_PAIR[code]] = dt[code] + 'H'.encode('utf-8')
+
+  for dt in [EPS, DVPS, SPS, BVPS, ETF_BOOK_VALUE_FUNC]:
+    keys = dt.keys()
+    for key in keys:
+      dt[NAME_TO_CODE[key]] = dt[key]
+
   for dt in [EPS, DVPS, SPS, BVPS]:
     for key in dt.keys():
       if key in AH_PAIR:
         dt[AH_PAIR[key]] = dt[key] * EX_RATE[GetCurrency(key) + '-' + GetCurrency(AH_PAIR[key])]
-  for dt in [WATCH_LIST_BANK, WATCH_LIST_INSURANCE, WATCH_LIST_INTERNET, WATCH_LIST_ETF, WATCH_LIST_CB]:
-    for code in dt.keys():
-      CODE_TO_NAME[code] = dt[code]
-      if code in AH_PAIR:
-        CODE_TO_NAME[AH_PAIR[code]] = dt[code] + 'H'
-  for code in CODE_TO_NAME.keys():
-    NAME_TO_CODE[CODE_TO_NAME[code]] = code
+
   if 'all' in set(sys.argv):
-    sys.argv += ['stock', 'hold', 'etf', 'Margin']
+    sys.argv += ['stock', 'hold', 'etf', 'Margin', 'Price']
 
 def CalOneStock(NO_RISK_RATE, records):
   capital_cost = 0.0

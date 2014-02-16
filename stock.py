@@ -12,7 +12,7 @@ import urllib2
 # Number of total shares
 SHARES = {
   # 招商银行，2013年年末
-  '招商银行' : 25219845680,
+  '招商银行': 25219845680,
 }
 
 # 最大市值估计
@@ -21,14 +21,14 @@ CAP = {
 
 BVPS = {
   # 兴业银行，7月份10送5分红5.7 再乘以估计的ROE
-  '兴业银行' : (14.51 * 10 - 5.7)/15 * ( 1 + 0.1),
+  '兴业银行': (14.51 * 10 - 5.7)/15 * ( 1 + 0.1),
   # 招商银行, 2013年业绩快报数据
   # 报告值
   # 减去商誉
   # 假定14年REO10%
   # 除去不良资产带杠杆，杠杆从2012年末的17到13年末的15，不良率0.83%加上2013年的增量
   # 除以股数
-  '招商银行' : ((265872 * 10**6)
+  '招商银行': ((265872 * 10**6)
              - 9598 * 10**6)
              * (1 + .1)
              * (1 - (.83 / 100 + (0.83 / 100 - 0.61 / 100)) * (15 - (17 - 15)))
@@ -38,24 +38,24 @@ BVPS = {
 # Sales per share.
 SPS = {
   # 来自DeNA 2013H1财报估计
-  # '2432' : 143100 * 10**6 * 4 / 3 / 131402874,
+  # '2432': 143100 * 10**6 * 4 / 3 / 131402874,
   # Guidance for Full Year Ending March 31, 2014 (2013Q3 report)
   # 打八折
-  ':DeNA' : 182.6 * 10 ** 9 / 130828462 * 0.8,
+  ':DeNA': 182.6 * 10 ** 9 / 130828462 * 0.8,
 }
 
 EPS = {
   #南方A50ETF，数据来自sse 50ETF统计页面
   # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
-  '南方A50' : 8.9306 / 8.27,
+  '南方A50': 8.9306 / 8.27,
   # 来自DeNA 2013H1财报估计
-  # '2432' : 199.51 * 4 / 3,
+  # '2432': 199.51 * 4 / 3,
   # 来自DeNA 2013Q3财报估计，打八折
-  ':DeNA' : 241.34 * 0.8,
+  ':DeNA': 241.34 * 0.8,
   # 招商银行, 2013年业绩快报数据
   # 报告值
   # 乘以报收预测增长
-  '招商银行' : 2.30 * (1 + 0.05),
+  '招商银行': 2.30 * (1 + 0.05),
 }
 
 # The portion of EPS used for dividend.
@@ -63,13 +63,13 @@ DVPS = {
   # Apple once a quarter.
   # 20140206 - 3.05
   # Tax rate 0.1
-  'Apple' : 3.05 * 4 * 0.9,
+  'Apple': 3.05 * 4 * 0.9,
   # :DeNA once a year.
   # For FY2013
-  ':DeNA' : 37.0 * 0.9,
+  ':DeNA': 37.0 * 0.9,
   # 招商银行, 2013年业绩快报数据
   # 假定30%分红率，税率10%.
-  '招商银行' : EPS['招商银行'] * 0.3 * 0.9,
+  '招商银行': EPS['招商银行'] * 0.3 * 0.9,
 }
 
 #----------End of manually upated financial data-------
@@ -114,30 +114,30 @@ NAME_TO_CODE = {
 }
 
 WATCH_LIST_BANK = {
-  '601398' : '工商银行',
-  '601288' : '农业银行',
-  '601988' : '中国银行',
-  '601939' : '建设银行',
-  '600036' : '招商银行',
-  '600016' : '民生银行',
-  '601166' : '兴业银行',
-  '600000' : '浦发银行',
-  '600015' : '华夏银行',
-  '601328' : '交通银行',
-  '601998' : '中信银行',
-  '601818' : '光大银行',
+  '601398': '工商银行',
+  '601288': '农业银行',
+  '601988': '中国银行',
+  '601939': '建设银行',
+  '600036': '招商银行',
+  '600016': '民生银行',
+  '601166': '兴业银行',
+  '600000': '浦发银行',
+  '600015': '华夏银行',
+  '601328': '交通银行',
+  '601998': '中信银行',
+  '601818': '光大银行',
 }
 
 WATCH_LIST_INSURANCE = {
-  '601318' : '中国平安',
-  '601336' : '新华保险',
+  '601318': '中国平安',
+  '601336': '新华保险',
 }
 
 WATCH_LIST_INTERNET = {
-  '2432' : ':DeNA',
-  'FB' : 'Facebook',
-  'GOOG' : 'Google',
-  'AAPL' : 'Apple',
+  '2432': ':DeNA',
+  'FB': 'Facebook',
+  'GOOG': 'Google',
+  'AAPL': 'Apple',
 }
 
 WATCH_LIST_CB = {
@@ -145,76 +145,76 @@ WATCH_LIST_CB = {
 
 WATCH_LIST_ETF = {
   #南方A50 ETF
-  '02822' : '南方A50',
+  '02822': '南方A50',
   '510300': 'iShare A50 ETF',
 } 
 
 AH_PAIR = {
-    '600036' : '03968',
-    '601988' : '03988',
-    '600016' : '01988',
-    '601939' : '00939',
-    '601398' : '01398',
-    '601318' : '02318',
-    '601288' : '01288',
-    '601998' : '00998',
-    '601328' : '03328',
-    '601818' : '06818',
-    '601336' : '01336',
+    '600036': '03968',
+    '601988': '03988',
+    '600016': '01988',
+    '601939': '00939',
+    '601398': '01398',
+    '601318': '02318',
+    '601288': '01288',
+    '601998': '00998',
+    '601328': '03328',
+    '601818': '06818',
+    '601336': '01336',
 }
 
 CB_INFO = {
 }
 
 EX_RATE = {
-  'RMB-RMB' : 1.0,
-  'HKD-RMB' : 0.78,
-  'USD-RMB' : 6.05,
-  'YEN-RMB' : 0.06,
+  'RMB-RMB': 1.0,
+  'HKD-RMB': 0.78,
+  'USD-RMB': 6.05,
+  'YEN-RMB': 0.06,
 }
 
 ETF_BOOK_VALUE_FUNC = {
   #南方A50 ETF
   # http://www.csopasset.com/tchi/products/china_A50_etf.php
-  '南方A50' : lambda: GetValueFromUrl('http://www.csop.mdgms.com/iopv/nav.html?l=tc',
+  '南方A50': lambda: GetValueFromUrl('http://www.csop.mdgms.com/iopv/nav.html?l=tc',
                                       ['即日估計每基金單位資產淨值', '<td id="nIopvPriceHKD">'],
                                       '</td>',
                                       float,
                                       )
 }
 
-# In the form of '2432' : [price, change].
+# In the form of '2432': [price, change].
 market_price_cache = {
 }
 
 market_price_func = {
-  '2432' : lambda: GetJapanStockPriceAndChange('2432'),
+  '2432': lambda: GetJapanStockPriceAndChange('2432'),
 }
 
 ignored_keys = {
   #现金流
-  '' : 1,
-  #'511880' : 1,
-  '513100' : 1,
-  #'601988' : 1,
-  '511990' : 1,
-  '511010' : 1,
-  '113001' : 1,
-  #'601318' : 1,
-  '112109' : 1,
-  '110023' : 1,
-  '' : 1,
+  '': 1,
+  #'511880': 1,
+  '513100': 1,
+  #'601988': 1,
+  '511990': 1,
+  '511010': 1,
+  '113001': 1,
+  #'601318': 1,
+  '112109': 1,
+  '110023': 1,
+  '': 1,
 }
 
 skipped_keys = {
-  '131800' : 1,
-  '131810' : 1,
-  '204001' : 1,
-  '204014' : 1,
-  '131809' : 1,
-  '660001' : 1,
-  '660091' : 1,
-  '660063' : 1,
+  '131800': 1,
+  '131810': 1,
+  '204001': 1,
+  '204014': 1,
+  '131809': 1,
+  '660001': 1,
+  '660091': 1,
+  '660063': 1,
 }
 
 total_capital = defaultdict(int)
@@ -222,7 +222,7 @@ total_capital = defaultdict(int)
 total_capital_cost = defaultdict(int)
 
 total_investment = {
-  'RMB' : 0, 'USD' : 0, 'HKD' : 0, 'YEN' : 0,
+  'RMB': 0, 'USD': 0, 'HKD': 0, 'YEN': 0,
 }
 
 total_transaction_fee = defaultdict(float)
@@ -363,12 +363,12 @@ def GetAHDiscount(code, mp = 0):
   return (mp_pair_rmb - mp_rmb) / mp_rmb
 
 FINANCIAL_FUNC = {
-  'P/E' : GetPE,
-  'P/B' : GetPB,
-  'P/S' : GetPS,
-  'CAP' : GetCAP,
-  'AHD' : GetAHDiscount,
-  'DR' : GetDR,
+  'P/E': GetPE,
+  'P/B': GetPB,
+  'P/S': GetPS,
+  'CAP': GetCAP,
+  'AHD': GetAHDiscount,
+  'DR': GetDR,
 }
 
 #--------------End of logic util functions---------------
@@ -425,7 +425,7 @@ def BuyApple():
   return ''
 
 def BuyBankH():
-  codes = map(lambda name : NAME_TO_CODE[name],
+  codes = map(lambda name: NAME_TO_CODE[name],
               [
                '中国银行H',
                '工商银行H',
@@ -461,15 +461,15 @@ def BuyMSBH():
   code = NAME_TO_CODE['民生银行H']
   mp, change, ahd = GetMarketPrice(code), GetMarketPriceChange(code), GetAHDiscount(code)
   if ahd >= 0.25 and change < 2:
-    return '@%.2f AHD = %.1f%%'%(round(mp, 1), round(ahd * 100, 1))
+    return '@%.2f AHD = %.1f%%'%(round(mp, 2), round(ahd * 100, 1))
   return ''
 
 STRATEGY_FUNCS = {
-  BuyApple : 'Buy Apple',
-  BuyBankH : 'Buy 四大行H股',
-  BuyDeNA :  'Buy :DeNA',
-  BuyCMBH :  'Buy 招商银行H',
-  BuyMSBH : 'Buy 民生银行H',
+  BuyApple: 'Buy Apple',
+  BuyBankH: 'Buy 四大行H股',
+  BuyDeNA:  'Buy :DeNA',
+  BuyCMBH:  'Buy 招商银行H',
+  BuyMSBH: 'Buy 民生银行H',
 }
 
 #--------------End of strategy functions-----
@@ -572,6 +572,7 @@ def ReadRecords(input):
 
 def PrintHoldingSecurities(all_records):
   table_header = ['MV',
+                  'Price',
                   'NCF',
                   'CC',
                   '#TxN',
@@ -604,8 +605,9 @@ def PrintHoldingSecurities(all_records):
     'CPS',
     'NCF',
   ]
-  if 'Margin' not in set(sys.argv):
-    silent_column.append('Margin')
+  for col in ['Margin', 'Price']:
+    if col not in set(sys.argv):
+      silent_column.append(col)
 
   stat_records_map = []
   
@@ -639,26 +641,27 @@ def PrintHoldingSecurities(all_records):
     margin = mv - investment
     margin_lit = str(int((mv - investment + 30)/100)) + 'h(' + str(myround((mp - CPS) / mp * 100, 2)) + '%)'
     record = {
-        'MV' : myround(mv, 0),
-        'Chg' : str(round(chg, 1)) + '%',
-        'NCF' : myround(net_profit, 0),
-        'CC' : myround(capital_cost, 0),
-        '#TxN' : len(all_records[key]),
-        'TNF' : myround(txn_fee, 0),
-        'DTP' : myround(dtp, 0),
-        '#DT' : dt,
-        'HS' : remain_stock,
-        'MP' : str(mp),
-        'P/E' : myround(GetPE(key, mp), 2),
-        'P/S' : myround(GetPS(key, mp), 2),
-        'P/B' : myround(GetPB(key, mp), 2),
-        'DR' :  myround(GetDR(key, mp) * 100 , 2),
-        'AHD' : str(myround(100.0 * (mp_pair_rmb - mp * ex_rate ) / mp / ex_rate, 1)) + '%',
-        'HCPS' : myround(holding_cps / ex_rate, 3),
-        'CPS' : str(CPS),
-        'rMargin' : margin,
-        'Margin' : margin_lit,
-        'Stock name' : name + '(' + key + ')',
+        'MV': myround(mv, 0),
+        'Price': mp,
+        'Chg': str(round(chg, 1)) + '%',
+        'NCF': myround(net_profit, 0),
+        'CC': myround(capital_cost, 0),
+        '#TxN': len(all_records[key]),
+        'TNF': myround(txn_fee, 0),
+        'DTP': myround(dtp, 0),
+        '#DT': dt,
+        'HS': remain_stock,
+        'MP': str(mp),
+        'P/E': myround(GetPE(key, mp), 2),
+        'P/S': myround(GetPS(key, mp), 2),
+        'P/B': myround(GetPB(key, mp), 2),
+        'DR':  myround(GetDR(key, mp) * 100 , 2),
+        'AHD': str(myround(100.0 * (mp_pair_rmb - mp * ex_rate ) / mp / ex_rate, 1)) + '%',
+        'HCPS': myround(holding_cps / ex_rate, 3),
+        'CPS': str(CPS),
+        'rMargin': margin,
+        'Margin': margin_lit,
+        'Stock name': name + '(' + key + ')',
     }
     for col in ['MV', 'NCF', 'CC', '#TxN', 'TNF', 'DTP', '#DT', 'rMargin']:
       summation[col] = summation.get(col, 0) + record[col]
@@ -668,7 +671,7 @@ def PrintHoldingSecurities(all_records):
   summation['Margin'] = str(summation['rMargin']) + '(' + str(myround( 100.0 * summation['rMargin'] / -summation['NCF'], 2)) + '%)'
   
   stat_records_map.append(summation)
-  stat_records_map.sort(reverse = True, key = lambda record : record.get('MV', 0))
+  stat_records_map.sort(reverse = True, key = lambda record: record.get('MV', 0))
   total_investment['USD'] += total_investment['HKD']
   total_investment['USD'] += total_investment['YEN']
   total_market_value['USD'] += total_market_value['HKD']
@@ -698,15 +701,15 @@ def PrintHoldingSecurities(all_records):
   for currency in ['USD', 'RMB']:
     capital_table_map.append(
         {
-        'Currency' : currency,
-        'Market Value' : str(myround(total_market_value[currency] / 1000, 0)) + 'K',
-        'Cash' : str(myround(total_capital[currency] / 1000, 0)) + 'K',
-        'Investment' : str(myround(total_investment[currency] / 1000, 0)) + 'K',
-        'Free Cash' : str(myround((total_capital[currency] - total_investment[currency]) / 1000, 0)) + 'K',
-        'Transaction Fee' : str(myround(total_transaction_fee[currency] / 100.0, 0)) + 'h(' +
+        'Currency': currency,
+        'Market Value': str(myround(total_market_value[currency] / 1000, 0)) + 'K',
+        'Cash': str(myround(total_capital[currency] / 1000, 0)) + 'K',
+        'Investment': str(myround(total_investment[currency] / 1000, 0)) + 'K',
+        'Free Cash': str(myround((total_capital[currency] - total_investment[currency]) / 1000, 0)) + 'K',
+        'Transaction Fee': str(myround(total_transaction_fee[currency] / 100.0, 0)) + 'h(' +
           str(myround(100.0 * total_transaction_fee[currency] / total_investment[currency], 2)) + '%)',
-        'Max Decline' : str(myround((total_market_value[currency] + 2 * total_capital[currency] - 2 * total_investment[currency]) * 100.0 / total_market_value[currency], 0)) + '%',
-        'IRR' : str(myround(GetIRR(total_market_value[currency], cash_flow[currency]) * 100, 2)) + '%',
+        'Max Decline': str(myround((total_market_value[currency] + 2 * total_capital[currency] - 2 * total_investment[currency]) * 100.0 / total_market_value[currency], 0)) + '%',
+        'IRR': str(myround(GetIRR(total_market_value[currency], cash_flow[currency]) * 100, 2)) + '%',
         }
     )
   
@@ -732,25 +735,33 @@ def PrintWatchedETF():
         str(myround((real_value - price) * 100 / real_value, 0)) + '%',
         GetPE(code, price),
         CODE_TO_NAME[code]])
-  PrintTable(table_header, table, ['Price'])
+  silent = []
+  if 'Price' not in set(sys.argv):
+    silent += ['Price']
+  PrintTable(table_header, table, silent)
 
 def PrintWatchedStocks(watch_list, table_header, sort_key, rev = False):
-  table = []
+  table, silent = [], []
+  if 'Price' not in set(sys.argv):
+    silent += ['Price']
   for code in watch_list.keys():
     mp = GetMarketPrice(code)
-    record = {}
+    record = {
+              'Price': mp,
+              'Stock name': watch_list[code] + ('(' + code + ')').encode('utf-8'),
+    }
     for col in table_header:
       if col == 'Change':
         record[col] = str(GetMarketPriceChange(code)) + '%'
       elif col in FINANCIAL_FUNC:
         record[col] = round(FINANCIAL_FUNC[col](code, mp), 2)
-      record['Stock name'] = watch_list[code] + ('(' + code + ')').encode('utf-8')
     table.append(record)
-  table.sort(reverse = rev, key = lambda record : record.get(sort_key, 0))
-  PrintTableMap(table_header, table, [])
+  table.sort(reverse = rev, key = lambda record: record.get(sort_key, 0))
+  PrintTableMap(table_header, table, silent)
 
 def PrintWatchedBank():
   table_header = [
+                  'Price',
                   'Change',
                   'P/E',
                   'P/B',
@@ -762,6 +773,7 @@ def PrintWatchedBank():
 
 def PrintWatchedInsurance():
   table_header = [
+                  'Price',
                   'Change',
                   'P/E',
                   'P/B',
@@ -774,6 +786,7 @@ def PrintWatchedInsurance():
 
 def PrintWatchedInternet():
   table_header = [
+                  'Price',
                   'Change',
                   'P/E',
                   'P/S',
@@ -788,7 +801,7 @@ def RunStrategies():
     sys.stderr.write("Running straregy: %s\n"%(STRATEGY_FUNCS[strategy]))
     suggestion = strategy()
     if suggestion != '':
-      print '%s : %s'%(STRATEGY_FUNCS[strategy], suggestion)
+      print '%s: %s'%(STRATEGY_FUNCS[strategy], suggestion)
 
 InitAll()
 

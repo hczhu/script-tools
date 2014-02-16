@@ -421,7 +421,7 @@ def BuyApple():
   price, change = GetMarketPrice(code), GetMarketPriceChange(code)
   dr = GetDR(code, price)
   if dr > 0.02 and change < -1:
-    return '@%.1f, DR = %.1f%%, Change = %.1f%%'%(round(price, 2), round(dr * 100.0, 1), round(change, 1))
+    return '@%.1f, DR = %.1f%%, Change = %.1f%%'%(price, dr * 100.0, change)
   return ''
 
 def BuyBankH():
@@ -439,14 +439,14 @@ def BuyBankH():
       discount = dis
       buy = code
   if discount > 0:
-    return '%s @%.2f AH discount=%.1f%%'%(CODE_TO_NAME[buy], round(GetMarketPrice(buy), 2), round(discount * 100.0, 1))
+    return '%s @%.2f AH discount=%.1f%%'%(CODE_TO_NAME[buy], GetMarketPrice(buy), discount * 100.0)
   return ''
 
 def BuyCMBH():
   code = NAME_TO_CODE['招商银行H']
   dis = GetAHDiscount(code)
   if dis > -0.01:
-    return '@%.2f AH discount=%.1f%%'%(round(GetMarketPrice(code), 2), round(dis * 100, 1))
+    return '@%.2f AH discount=%.1f%%'%(GetMarketPrice(code), dis * 100)
   return ''
 
 def BuyDeNA():
@@ -454,14 +454,22 @@ def BuyDeNA():
   mp, change = GetMarketPrice(code), GetMarketPriceChange(code)
   pe = GetPE(code, mp)
   if pe < 8.0 and change < -2:
-    return '@%.2f PE = %.1f DR = %.1f%%'%(round(mp, 1), round(pe, 1), round(GetDR(code, mp) * 100, 1))
+    return '@%.2f PE = %.1f DR = %.1f%%'%(mp, pe, GetDR(code, mp) * 100)
   return ''
 
 def BuyMSBH():
   code = NAME_TO_CODE['民生银行H']
   mp, change, ahd = GetMarketPrice(code), GetMarketPriceChange(code), GetAHDiscount(code)
   if ahd >= 0.25 and change < 2:
-    return '@%.2f AHD = %.1f%%'%(round(mp, 2), round(ahd * 100, 1))
+    return '@%.2f AHD = %.1f%%'%(mp, ahd * 100)
+  return ''
+
+def BuyA50():
+  code = NAME_TO_CODE['南方A50']
+  mp = GetMarketPrice(code)
+  pe = GetPE(code, mp)
+  if pe < 8.0:
+    return '@%.2f PE = %.1f%%'%(mp, pe)
   return ''
 
 STRATEGY_FUNCS = {
@@ -593,7 +601,7 @@ def PrintHoldingSecurities(all_records):
                   'Percent',
                   'Stock name']
   silent_column = [
-    'MV',
+    #'MV',
     'MP',
     'HS',
     '#TxN',

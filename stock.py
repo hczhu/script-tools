@@ -460,7 +460,7 @@ def BuyDeNA():
 def BuyMSBH():
   code = NAME_TO_CODE['民生银行H']
   mp, change, ahd = GetMarketPrice(code), GetMarketPriceChange(code), GetAHDiscount(code)
-  if ahd >= 0.3 and change < 2:
+  if ahd >= 0.25 and change < 2:
     return '@%.2f AHD = %.1f%%'%(round(mp, 1), round(ahd * 100, 1))
   return ''
 

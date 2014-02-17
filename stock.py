@@ -582,7 +582,6 @@ def ReadRecords(input):
 
 def PrintHoldingSecurities(all_records):
   table_header = ['MV',
-                  'Price',
                   'NCF',
                   'CC',
                   '#TxN',
@@ -773,7 +772,6 @@ def PrintWatchedStocks(watch_list, table_header, sort_key, rev = False):
 
 def PrintWatchedBank():
   table_header = [
-                  'Price',
                   'Change',
                   'P/E',
                   'P/B',
@@ -785,7 +783,6 @@ def PrintWatchedBank():
 
 def PrintWatchedInsurance():
   table_header = [
-                  'Price',
                   'Change',
                   'P/E',
                   'P/B',
@@ -798,7 +795,6 @@ def PrintWatchedInsurance():
 
 def PrintWatchedInternet():
   table_header = [
-                  'Price',
                   'Change',
                   'P/E',
                   'P/S',

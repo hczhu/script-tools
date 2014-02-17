@@ -424,7 +424,7 @@ def BuyApple():
     return '@%.1f, DR = %.1f%%, Change = %.1f%%'%(price, dr * 100.0, change)
   return ''
 
-def BuyBankH():
+def BuyBig4BanksH():
   codes = map(lambda name: NAME_TO_CODE[name],
               [
                '中国银行H',
@@ -438,7 +438,7 @@ def BuyBankH():
     if dis > discount:
       discount = dis
       buy = code
-  if discount > 0:
+  if discount > -0.01:
     return '%s @%.2f AH discount=%.1f%%'%(CODE_TO_NAME[buy], GetMarketPrice(buy), discount * 100.0)
   return ''
 
@@ -459,8 +459,10 @@ def BuyDeNA():
 
 def BuyMSBH():
   code = NAME_TO_CODE['民生银行H']
+  codeA = NAME_TO_CODE['民生银行']
   mp, change, ahd = GetMarketPrice(code), GetMarketPriceChange(code), GetAHDiscount(code)
-  if ahd >= 0.25 and change < 2:
+  changeA = GetMarketPriceChange(codeA)
+  if ahd >= 0.25 and change < changeA and changeA < 0:
     return '@%.2f AHD = %.1f%%'%(mp, ahd * 100)
   return ''
 
@@ -474,7 +476,7 @@ def BuyA50():
 
 STRATEGY_FUNCS = {
   BuyApple: 'Buy Apple',
-  BuyBankH: 'Buy 四大行H股',
+  BuyBig4BanksH: 'Buy 四大行H股',
   BuyDeNA:  'Buy :DeNA',
   BuyCMBH:  'Buy 招商银行H',
   BuyMSBH: 'Buy 民生银行H',
@@ -597,7 +599,6 @@ def PrintHoldingSecurities(all_records):
                   'AHD',
                   'HCPS',
                   'CPS',
-                  'Margin',
                   'Percent',
                   'Stock name']
   silent_column = [
@@ -729,24 +730,28 @@ def PrintHoldingSecurities(all_records):
     PrintTableMap(table_header, stat_records_map, silent_column)
 
 def PrintWatchedETF():
-  table_header = ['Price',
+  table_header = [
                   'Change',
                   'Real Value',
                   'Discount',
                   'P/E',
-                  'Stock name']
-  table = []
+                  'Stock name',
+                 ]
+  table_map = []
   for code in WATCH_LIST_ETF.keys():
     if code in ETF_BOOK_VALUE_FUNC:
       price, change, real_value = GetMarketPrice(code), GetMarketPriceChange(code), ETF_BOOK_VALUE_FUNC[code]()
-      table.append([price, str(round(change, 1)) + '%', real_value,
-        str(myround((real_value - price) * 100 / real_value, 0)) + '%',
-        GetPE(code, price),
-        CODE_TO_NAME[code]])
+      table_map.append({
+        'Change': str(round(change, 1)) + '%',
+        'Real Value': real_value,
+        'Discount': str(myround((real_value - price) * 100 / real_value, 0)) + '%',
+        'P/E': GetPE(code, price),
+        'Stock name': CODE_TO_NAME[code],
+      })
   silent = []
   if 'Price' not in set(sys.argv):
     silent += ['Price']
-  PrintTable(table_header, table, silent)
+  PrintTableMap(table_header, table_map, silent)
 
 def PrintWatchedStocks(watch_list, table_header, sort_key, rev = False):
   table, silent = [], []
@@ -755,7 +760,6 @@ def PrintWatchedStocks(watch_list, table_header, sort_key, rev = False):
   for code in watch_list.keys():
     mp = GetMarketPrice(code)
     record = {
-              'Price': mp,
               'Stock name': watch_list[code] + ('(' + code + ')').encode('utf-8'),
     }
     for col in table_header:

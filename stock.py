@@ -9,30 +9,65 @@ import urllib2
 
 #----------Beginning of manually upated financial data-------
 
+# 银监会数据
+# http://www.cbrc.gov.cn/chinese/home/docViewPage/110009.html
+# 2013年
+#  不良贷款率 1%
+#  拨备覆盖率 300%
+#  存贷比 66%
+#  年均ROA 1.345%
+#  年均ROE 20.5%
+#  季度平均杠杆率 15
+#  季度净息差 2.57% 2.59% 2.63% 2.68%
+#  季度非利息收入占比 23.84% 23.73% 22.46% 21.15%
+#  季度成本收入比 29.18% 29.44% 30.21% 32.90%
+#  季度股份制银行不良贷款率 0.77% 0.80% 0.83% 0.86%
+
+# 加权风险资产收益率=净利润/加权风险资产
+# 加权风险资产：银行业各类资产风险系数--（现金 证券 贷款 固定资产 无形资产)0% 10% 20% 50% 100%
+
+
 # Number of total shares
 SHARES = {
-  # 招商银行，2013年年末
+  # 招商银行，2013年末
   '招商银行': 25219845680,
+
+  #2013年3季度末
+  '中国银行': int(189179033607 / 0.6777),
+
+  #2013年3季度末
+  '兴业银行': int(3402173769 / 0.1786),
 }
 
 # 最大市值估计
 CAP = {
 }
 
+BVPS1 = {
+}
+
 BVPS = {
-  # 兴业银行，7月份10送5分红5.7 再乘以估计的ROE
-  '兴业银行': (14.51 * 10 - 5.7)/15 * ( 1 + 0.1),
+  # 兴业银行，2013年3季度财报
+  '兴业银行': (
+              194477 * 10**6
+              * (1.0 + 18.0 / 100 / 4) #加上4季度估计利润
+              - (532 + 446) * 10**6 #减去商誉和无形资产
+              - 1309940 * 10**6 * 0.9 / 100 #减去估计的不良资产
+              ) / SHARES['兴业银行'],
   # 招商银行, 2013年业绩快报数据
-  # 报告值
-  # 减去商誉
-  # 假定14年ROE10%
-  # 除去不良资产带杠杆，杠杆从2012年末的17到13年末的15，不良率0.83%加上2013年的增量
-  # 除以股数
-  '招商银行': ((265872 * 10**6)
-             - 9598 * 10**6)
-             * (1 + .1)
-             * (1 - (.83 / 100 + (0.83 / 100 - 0.61 / 100)) * (15 - (17 - 15)))
-             / SHARES['招商银行'],
+  '招商银行': (
+             265872 * 10**6 # 报告值
+             - 9598 * 10**6 # 减去商誉
+             - 2195807 * 10**6 * 0.9 / 100
+             ) / SHARES['招商银行'],
+
+  #中国银行，2013年3季度财报
+  '中国银行': (
+              (889259 * 10**6)
+              * (1.0 + 15.0 / 100 / 4) #加上4季度估计利润
+              - (12307 + 1850) * 10**6 #减去商誉和无形资产
+              - 75353.74 * 10**8 * 0.011 #减去估计的不良资产
+              ) / SHARES['中国银行'],
 }
 
 # Sales per share.
@@ -238,6 +273,11 @@ def GetDR(code, mp):
     return round(DVPS[code] / mp, 3)
   return 0.0
   
+def GetPB1(code, mp):
+  if code in BVPS1:
+    return mp / BVPS1[code]
+  return float('inf')
+
 def GetPB(code, mp):
   if code in BVPS:
     return mp / BVPS[code]
@@ -409,17 +449,20 @@ def BuyBig4BanksH():
   discount, buy = -1, ''
   for code in codes:
     dis = GetAHDiscount(code)
-    if dis > discount:
+    changeH = GetMarketPriceChange(code)
+    change = GetMarketPriceChange(AH_PAIR[code])
+    if dis > discount and changeH < change:
       discount = dis
       buy = code
-  if discount > -0.01:
+  
+  if discount > 0.0:
     return '%s @%.2f AH discount=%.1f%%'%(CODE_TO_NAME[buy], GetMarketPrice(buy), discount * 100.0)
   return ''
 
 def BuyCMBH():
   code = NAME_TO_CODE['招商银行H']
-  dis = GetAHDiscount(code)
-  if dis > -0.01:
+  dis, changeH, change = GetAHDiscount(code), GetMarketPriceChange(code), GetMarketPriceChange(AH_PAIR[code])
+  if dis > -0.01 and changeH < change:
     return '@%.2f AH discount=%.1f%%'%(GetMarketPrice(code), dis * 100)
   return ''
 

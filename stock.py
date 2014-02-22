@@ -82,7 +82,7 @@ SPS = {
 EPS = {
   #南方A50ETF，数据来自sse 50ETF统计页面
   # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
-  '南方A50': 8.9306 / 8.27,
+  '南方A50': 8.8 / 8.26,
   # 来自DeNA 2013H1财报估计
   # '2432': 199.51 * 4 / 3,
   # 来自DeNA 2013Q3财报估计，打八折
@@ -429,7 +429,6 @@ def PrintTableMap(table_header, records_map, silent_column):
 #--------------End of print functions-------------
 
 #--------------Beginning of strategy functions-----
-
 def BuyApple():
   code = NAME_TO_CODE['Apple']
   price, change = GetMarketPrice(code), GetMarketPriceChange(code)
@@ -454,7 +453,6 @@ def BuyBig4BanksH():
     if dis > discount and changeH < change:
       discount = dis
       buy = code
-  
   if discount > 0.0:
     return '%s @%.2f AH discount=%.1f%%'%(CODE_TO_NAME[buy], GetMarketPrice(buy), discount * 100.0)
   return ''
@@ -479,7 +477,7 @@ def BuyMSBH():
   codeA = NAME_TO_CODE['民生银行']
   mp, change, ahd = GetMarketPrice(code), GetMarketPriceChange(code), GetAHDiscount(code)
   changeA = GetMarketPriceChange(codeA)
-  if ahd >= 0.25 and change < changeA and changeA < 0:
+  if ahd >= 0.25 and change < changeA:
     return '@%.2f AHD = %.1f%%'%(mp, ahd * 100)
   return ''
 

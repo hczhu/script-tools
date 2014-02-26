@@ -55,6 +55,7 @@ BVPS = {
               - (532 + 446) * 10**6 #减去商誉和无形资产
               - 1309940 * 10**6 * 0.9 / 100 #减去估计的不良资产 贷款总额乘以不良率
               ) / SHARES['兴业银行'],
+
   # 招商银行, 2013年业绩快报数据
   '招商银行': (
              265872 * 10**6 # 报告值
@@ -91,7 +92,13 @@ EPS = {
   # 招商银行, 2013年业绩快报数据
   # 报告值
   # 乘以报收预测增长
-  '招商银行': 2.30 * (1 + 0.05),
+  '招商银行': 51795.0  * 10**6 / SHARES['招商银行'],
+  
+  # 根据2013年3季报估计
+  '中国银行': (
+              119768.0 * 10**6
+              + 34762 * 10**6 * 1.1 # 加四季度估计
+              ) / SHARES['中国银行'],
 }
 
 # The portion of EPS used for dividend.
@@ -106,6 +113,8 @@ DVPS = {
   # 招商银行, 2013年业绩快报数据
   # 假定30%分红率，税率10%.
   '招商银行': EPS['招商银行'] * 0.3 * 0.9,
+  # 过去三年分红率 [0.35, 0.34, 0.36]
+  '中国银行': EPS['中国银行'] * 0.35 * 0.9,
 }
 
 #----------End of manually upated financial data-------
@@ -451,7 +460,7 @@ def BuyBig4BanksH():
     dis = GetAHDiscount(code)
     changeH = GetMarketPriceChange(code)
     change = GetMarketPriceChange(AH_PAIR[code])
-    if dis > discount and changeH < change:
+    if dis > discount and changeH < change and GetPB(code) < 1.0:
       discount = dis
       buy = code
   if discount > 0.0:
@@ -490,12 +499,16 @@ def BuyA50():
     return '@%.2f PE = %.1f%%'%(mp, pe)
   return ''
 
+def SellCIB():
+  return ''
+  
 STRATEGY_FUNCS = {
   BuyApple: 'Buy Apple',
   BuyBig4BanksH: 'Buy 四大行H股',
   BuyDeNA:  'Buy :DeNA',
   BuyCMBH:  'Buy 招商银行H',
   BuyMSBH: 'Buy 民生银行H',
+  SellCIB: 'Sell 兴业银行',
 }
 
 #--------------End of strategy functions-----

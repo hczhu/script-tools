@@ -84,7 +84,7 @@ SPS = {
 EPS = {
   #南方A50ETF，数据来自sse 50ETF统计页面
   # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
-  '南方A50': 8.8 / 8.26,
+  '南方A50': 8.3412 / 8.01,
   # 来自DeNA 2013H1财报估计
   # '2432': 199.51 * 4 / 3,
   # 来自DeNA 2013Q3财报估计，打八折
@@ -496,7 +496,7 @@ def BuyA50():
   mp = GetMarketPrice(code)
   pe = GetPE(code, mp)
   change = GetMarketPriceChange(code)
-  if pe < 7.55 and change < -0.01:
+  if pe < 7.76 and change < -0.01:
     return '@%.2f PE = %.1f%% Change = %.1f%%'%(mp, pe, change * 100)
   return ''
 

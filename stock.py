@@ -67,7 +67,7 @@ BVPS = {
               (889259 * 10**6)
               * (1.0 + 15.0 / 100 / 4) #加上4季度估计利润
               - (12307 + 1850) * 10**6 #减去商誉和无形资产
-              - 75353.74 * 10**8 * 0.02 #减去估计的不良资产
+              - 75353.74 * 10**8 * (0.02 + 0.08 * 0.1) #减去估计的不良资产，房地产开发贷占8%
               ) / SHARES['中国银行'],
 }
 
@@ -486,8 +486,9 @@ def BuyA50():
   code = NAME_TO_CODE['南方A50']
   mp = GetMarketPrice(code)
   pe = GetPE(code, mp)
-  if pe < 8.0:
-    return '@%.2f PE = %.1f%%'%(mp, pe)
+  change = GetMarketPriceChange(code)
+  if pe < 7.55 and change < -0.01:
+    return '@%.2f PE = %.1f%% Change = %.1f%%'%(mp, pe, change * 100)
   return ''
 
 STRATEGY_FUNCS = {

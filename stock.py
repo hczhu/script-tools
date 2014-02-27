@@ -519,7 +519,7 @@ def BuyDeNA():
 def BuyMSBH():
   return GenericDynamicStrategy(
     NAME_TO_CODE['民生银行H'],
-    'AHD', [1.1, 0.6],
+    'AHD', [0.1, 0.6],
     [0., 0.50],
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 

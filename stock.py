@@ -473,7 +473,7 @@ def BuyApple():
     NAME_TO_CODE['Apple'],
     'DR', [0.0183, 0.03],
     [0, 0.4],
-    buy_condition = lambda code: GetAHDiscount() >= 0);
+    buy_condition = lambda code: GetMarketPriceChange(code) <= 0);
   
 def BuyBig4BanksH():
   codes = map(lambda name: NAME_TO_CODE[name],
@@ -505,9 +505,9 @@ def BuyCMBH():
 def BuyCMB():
   return GenericDynamicStrategy(
     NAME_TO_CODE['招商银行'],
-    'P/B', [1.4, 0.8],
+    'P/B', [1.2, 0.8],
     [0., 0.5],
-    buy_condition = lambda code: GetAHDiscount() >= 0);
+    buy_condition = lambda code: GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0);
 
 def BuyDeNA():
   return GenericDynamicStrategy(
@@ -885,20 +885,23 @@ def RunStrategies():
     if suggestion != '':
       print '%s%s'%(STRATEGY_FUNCS[strategy], suggestion)
 
-InitAll()
-
-if 'etf' in set(sys.argv):
-  PrintWatchedETF()
-
-if 'stock' in set(sys.argv) or 'insurance' in set(sys.argv):
-  PrintWatchedInsurance()
-
-if 'stock' in set(sys.argv) or 'internet' in set(sys.argv):
-  PrintWatchedInternet()
-
-if 'stock' in set(sys.argv) or 'bank' in set(sys.argv):
-  PrintWatchedBank()
-
-PrintHoldingSecurities(ReadRecords(sys.stdin))
-
-RunStrategies()
+try:
+  InitAll()
+  
+  if 'etf' in set(sys.argv):
+    PrintWatchedETF()
+  
+  if 'stock' in set(sys.argv) or 'insurance' in set(sys.argv):
+    PrintWatchedInsurance()
+  
+  if 'stock' in set(sys.argv) or 'internet' in set(sys.argv):
+    PrintWatchedInternet()
+  
+  if 'stock' in set(sys.argv) or 'bank' in set(sys.argv):
+    PrintWatchedBank()
+  
+  PrintHoldingSecurities(ReadRecords(sys.stdin))
+  
+  RunStrategies()
+except Exception as ins:
+  print 'Run time error: ', ins

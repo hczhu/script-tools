@@ -682,7 +682,7 @@ def PrintHoldingSecurities(all_records):
     record = {
         'MV': myround(mv, 0),
         'Price': mp,
-        'Chg': str(round(chg, 1)) + '%',
+        'Chg': round(chg, 2),
         'NCF': myround(net_profit, 0),
         'CC': myround(capital_cost, 0),
         '#TxN': len(all_records[key]),
@@ -754,8 +754,10 @@ def PrintHoldingSecurities(all_records):
   
   PrintTableMap(capital_header, capital_table_map, set())
   net_asset = total_market_value['USD'] + total_market_value['RMB'] + total_capital['USD']  + total_capital['RMB'] - total_investment['USD'] - total_investment['RMB'];
+  summation['Chg'] = 0.0
   for record in stat_records_map:
     record['Percent'] = str(myround(record['MV'] * 100 / net_asset, 1)) + '%'
+    summation['Chg'] += record['MV'] / net_asset * record['Chg'] / 100.0
   if 'hold' in set(sys.argv):
     PrintTableMap(table_header, stat_records_map, silent_column)
 

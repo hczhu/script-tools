@@ -757,7 +757,10 @@ def PrintHoldingSecurities(all_records):
   summation['Chg'] = 0.0
   for record in stat_records_map:
     record['Percent'] = str(myround(record['MV'] * 100 / net_asset, 1)) + '%'
-    summation['Chg'] += record['MV'] / net_asset * record['Chg'] / 100.0
+    for col in ['Chg', 'DR']:
+      summation[col] += record['MV'] / net_asset * record[col]
+  for col in ['Chg', 'DR']:
+    summation[col] = round(summation[col], 2)
   if 'hold' in set(sys.argv):
     PrintTableMap(table_header, stat_records_map, silent_column)
 

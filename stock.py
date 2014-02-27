@@ -794,7 +794,7 @@ def PrintHoldingSecurities(all_records):
     holding_percent[record['Code']] = 1.0 * record['MV'] / NET_ASSET
     record['Percent'] = str(myround(holding_percent[record['Code']] * 100, 1)) + '%'
     for col in ['Chg', 'DR']:
-      summation[col] += holding_percent[record['Code']]
+      summation[col] += holding_percent[record['Code']] * record[col]
   for col in ['Chg', 'DR']:
     summation[col] = round(summation[col], 2)
   if 'hold' in set(sys.argv):

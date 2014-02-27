@@ -69,7 +69,7 @@ BVPS = {
               (889259 * 10**6)
               * (1.0 + 15.0 / 100 / 4) #加上4季度估计利润
               - (12307 + 1850) * 10**6 #减去商誉和无形资产
-              - 75353.74 * 10**8 * 0.02 #减去估计的不良资产
+              - 75353.74 * 10**8 * (0.02 + 0.08 * 0.1) #减去估计的不良资产，房地产开发贷占8%
               ) / SHARES['中国银行'],
 }
 
@@ -85,7 +85,7 @@ SPS = {
 EPS = {
   #南方A50ETF，数据来自sse 50ETF统计页面
   # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
-  '南方A50': 8.8 / 8.26,
+  '南方A50': 8.3412 / 8.01,
   # 来自DeNA 2013H1财报估计
   # '2432': 199.51 * 4 / 3,
   # 来自DeNA 2013Q3财报估计，打八折
@@ -496,8 +496,9 @@ def BuyA50():
   code = NAME_TO_CODE['南方A50']
   mp = GetMarketPrice(code)
   pe = GetPE(code, mp)
-  if pe < 8.0:
-    return '@%.2f PE = %.1f%%'%(mp, pe)
+  change = GetMarketPriceChange(code)
+  if pe < 7.76 and change < -0.01:
+    return '@%.2f PE = %.1f%% Change = %.1f%%'%(mp, pe, change * 100)
   return ''
 
 def SellCIB():

@@ -55,7 +55,7 @@ BVPS = {
               - (532 + 446) * 10**6 #减去商誉和无形资产
               - 1309940 * 10**6 * 0.9 / 100 #减去估计的不良资产 贷款总额乘以不良率
               ) / SHARES['兴业银行']
-              * 0.9, # 激进打折
+              * 0.95, # 激进打折
 
   # 招商银行, 2013年业绩快报数据
   '招商银行': (
@@ -519,11 +519,7 @@ def BuyDeNA():
 def BuyMSBH():
   return GenericDynamicStrategy(
     NAME_TO_CODE['民生银行H'],
-<<<<<<< HEAD
     'AHD', [0.1, 0.6],
-=======
-    'AHD', [1.1, 0.6],
->>>>>>> 787e63f12544c417ba1afc5f9a649e57a3f887e5
     [0., 0.50],
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 

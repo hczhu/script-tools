@@ -754,7 +754,8 @@ def PrintHoldingSecurities(all_records):
   
   PrintTableMap(capital_header, capital_table_map, set())
   net_asset = total_market_value['USD'] + total_market_value['RMB'] + total_capital['USD']  + total_capital['RMB'] - total_investment['USD'] - total_investment['RMB'];
-  summation['Chg'] = 0.0
+  for col in ['Chg', 'DR']:
+    summation[col] = 0.0
   for record in stat_records_map:
     record['Percent'] = str(myround(record['MV'] * 100 / net_asset, 1)) + '%'
     for col in ['Chg', 'DR']:

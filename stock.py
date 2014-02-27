@@ -54,7 +54,8 @@ BVPS = {
               * (1.0 + 18.0 / 100 / 4) #加上4季度估计利润
               - (532 + 446) * 10**6 #减去商誉和无形资产
               - 1309940 * 10**6 * 0.9 / 100 #减去估计的不良资产 贷款总额乘以不良率
-              ) / SHARES['兴业银行'],
+              ) / SHARES['兴业银行']
+              * 0.9, # 激进打折
 
   # 招商银行, 2013年业绩快报数据
   '招商银行': (
@@ -249,6 +250,9 @@ total_transaction_fee = defaultdict(float)
 
 total_market_value = defaultdict(int) 
 
+holding_percent = defaultdict(float)
+NET_ASSET = 0.0
+
 #----------Begining of global variables------------------
 
 #--------------Beginning of logic util functions---------------
@@ -440,14 +444,37 @@ def PrintTableMap(table_header, records_map, silent_column):
 #--------------End of print functions-------------
 
 #--------------Beginning of strategy functions-----
-def BuyApple():
-  code = NAME_TO_CODE['Apple']
-  price, change = GetMarketPrice(code), GetMarketPriceChange(code)
-  dr = GetDR(code, price)
-  if dr > 0.02 and change < -1:
-    return '@%.1f, DR = %.1f%%, Change = %.1f%%'%(price, dr * 100.0, change)
-  return ''
 
+def GenericDynamicStrategy(code, indicator,
+                           indicator_range,
+                           percent_range,
+                           percent_delta = 0.02,
+                           buy_condition = lambda code: True,
+                           sell_condition = lambda code: True):
+  mp = GetMarketPrice(code)
+  mp_rmb = GetMarketPriceInRMB(code)
+  indicator_value = FINANCIAL_FUNC[indicator](code, mp)
+  percent = (percent_range[1] - percent_range[0]) * (indicator_value - indicator_range[0]) / (
+             indicator_range[1] - indicator_range[0]) + percent_range[0]
+  percent = max(0.0, percent)
+  percent -= holding_percent[code]
+  if (percent > percent_delta and buy_condition(code)) or (
+      percent < -percent_delta and sell_condition(code)):
+    percent = min(percent_delta, abs(percent)) * percent / abs(percent)
+    return 'Buy %s %d units @%.2f change: %.1f%% due to %s = %.3f'%(
+      CODE_TO_NAME[code],
+      int(NET_ASSET * percent / mp_rmb),
+      mp,
+      GetMarketPriceChange(code), indicator, indicator_value)
+  return '';
+  
+def BuyApple():
+  return GenericDynamicStrategy(
+    NAME_TO_CODE['Apple'],
+    'DR', [0.0183, 0.03],
+    [0, 0.4],
+    buy_condition = lambda code: GetAHDiscount() >= 0);
+  
 def BuyBig4BanksH():
   codes = map(lambda name: NAME_TO_CODE[name],
               [
@@ -475,42 +502,49 @@ def BuyCMBH():
     return '@%.2f AH discount=%.1f%%'%(GetMarketPrice(code), dis * 100)
   return ''
 
+def BuyCMB():
+  return GenericDynamicStrategy(
+    NAME_TO_CODE['招商银行'],
+    'P/B', [1.4, 0.8],
+    [0., 0.5],
+    buy_condition = lambda code: GetAHDiscount() >= 0);
+
 def BuyDeNA():
-  code = NAME_TO_CODE[':DeNA']
-  mp, change = GetMarketPrice(code), GetMarketPriceChange(code)
-  pe = GetPE(code, mp)
-  if pe < 8.0 and change < -2:
-    return '@%.2f PE = %.1f DR = %.1f%%'%(mp, pe, GetDR(code, mp) * 100)
-  return ''
+  return GenericDynamicStrategy(
+    NAME_TO_CODE[':DeNA'],
+    'P/E', [8.5, 5],
+    [0.02, 0.3],
+    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
 def BuyMSBH():
-  code = NAME_TO_CODE['民生银行H']
-  codeA = NAME_TO_CODE['民生银行']
-  mp, change, ahd = GetMarketPrice(code), GetMarketPriceChange(code), GetAHDiscount(code)
-  changeA = GetMarketPriceChange(codeA)
-  if ahd >= 0.25 and change < changeA:
-    return '@%.2f AHD = %.1f%%'%(mp, ahd * 100)
-  return ''
+  return GenericDynamicStrategy(
+    NAME_TO_CODE['民生银行H'],
+    'AHD', [1.1, 0.6],
+    [0., 0.50],
+    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
 def BuyA50():
-  code = NAME_TO_CODE['南方A50']
-  mp = GetMarketPrice(code)
-  pe = GetPE(code, mp)
-  change = GetMarketPriceChange(code)
-  if pe < 7.76 and change < -0.01:
-    return '@%.2f PE = %.1f%% Change = %.1f%%'%(mp, pe, change * 100)
-  return ''
+  return GenericDynamicStrategy(
+    NAME_TO_CODE['南方A50'],
+    'P/E', [9, 6],
+    [0, 0.80],
+    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
-def SellCIB():
-  return ''
+def BuyCIB():
+  return GenericDynamicStrategy(
+    NAME_TO_CODE['兴业银行'],
+    'P/B', [1.2, 0.8],
+    [0, 0.5],
+    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
   
 STRATEGY_FUNCS = {
-  BuyApple: 'Buy Apple',
-  BuyBig4BanksH: 'Buy 四大行H股',
-  BuyDeNA:  'Buy :DeNA',
-  BuyCMBH:  'Buy 招商银行H',
-  BuyMSBH: 'Buy 民生银行H',
-  SellCIB: 'Sell 兴业银行',
+  BuyApple: '',
+  BuyBig4BanksH: 'Buy 四大行H股 ',
+  BuyDeNA:  '',
+  BuyCMBH:  'Buy 招商银行H ',
+  BuyCMB:  '',
+  BuyMSBH: '',
+  BuyCIB: '',
 }
 
 #--------------End of strategy functions-----
@@ -612,6 +646,7 @@ def ReadRecords(input):
   return all_records
 
 def PrintHoldingSecurities(all_records):
+  global NET_ASSET
   table_header = ['MV',
                   'NCF',
                   'CC',
@@ -680,6 +715,7 @@ def PrintHoldingSecurities(all_records):
     margin = mv - investment
     margin_lit = str(int((mv - investment + 30)/100)) + 'h(' + str(myround((mp - CPS) / mp * 100, 2)) + '%)'
     record = {
+        'Code': key,
         'MV': myround(mv, 0),
         'Price': mp,
         'Chg': round(chg, 2),
@@ -709,8 +745,6 @@ def PrintHoldingSecurities(all_records):
   
   summation['Margin'] = str(summation['rMargin']) + '(' + str(myround( 100.0 * summation['rMargin'] / -summation['NCF'], 2)) + '%)'
   
-  stat_records_map.append(summation)
-  stat_records_map.sort(reverse = True, key = lambda record: record.get('MV', 0))
   total_investment['USD'] += total_investment['HKD']
   total_investment['USD'] += total_investment['YEN']
   total_market_value['USD'] += total_market_value['HKD']
@@ -753,16 +787,19 @@ def PrintHoldingSecurities(all_records):
     )
   
   PrintTableMap(capital_header, capital_table_map, set())
-  net_asset = total_market_value['USD'] + total_market_value['RMB'] + total_capital['USD']  + total_capital['RMB'] - total_investment['USD'] - total_investment['RMB'];
+  NET_ASSET = total_market_value['USD'] + total_market_value['RMB'] + total_capital['USD']  + total_capital['RMB'] - total_investment['USD'] - total_investment['RMB'];
   for col in ['Chg', 'DR']:
     summation[col] = 0.0
   for record in stat_records_map:
-    record['Percent'] = str(myround(record['MV'] * 100 / net_asset, 1)) + '%'
+    holding_percent[record['Code']] = 1.0 * record['MV'] / NET_ASSET
+    record['Percent'] = str(myround(holding_percent[record['Code']] * 100, 1)) + '%'
     for col in ['Chg', 'DR']:
-      summation[col] += record['MV'] / net_asset * record.get(col, 0.0)
+      summation[col] += holding_percent[record['Code']]
   for col in ['Chg', 'DR']:
     summation[col] = round(summation[col], 2)
   if 'hold' in set(sys.argv):
+    stat_records_map.append(summation)
+    stat_records_map.sort(reverse = True, key = lambda record: record.get('MV', 0))
     PrintTableMap(table_header, stat_records_map, silent_column)
 
 def PrintWatchedETF():
@@ -846,7 +883,7 @@ def RunStrategies():
     sys.stderr.write("Running straregy: %s\n"%(STRATEGY_FUNCS[strategy]))
     suggestion = strategy()
     if suggestion != '':
-      print '%s: %s'%(STRATEGY_FUNCS[strategy], suggestion)
+      print '%s%s'%(STRATEGY_FUNCS[strategy], suggestion)
 
 InitAll()
 
@@ -862,7 +899,6 @@ if 'stock' in set(sys.argv) or 'internet' in set(sys.argv):
 if 'stock' in set(sys.argv) or 'bank' in set(sys.argv):
   PrintWatchedBank()
 
-if 'quiet' not in set(sys.argv):
-  PrintHoldingSecurities(ReadRecords(sys.stdin))
+PrintHoldingSecurities(ReadRecords(sys.stdin))
 
 RunStrategies()

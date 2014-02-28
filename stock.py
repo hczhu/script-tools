@@ -454,18 +454,22 @@ def GenericDynamicStrategy(code, indicator,
   mp = GetMarketPrice(code)
   mp_rmb = GetMarketPriceInRMB(code)
   indicator_value = FINANCIAL_FUNC[indicator](code, mp)
-  percent = (percent_range[1] - percent_range[0]) * (indicator_value - indicator_range[0]) / (
-             indicator_range[1] - indicator_range[0]) + percent_range[0]
-  percent = max(0.0, percent)
-  percent -= holding_percent[code]
+  target_percent = (percent_range[1] - percent_range[0]) * (indicator_value - indicator_range[0]) / (
+                    indicator_range[1] - indicator_range[0]) + percent_range[0]
+  target_percent = max(0.0, target_percent)
+  current_percent = holding_percent[code]
+  if code in AH_PAIR:
+    current_percent += holding_percent[AH_PAIR[code]]
+  percent = target_percent - current_percent
   if (percent > percent_delta and buy_condition(code)) or (
       percent < -percent_delta and sell_condition(code)):
     percent = min(percent_delta, abs(percent)) * percent / abs(percent)
-    return 'Buy %s %d units @%.2f change: %.1f%% due to %s = %.3f'%(
+    return 'Buy %s %d units @%.2f change: %.1f%% due to %s = %.3f. Target: %.1f%% current: %.1f%%'%(
       CODE_TO_NAME[code],
       int(NET_ASSET * percent / mp_rmb),
       mp,
-      GetMarketPriceChange(code), indicator, indicator_value)
+      GetMarketPriceChange(code), indicator, indicator_value,
+      target_percent * 100, current_percent * 100)
   return '';
   
 def BuyApple():

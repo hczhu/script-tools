@@ -53,7 +53,7 @@ BVPS = {
               194477 * 10**6
               * (1.0 + 18.0 / 100 / 4) #加上4季度估计利润
               - (532 + 446) * 10**6 #减去商誉和无形资产
-              - 1309940 * 10**6 * 0.9 / 100 #减去估计的不良资产 贷款总额乘以不良率
+              - 1309940 * 10**6 * 1 / 100 #减去估计的不良资产 贷款总额乘以不良率
               ) / SHARES['兴业银行']
               * 0.95, # 激进打折
 
@@ -61,16 +61,16 @@ BVPS = {
   '招商银行': (
              265872 * 10**6 # 报告值
              - 9598 * 10**6 # 减去商誉
-             - 2195807 * 10**6 * 0.9 / 100
+             - 2195807 * 10**6 * 1.0 / 100
              ) / SHARES['招商银行']
-             * 1.1, # 品牌溢价
+             * 1.05, # 品牌溢价
 
   #中国银行，2013年3季度财报
   '中国银行': (
               (889259 * 10**6)
               * (1.0 + 15.0 / 100 / 4) #加上4季度估计利润
               - (12307 + 1850) * 10**6 #减去商誉和无形资产
-              - 75353.74 * 10**8 * (0.02 + 0.08 * 0.1) #减去估计的不良资产，房地产开发贷占8%
+              - 75353.74 * 10**8 * (0.02 + 0.08 * 0.15) #减去估计的不良资产，房地产开发贷占8%
               ) / SHARES['中国银行'],
 }
 
@@ -488,7 +488,7 @@ def BuyBig4BanksH():
     dis = GetAHDiscount(code)
     changeH = GetMarketPriceChange(code)
     change = GetMarketPriceChange(AH_PAIR[code])
-    if dis > discount and changeH < change and GetPB(code) < 1.0:
+    if dis > discount and changeH < change and GetPB(code, GetMarketPrice(code)) < 1.0:
       discount = dis
       buy = code
   if discount > 0.0:
@@ -505,7 +505,7 @@ def BuyCMBH():
 def BuyCMB():
   return GenericDynamicStrategy(
     NAME_TO_CODE['招商银行'],
-    'P/B', [1.2, 0.8],
+    'P/B', [1.1, 0.8],
     [0., 0.5],
     buy_condition = lambda code: GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0);
 
@@ -519,7 +519,7 @@ def BuyDeNA():
 def BuyMSBH():
   return GenericDynamicStrategy(
     NAME_TO_CODE['民生银行H'],
-    'AHD', [0.1, 0.6],
+    'AHD', [0.2, 0.5],
     [0., 0.50],
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
@@ -585,7 +585,7 @@ def InitAll():
         dt[AH_PAIR[key]] = dt[key] * EX_RATE[GetCurrency(key) + '-' + GetCurrency(AH_PAIR[key])]
 
   if 'all' in set(sys.argv):
-    sys.argv += ['stock', 'hold', 'etf', 'Margin', 'Price']
+    sys.argv += ['stock', 'hold', 'etf', 'Price']
 
 def CalOneStock(NO_RISK_RATE, records):
   capital_cost = 0.0
@@ -679,7 +679,7 @@ def PrintHoldingSecurities(all_records):
     'CPS',
     'NCF',
   ]
-  for col in ['Margin', 'Price']:
+  for col in ['Price']:
     if col not in set(sys.argv):
       silent_column.append(col)
 
@@ -701,7 +701,7 @@ def PrintHoldingSecurities(all_records):
     total_investment[currency] += investment
     total_transaction_fee[currency] += txn_fee
     ex_rate = EX_RATE[currency + '-' + CURRENCY]
-    mp, chg, mp_pair_rmb, mv, CPS, change_rate, margin = 0.0001, 0, 1, 0, 0, '', 0
+    mp, chg, mp_pair_rmb, mv, CPS, change_rate = 0.0001, 0, 1, 0, 0, ''
     if remain_stock > 0 :
       mp = GetMarketPrice(key)
       chg = GetMarketPriceChange(key)
@@ -712,8 +712,6 @@ def PrintHoldingSecurities(all_records):
       if key in AH_PAIR:
         mp_pair_rmb = GetMarketPriceInRMB(AH_PAIR[key])
     total_market_value[currency] += mv
-    margin = mv - investment
-    margin_lit = str(int((mv - investment + 30)/100)) + 'h(' + str(myround((mp - CPS) / mp * 100, 2)) + '%)'
     record = {
         'Code': key,
         'MV': myround(mv, 0),
@@ -734,16 +732,12 @@ def PrintHoldingSecurities(all_records):
         'AHD': str(myround(100.0 * (mp_pair_rmb - mp * ex_rate ) / mp / ex_rate, 1)) + '%',
         'HCPS': myround(holding_cps / ex_rate, 3),
         'CPS': str(CPS),
-        'rMargin': margin,
-        'Margin': margin_lit,
         'Stock name': name + '(' + key + ')',
     }
-    for col in ['MV', 'NCF', 'CC', '#TxN', 'TNF', 'DTP', '#DT', 'rMargin']:
+    for col in ['MV', 'NCF', 'CC', '#TxN', 'TNF', 'DTP', '#DT']:
       summation[col] = summation.get(col, 0) + record[col]
     if remain_stock > 0:
       stat_records_map.append(record)
-  
-  summation['Margin'] = str(summation['rMargin']) + '(' + str(myround( 100.0 * summation['rMargin'] / -summation['NCF'], 2)) + '%)'
   
   total_investment['USD'] += total_investment['HKD']
   total_investment['USD'] += total_investment['YEN']

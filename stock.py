@@ -63,7 +63,7 @@ BVPS = {
              - 9598 * 10**6 # 减去商誉
              - 2195807 * 10**6 * 1.0 / 100
              ) / SHARES['招商银行']
-             * 1.05, # 品牌溢价
+             * 1.15, # 品牌溢价
 
   #中国银行，2013年3季度财报
   '中国银行': (
@@ -523,8 +523,8 @@ def BuyDeNA():
 def BuyMSBH():
   return GenericDynamicStrategy(
     NAME_TO_CODE['民生银行H'],
-    'AHD', [0.2, 0.5],
-    [0., 0.50],
+    'AHD', [0.15, 0.5],
+    [0., 0.20],
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
 def BuyA50():
@@ -538,7 +538,7 @@ def BuyCIB():
   return GenericDynamicStrategy(
     NAME_TO_CODE['兴业银行'],
     'P/B', [1.1, 0.6],
-    [0, 0.6],
+    [0, 0.3],
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
   
 STRATEGY_FUNCS = {

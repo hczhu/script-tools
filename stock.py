@@ -448,7 +448,7 @@ def PrintTableMap(table_header, records_map, silent_column):
 def GenericDynamicStrategy(code, indicator,
                            indicator_range,
                            percent_range,
-                           percent_delta = 0.02,
+                           percent_delta = 0.015,
                            buy_condition = lambda code: True,
                            sell_condition = lambda code: True):
   mp = GetMarketPrice(code)
@@ -505,8 +505,8 @@ def BuyCMBH():
 def BuyCMB():
   return GenericDynamicStrategy(
     NAME_TO_CODE['招商银行'],
-    'P/B', [1.1, 0.8],
-    [0., 0.5],
+    'P/B', [1.1, 0.6],
+    [0., 0.6],
     buy_condition = lambda code: GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0);
 
 def BuyDeNA():
@@ -533,8 +533,8 @@ def BuyA50():
 def BuyCIB():
   return GenericDynamicStrategy(
     NAME_TO_CODE['兴业银行'],
-    'P/B', [1.2, 0.8],
-    [0, 0.5],
+    'P/B', [1.1, 0.6],
+    [0, 0.6],
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
   
 STRATEGY_FUNCS = {
@@ -765,7 +765,11 @@ def PrintHoldingSecurities(all_records):
   cash_flow['USD'] += cash_flow['HKD']
   cash_flow['USD'] += cash_flow['YEN']
   
-  for currency in ['USD', 'RMB']:
+  for dt in [cash_flow, total_market_value, total_capital,
+             total_investment, total_transaction_fee]:
+    dt['ALL'] = dt['USD'] + dt['RMB']
+  
+  for currency in ['USD', 'RMB', 'ALL']:
     capital_table_map.append(
         {
         'Currency': currency,

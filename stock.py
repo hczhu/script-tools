@@ -529,8 +529,8 @@ def BuyCMB():
 def BuyDeNA():
   return GenericDynamicStrategy(
     NAME_TO_CODE[':DeNA'],
-    'P/S', [1.9, 1],
-    [0.0, 0.2],
+    'P/S', [1.8, 1],
+    [0.0, 0.08],
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
 def BuyMSBH():

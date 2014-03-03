@@ -817,15 +817,17 @@ def PrintHoldingSecurities(all_records):
   
   PrintTableMap(capital_header, capital_table_map, set())
   NET_ASSET = total_market_value['USD'] + total_market_value['RMB'] + total_capital['USD']  + total_capital['RMB'] - total_investment['USD'] - total_investment['RMB'];
-  for col in ['Chg', 'DR']:
+  for col in ['Chg', 'DR', 'Percent']:
     summation[col] = 0.0
   for record in stat_records_map:
     holding_percent[record['Code']] = 1.0 * record['MV'] / NET_ASSET
+    summation['Percent'] += holding_percent[record['Code']]
     record['Percent'] = str(myround(holding_percent[record['Code']] * 100, 1)) + '%'
     for col in ['Chg', 'DR']:
       summation[col] += holding_percent[record['Code']] * record[col]
   for col in ['Chg', 'DR']:
     summation[col] = round(summation[col], 2)
+  summation['Percent'] = str(round(summation['Percent'] * 100, 0)) + '%'
   if 'hold' in set(sys.argv):
     stat_records_map.append(summation)
     stat_records_map.sort(reverse = True, key = lambda record: record.get('MV', 0))

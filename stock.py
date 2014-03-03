@@ -551,15 +551,15 @@ def BuyCIB():
   return GenericDynamicStrategy(
     NAME_TO_CODE['兴业银行'],
     'P/B', [1.1, 0.7],
-    [0.1, 0.3],
+    [0.1, 0.4],
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
 def BuyBOCH():
   return GenericDynamicStrategy(
     NAME_TO_CODE['中国银行H'],
-    'DR', [2.0, 0.9],
-    [0, 0.35],
-    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= 0);
+    'DR', [5.0, 1.0],
+    [0, 0.5],
+    buy_condition = lambda code: GetPB(code, GetMarketPrice(code)) < 1.1 and GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= 0);
 
 def BuyBOC():
   return GenericDynamicStrategy(

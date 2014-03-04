@@ -551,7 +551,7 @@ def BuyCIB():
   return GenericDynamicStrategy(
     NAME_TO_CODE['兴业银行'],
     'P/B', [1.1, 0.7],
-    [0.1, 0.3],
+    [0.1, 0.4],
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
 def BuyBOCH():

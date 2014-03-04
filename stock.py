@@ -557,9 +557,9 @@ def BuyCIB():
 def BuyBOCH():
   return GenericDynamicStrategy(
     NAME_TO_CODE['中国银行H'],
-    'DR', [2.0, 0.9],
-    [0, 0.35],
-    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= 0);
+    'DR', [5.0, 1.0],
+    [0, 0.5],
+    buy_condition = lambda code: GetPB(code, GetMarketPrice(code)) < 1.1 and GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= 0);
 
 def BuyBOC():
   return GenericDynamicStrategy(
@@ -817,15 +817,17 @@ def PrintHoldingSecurities(all_records):
   
   PrintTableMap(capital_header, capital_table_map, set())
   NET_ASSET = total_market_value['USD'] + total_market_value['RMB'] + total_capital['USD']  + total_capital['RMB'] - total_investment['USD'] - total_investment['RMB'];
-  for col in ['Chg', 'DR']:
+  for col in ['Chg', 'DR', 'Percent']:
     summation[col] = 0.0
   for record in stat_records_map:
     holding_percent[record['Code']] = 1.0 * record['MV'] / NET_ASSET
+    summation['Percent'] += holding_percent[record['Code']]
     record['Percent'] = str(myround(holding_percent[record['Code']] * 100, 1)) + '%'
     for col in ['Chg', 'DR']:
       summation[col] += holding_percent[record['Code']] * record[col]
   for col in ['Chg', 'DR']:
     summation[col] = round(summation[col], 2)
+  summation['Percent'] = str(round(summation['Percent'] * 100, 0)) + '%'
   if 'hold' in set(sys.argv):
     stat_records_map.append(summation)
     stat_records_map.sort(reverse = True, key = lambda record: record.get('MV', 0))

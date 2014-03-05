@@ -465,10 +465,10 @@ def GenericDynamicStrategy(code, indicator,
   target_percent = (percent_range[1] - percent_range[0]) * (indicator_value - indicator_range[0]) / (
                     indicator_range[1] - indicator_range[0]) + percent_range[0]
   target_percent = max(0, target_percent);
-  if target_percent < percent_range[0] or target_percent > percent_range[1]:
-    print 'Warning: %s with indicator %s = %.2f target percent %.1f%% not in the range [%.2f, %.2f]'%(
-          CODE_TO_NAME[code], indicator, indicator_value,
-           target_percent, percent_range[0], percent_range[1])
+#  if target_percent < percent_range[0] or target_percent > percent_range[1]:
+#    print 'Warning: %s with indicator %s = %.2f target percent %.1f%% not in the range [%.2f, %.2f]'%(
+#          CODE_TO_NAME[code], indicator, indicator_value,
+#           target_percent, percent_range[0], percent_range[1])
   target_percent = max(percent_range[0], target_percent)
   target_percent = min(percent_range[1], target_percent)
   current_percent = holding_percent[code]
@@ -523,8 +523,8 @@ def BuyCMBH():
 def BuyCMB():
   return GenericDynamicStrategy(
     NAME_TO_CODE['招商银行'],
-    'P/B', [1.1, 0.7],
-    [0.13, 0.6],
+    'P/B', [1.1, 0.8],
+    [0.25, 0.6],
     buy_condition = lambda code: GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0);
 
 def BuyDeNA():
@@ -537,8 +537,8 @@ def BuyDeNA():
 def BuyMSBH():
   return GenericDynamicStrategy(
     NAME_TO_CODE['民生银行H'],
-    'AHD', [0.20, 0.40],
-    [0., 0.4],
+    'AHD', [0.30, 0.50],
+    [0.1, 0.4],
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
 def BuyA50():
@@ -551,23 +551,23 @@ def BuyA50():
 def BuyCIB():
   return GenericDynamicStrategy(
     NAME_TO_CODE['兴业银行'],
-    'P/B', [1.1, 0.7],
-    [0.1, 0.5],
+    'P/B', [1.1, 0.8],
+    [0.25, 0.5],
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
 def BuyBOCH():
   return GenericDynamicStrategy(
     NAME_TO_CODE['中国银行H'],
     'DR', [5.0, 1.0],
-    [0, 0.5],
+    [0.2, 0.5],
     buy_condition = lambda code: GetPB(code, GetMarketPrice(code)) < 1.1 and GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= 0);
 
 def BuyBOC():
   return GenericDynamicStrategy(
     NAME_TO_CODE['中国银行'],
     'DR', [2.0, 0.9],
-    [0., 0.35],
-    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= 0);
+    [0.2, 0.35],
+    buy_condition = lambda code: GetPB(code, GetMarketPrice(code)) < 1.1 and GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= 0);
   
 STRATEGY_FUNCS = {
   BuyApple: '',

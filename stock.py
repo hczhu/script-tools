@@ -776,7 +776,7 @@ def PrintHoldingSecurities(all_records):
     dt['USD'] += dt['HKD']
     dt['USD'] += dt['YEN']
   
-  capital_header = ['Currency', 'Market Value', 'Free Cash', 'Net',
+  capital_header = ['Currency', 'Market Value', 'Free Cash', 'Net', 'Cash',
                     'Transaction Fee', 'Max Decline', 'IRR']
   capital_table_map = []
   # All are in CURRENCY

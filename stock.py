@@ -253,6 +253,7 @@ total_capital_cost = defaultdict(int)
 total_investment = {
   'RMB': 0, 'USD': 0, 'HKD': 0, 'YEN': 0,
 }
+net_asset = defaultdict(int)
 
 total_transaction_fee = defaultdict(float)
 
@@ -516,7 +517,7 @@ def BuyBig4BanksH():
 def BuyCMBH():
   code = NAME_TO_CODE['招商银行H']
   dis, changeH, change = GetAHDiscount(code), GetMarketPriceChange(code), GetMarketPriceChange(AH_PAIR[code])
-  if dis > -0.01 and changeH < change:
+  if dis > 0.01 and changeH < change:
     return '@%.2f AH discount=%.1f%%'%(GetMarketPrice(code), dis * 100)
   return ''
 
@@ -525,7 +526,7 @@ def BuyCMB():
     NAME_TO_CODE['招商银行'],
     'P/B', [1.1, 0.8],
     [0.25, 0.6],
-    buy_condition = lambda code: GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0);
+    buy_condition = lambda code: GetPB(code, GetMarketPrice(code)) < 1.0 and GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0);
 
 def BuyDeNA():
   return GenericDynamicStrategy(
@@ -553,29 +554,29 @@ def BuyCIB():
     NAME_TO_CODE['兴业银行'],
     'P/B', [1.1, 0.8],
     [0.25, 0.5],
-    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
+    buy_condition = lambda code: GetPB(code, GetMarketPrice(code)) < 1.0 and GetMarketPriceChange(code) < 0.0);
 
 def BuyBOCH():
   return GenericDynamicStrategy(
     NAME_TO_CODE['中国银行H'],
     'DR', [5.0, 1.0],
     [0.2, 0.5],
-    buy_condition = lambda code: GetPB(code, GetMarketPrice(code)) < 1.1 and GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= 0);
+    buy_condition = lambda code: GetPB(code, GetMarketPrice(code)) < 1 and GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= 0);
 
 def BuyBOC():
   return GenericDynamicStrategy(
     NAME_TO_CODE['中国银行'],
     'DR', [2.0, 0.9],
     [0.2, 0.35],
-    buy_condition = lambda code: GetPB(code, GetMarketPrice(code)) < 1.1 and GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= 0);
+    buy_condition = lambda code: GetPB(code, GetMarketPrice(code)) < 1 and GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= 0);
   
 STRATEGY_FUNCS = {
   BuyApple: '',
-  BuyBig4BanksH: 'Buy 四大行H股 ',
+  #BuyBig4BanksH: 'Buy 四大行H股 ',
   BuyDeNA:  '',
   BuyCMBH:  'Buy 招商银行H ',
   BuyCMB:  '',
-  BuyMSBH: '',
+  #BuyMSBH: '',
   BuyCIB: '',
 }
 
@@ -771,14 +772,11 @@ def PrintHoldingSecurities(all_records):
     if remain_stock > 0:
       stat_records_map.append(record)
   
-  total_investment['USD'] += total_investment['HKD']
-  total_investment['USD'] += total_investment['YEN']
-  total_market_value['USD'] += total_market_value['HKD']
-  total_market_value['USD'] += total_market_value['YEN']
-  total_transaction_fee['USD'] += total_transaction_fee['HKD']
-  total_transaction_fee['USD'] += total_transaction_fee['YEN']
+  for dt in [total_investment, total_market_value, total_transaction_fee]:
+    dt['USD'] += dt['HKD']
+    dt['USD'] += dt['YEN']
   
-  capital_header = ['Currency', 'Market Value', 'Cash', 'Investment', 'Free Cash',
+  capital_header = ['Currency', 'Market Value', 'Free Cash', 'Net',
                     'Transaction Fee', 'Max Decline', 'IRR']
   capital_table_map = []
   # All are in CURRENCY
@@ -813,11 +811,12 @@ def PrintHoldingSecurities(all_records):
           str(myround(100.0 * total_transaction_fee[currency] / total_investment[currency], 2)) + '%)',
         'Max Decline': str(myround((total_market_value[currency] + 2 * total_capital[currency] - 2 * total_investment[currency]) * 100.0 / total_market_value[currency], 0)) + '%',
         'IRR': str(myround(GetIRR(total_market_value[currency], cash_flow[currency]) * 100, 2)) + '%',
+        'Net': str(myround((total_market_value[currency] + total_capital[currency] - total_investment[currency]) / 1000, 0)) + 'K',
         }
     )
   
   PrintTableMap(capital_header, capital_table_map, set())
-  NET_ASSET = total_market_value['USD'] + total_market_value['RMB'] + total_capital['USD']  + total_capital['RMB'] - total_investment['USD'] - total_investment['RMB'];
+  NET_ASSET = total_market_value['ALL'] + total_capital['ALL'] - total_investment['ALL']
   for col in ['Chg', 'DR', 'Percent']:
     summation[col] = 0.0
   for record in stat_records_map:

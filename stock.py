@@ -660,7 +660,7 @@ def CalOneStock(NO_RISK_RATE, records):
     net_profit += value
     prev_date = trans_date
     if buy_shares > 0:
-      assert value < 0.0
+      assert value <= 0.0
       holding_cost = (holding_cost * holding_shares - value) / (holding_shares + buy_shares)
     holding_shares += buy_shares
     assert holding_shares >= 0.0

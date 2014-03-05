@@ -523,7 +523,7 @@ def BuyCMB():
   return GenericDynamicStrategy(
     NAME_TO_CODE['招商银行'],
     'P/B', [1.1, 0.7],
-    [0.13, 0.5],
+    [0.13, 0.6],
     buy_condition = lambda code: GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0);
 
 def BuyDeNA():
@@ -551,7 +551,7 @@ def BuyCIB():
   return GenericDynamicStrategy(
     NAME_TO_CODE['兴业银行'],
     'P/B', [1.1, 0.7],
-    [0.1, 0.4],
+    [0.1, 0.5],
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
 def BuyBOCH():

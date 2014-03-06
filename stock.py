@@ -669,7 +669,7 @@ def CalOneStock(NO_RISK_RATE, records):
   if day_trade_net_shares == 0:
     sum_day_trade_profit += day_trade_profit
     day_trade_time += 1
-  return (net_profit, capital_cost, holding_shares, holding_cost, sum_day_trade_profit, day_trade_time, sum_fee)
+  return (net_profit, capital_cost, holding_shares, sum_day_trade_profit, day_trade_time, sum_fee)
 
 def ReadRecords(input):
   all_records = defaultdict(list)
@@ -681,7 +681,6 @@ def ReadRecords(input):
 def PrintHoldingSecurities(all_records):
   global NET_ASSET
   table_header = ['MV',
-                  'NCF',
                   'CC',
                   '#TxN',
                   'TNF',
@@ -695,8 +694,6 @@ def PrintHoldingSecurities(all_records):
                   'P/B',
                   'DR',
                   'AHD',
-                  'HCPS',
-                  'CPS',
                   'Percent',
                   'Stock name']
   silent_column = [
@@ -708,8 +705,6 @@ def PrintHoldingSecurities(all_records):
     'DTP',
     '#DT',
     'CC',
-    'HCPS',
-    'CPS',
     'NCF',
   ]
   for col in ['Price']:
@@ -725,7 +720,7 @@ def PrintHoldingSecurities(all_records):
     name = all_records[key][0][3]
     currency = all_records[key][0][7]
     # All in CURRENCY
-    (net_profit, capital_cost, remain_stock, holding_cps, dtp, dt, txn_fee) = CalOneStock(NO_RISK_RATE, all_records[key])
+    (net_profit, capital_cost, remain_stock, dtp, dt, txn_fee) = CalOneStock(NO_RISK_RATE, all_records[key])
     if key in total_investment:
       total_capital[currency] += -net_profit
       total_capital_cost[currency] += capital_cost
@@ -734,14 +729,12 @@ def PrintHoldingSecurities(all_records):
     total_investment[currency] += investment
     total_transaction_fee[currency] += txn_fee
     ex_rate = EX_RATE[currency + '-' + CURRENCY]
-    mp, chg, mp_pair_rmb, mv, CPS, change_rate = 0.0001, 0, 1, 0, 0, ''
+    mp, chg, mp_pair_rmb, mv, = 0.0001, 0, 1, 0
     if remain_stock > 0 :
       mp = GetMarketPrice(key)
       chg = GetMarketPriceChange(key)
       mp_pair_rmb = mp * ex_rate
       mv = mp * remain_stock * ex_rate
-      CPS = myround(investment / ex_rate / remain_stock, 3)
-      change_rate = '(' + str(myround((mp - holding_cps) / holding_cps * 100, 2)) + '%)'
       if key in AH_PAIR:
         mp_pair_rmb = GetMarketPriceInRMB(AH_PAIR[key])
     total_market_value[currency] += mv
@@ -750,7 +743,6 @@ def PrintHoldingSecurities(all_records):
         'MV': myround(mv, 0),
         'Price': mp,
         'Chg': round(chg, 2),
-        'NCF': myround(net_profit, 0),
         'CC': myround(capital_cost, 0),
         '#TxN': len(all_records[key]),
         'TNF': myround(txn_fee, 0),
@@ -763,11 +755,9 @@ def PrintHoldingSecurities(all_records):
         'P/B': myround(GetPB(key, mp), 2),
         'DR':  myround(GetDR(key, mp) * 100 , 2),
         'AHD': str(myround(100.0 * (mp_pair_rmb - mp * ex_rate ) / mp / ex_rate, 1)) + '%',
-        'HCPS': myround(holding_cps / ex_rate, 3),
-        'CPS': str(CPS),
         'Stock name': name + '(' + key + ')',
     }
-    for col in ['MV', 'NCF', 'CC', '#TxN', 'TNF', 'DTP', '#DT']:
+    for col in ['MV', 'CC', '#TxN', 'TNF', 'DTP', '#DT']:
       summation[col] = summation.get(col, 0) + record[col]
     if remain_stock > 0:
       stat_records_map.append(record)

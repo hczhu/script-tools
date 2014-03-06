@@ -517,7 +517,7 @@ def BuyBig4BanksH():
 def BuyCMBH():
   code = NAME_TO_CODE['招商银行H']
   dis, changeH, change = GetAHDiscount(code), GetMarketPriceChange(code), GetMarketPriceChange(AH_PAIR[code])
-  if dis > 0.01 and changeH < change:
+  if dis > -0.01 and changeH < change:
     return '@%.2f AH discount=%.1f%%'%(GetMarketPrice(code), dis * 100)
   return ''
 

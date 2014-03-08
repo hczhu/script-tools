@@ -572,12 +572,12 @@ def BuyBOC():
   
 STRATEGY_FUNCS = {
   BuyApple: '',
-  #BuyBig4BanksH: 'Buy 四大行H股 ',
+  BuyBig4BanksH: 'Buy 四大行H股 ',
   BuyDeNA:  '',
   BuyCMBH:  'Buy 招商银行H ',
-  BuyCMB:  '',
+  #BuyCMB:  '',
   #BuyMSBH: '',
-  BuyCIB: '',
+  #BuyCIB: '',
 }
 
 #--------------End of strategy functions-----

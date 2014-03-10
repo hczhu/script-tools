@@ -589,7 +589,7 @@ def BuyBOCH():
     '中国银行H',
     'DR',
     [7.0, 8.5],
-    [0.26, 0.5],
+    [0.30, 0.5],
     [5.0, 3.0],
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= -0.01);
 

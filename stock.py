@@ -6,6 +6,7 @@ from datetime import date
 from datetime import time
 from collections import defaultdict
 import urllib2
+import traceback
 
 #----------Beginning of manually upated financial data-------
 
@@ -91,7 +92,7 @@ SPS = {
 EPS = {
   #南方A50ETF，数据来自sse 50ETF统计页面
   # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
-  '南方A50': 8.3412 / 8.01,
+  '南方A50': 8.1979 / 7.91,
   # 来自DeNA 2013H1财报估计
   # '2432': 199.51 * 4 / 3,
   # 来自DeNA 2013Q3财报估计，打八折
@@ -454,44 +455,61 @@ def PrintTableMap(table_header, records_map, silent_column):
 
 #--------------Beginning of strategy functions-----
 
-def GenericDynamicStrategy(code, indicator,
-                           indicator_range,
-                           percent_range,
-                           percent_delta = 0.015,
+def GenericDynamicStrategy(name,
+                           indicator,
+                           buy_range,
+                           hold_percent_range,
+                           sell_range,
+                           percent_delta = 0.02,
                            buy_condition = lambda code: True,
                            sell_condition = lambda code: True):
+  code = NAME_TO_CODE[name]
   mp = GetMarketPrice(code)
   mp_rmb = GetMarketPriceInRMB(code)
   indicator_value = FINANCIAL_FUNC[indicator](code, mp)
-  target_percent = (percent_range[1] - percent_range[0]) * (indicator_value - indicator_range[0]) / (
-                    indicator_range[1] - indicator_range[0]) + percent_range[0]
-  target_percent = max(0, target_percent);
-#  if target_percent < percent_range[0] or target_percent > percent_range[1]:
-#    print 'Warning: %s with indicator %s = %.2f target percent %.1f%% not in the range [%.2f, %.2f]'%(
-#          CODE_TO_NAME[code], indicator, indicator_value,
-#           target_percent, percent_range[0], percent_range[1])
-  target_percent = max(percent_range[0], target_percent)
-  target_percent = min(percent_range[1], target_percent)
-  current_percent = holding_percent[code]
-  if code in AH_PAIR:
-    current_percent += holding_percent[AH_PAIR[code]]
-  percent = target_percent - current_percent
-  if (percent > percent_delta and buy_condition(code)) or (
-      percent < -percent_delta and sell_condition(code)):
-    percent = min(percent_delta, abs(percent)) * percent / abs(percent)
-    return 'Buy %s %d units @%.2f change: %.1f%% due to %s = %.3f. Target: %.1f%% current: %.1f%%'%(
-      CODE_TO_NAME[code],
-      int(NET_ASSET * percent / mp_rmb),
-      mp,
-      GetMarketPriceChange(code), indicator, indicator_value,
-      target_percent * 100, current_percent * 100)
+  if (indicator_value - buy_range[0]) * (buy_range[1] - buy_range[0]) > 0.0:
+    target_percent = (hold_percent_range[1] - hold_percent_range[0]) * (indicator_value - buy_range[0]) / (
+                    buy_range[1] - buy_range[0]) + hold_percent_range[0]
+    target_percent = max(hold_percent_range[0], target_percent)
+    target_percent = min(hold_percent_range[1], target_percent)
+    current_percent = holding_percent[code]
+    if code in AH_PAIR:
+      current_percent += holding_percent[AH_PAIR[code]]
+    percent = target_percent - current_percent
+    if percent >= percent_delta and buy_condition(code):
+      percent = percent_delta
+      return 'Buy %s %d units @%.2f change: %.1f%% due to %s = %.3f. Target: %.1f%% current: %.1f%%'%(
+          CODE_TO_NAME[code],
+          int(NET_ASSET * percent / mp_rmb),
+          mp,
+          GetMarketPriceChange(code), indicator, indicator_value,
+          target_percent * 100, current_percent * 100)
+  if (indicator_value - sell_range[0]) * (sell_range[1] - sell_range[0]) > 0.0:
+    current_percent = holding_percent[code]
+    if code in AH_PAIR:
+      current_percent += holding_percent[AH_PAIR[code]]
+    target_percent = current_percent - current_percent * (
+      indicator_value - sell_range[0]) / (
+        sell_range[1] - sell_range[0])
+    target_percent = max(0, target_percent)
+    percent = target_percent - current_percent
+    if percent >= percent_delta and sell_condition(code):
+      percent = percent_delta
+      return 'Sell %s %d units @%.2f change: %.1f%% due to %s = %.3f. Target: %.1f%% current: %.1f%%'%(
+          CODE_TO_NAME[code],
+          int(NET_ASSET * percent / mp_rmb),
+          mp,
+          GetMarketPriceChange(code), indicator, indicator_value,
+          target_percent * 100, current_percent * 100)
   return '';
   
 def BuyApple():
   return GenericDynamicStrategy(
-    NAME_TO_CODE['Apple'],
-    'DR', [0.0183, 0.03],
-    [0, 0.4],
+    'Apple',
+    'DR',
+    [0.02, 0.04],
+    [0.05, 0.4],
+    [0.1, 0],
     buy_condition = lambda code: GetMarketPriceChange(code) <= 0);
   
 def BuyBig4BanksH():
@@ -523,61 +541,67 @@ def BuyCMBH():
 
 def BuyCMB():
   return GenericDynamicStrategy(
-    NAME_TO_CODE['招商银行'],
-    'P/B', [1.1, 0.8],
-    [0.25, 0.6],
-    buy_condition = lambda code: GetPB(code, GetMarketPrice(code)) < 1.0 and GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0);
+    '招商银行',
+    'P/B',
+    [1.0, 0.7],
+    [0.2, 0.5],
+    [1.5, 2.5],
+    buy_condition = lambda code: GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0);
 
 def BuyDeNA():
   return GenericDynamicStrategy(
-    NAME_TO_CODE[':DeNA'],
-    'P/S', [1.8, 1],
-    [0.0, 0.08],
+    ':DeNA',
+    'P/S',
+    [1.5, 0.8],
+    [0.08, 0.15],
+    [2.0, 3.0],
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
 def BuyMSBH():
   return GenericDynamicStrategy(
-    NAME_TO_CODE['民生银行H'],
-    'AHD', [0.30, 0.50],
-    [0.1, 0.4],
+    '民生银行H',
+    'AHD',
+    [0.30, 0.50],
+    [0.1, 0.2],
+    [0.2, 0.1],
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
 def BuyA50():
   return GenericDynamicStrategy(
-    NAME_TO_CODE['南方A50'],
-    'P/E', [9, 6],
-    [0, 0.80],
+    '南方A50',
+    'P/E',
+    [8, 6],
+    [0.30, 0.60],
+    [10, 12],
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
 def BuyCIB():
   return GenericDynamicStrategy(
-    NAME_TO_CODE['兴业银行'],
-    'P/B', [1.1, 0.8],
-    [0.25, 0.5],
-    buy_condition = lambda code: GetPB(code, GetMarketPrice(code)) < 1.0 and GetMarketPriceChange(code) < 0.0);
+    '兴业银行',
+    'P/B',
+    [1, 0.7],
+    [0.25, 0.4],
+    [1.5, 2.5],
+    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
 def BuyBOCH():
   return GenericDynamicStrategy(
-    NAME_TO_CODE['中国银行H'],
-    'DR', [5.0, 1.0],
-    [0.2, 0.5],
-    buy_condition = lambda code: GetPB(code, GetMarketPrice(code)) < 1 and GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= 0);
+    '中国银行H',
+    'DR',
+    [7.0, 8.5],
+    [0.26, 0.5],
+    [5.0, 3.0],
+    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= -0.01);
 
-def BuyBOC():
-  return GenericDynamicStrategy(
-    NAME_TO_CODE['中国银行'],
-    'DR', [2.0, 0.9],
-    [0.2, 0.35],
-    buy_condition = lambda code: GetPB(code, GetMarketPrice(code)) < 1 and GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= 0);
-  
 STRATEGY_FUNCS = {
   BuyApple: '',
   BuyBig4BanksH: 'Buy 四大行H股 ',
   BuyDeNA:  '',
   BuyCMBH:  'Buy 招商银行H ',
-  #BuyCMB:  '',
-  #BuyMSBH: '',
-  #BuyCIB: '',
+  BuyCMB:  '',
+  BuyMSBH: '',
+  BuyCIB: '',
+  BuyA50: '',
 }
 
 #--------------End of strategy functions-----
@@ -926,3 +950,4 @@ try:
   RunStrategies()
 except Exception as ins:
   print 'Run time error: ', ins
+  traceback.print_exc(file=sys.stdout)

@@ -588,9 +588,9 @@ def BuyBOCH():
   return GenericDynamicStrategy(
     '中国银行H',
     'DR',
-    [7.0, 8.5],
-    [0.30, 0.5],
-    [5.0, 3.0],
+    [0.07, 0.085],
+    [0.3, 0.5],
+    [.055, .03],
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= -0.01);
 
 STRATEGY_FUNCS = {
@@ -602,6 +602,7 @@ STRATEGY_FUNCS = {
   BuyMSBH: '',
   BuyCIB: '',
   BuyA50: '',
+  BuyBOCH: '',
 }
 
 #--------------End of strategy functions-----

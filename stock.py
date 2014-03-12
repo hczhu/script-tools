@@ -699,6 +699,8 @@ def CalOneStock(NO_RISK_RATE, records):
 def ReadRecords(input):
   all_records = defaultdict(list)
   for line in input:
+    if 0 != line.find('20'):
+      continue
     cells = line.strip().split(',')
     all_records[cells[2]].append(cells)
   return all_records

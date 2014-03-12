@@ -224,8 +224,8 @@ CB_INFO = {
 
 EX_RATE = {
   'RMB-RMB': 1.0,
-  'HKD-RMB': 0.78,
-  'USD-RMB': 6.08,
+  'HKD-RMB': 0.79,
+  'USD-RMB': 6.15,
   'YEN-RMB': 0.06,
 }
 

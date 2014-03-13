@@ -159,6 +159,7 @@ def GetJapanStockPriceAndChange(code):
 
 #----------Begining of global variables------------------
 
+MAX_PERCENT_PER_STOCK = 0.3
 CURRENCY = 'RMB'
 NO_RISK_RATE = 0.05
 LOAN_RATE = 0.016
@@ -460,7 +461,7 @@ def GenericDynamicStrategy(name,
                            buy_range,
                            hold_percent_range,
                            sell_range,
-                           percent_delta = 0.02,
+                           percent_delta = 0.015,
                            buy_condition = lambda code: True,
                            sell_condition = lambda code: True):
   code = NAME_TO_CODE[name]
@@ -508,7 +509,7 @@ def BuyApple():
     'Apple',
     'DR',
     [0.02, 0.04],
-    [0.05, 0.4],
+    [0.05, 0.3],
     [0.1, 0],
     buy_condition = lambda code: GetMarketPriceChange(code) <= 0);
   
@@ -533,18 +534,20 @@ def BuyBig4BanksH():
   return ''
 
 def BuyCMBH():
-  code = NAME_TO_CODE['招商银行H']
-  dis, changeH, change = GetAHDiscount(code), GetMarketPriceChange(code), GetMarketPriceChange(AH_PAIR[code])
-  if dis > -0.01 and changeH < change:
-    return '@%.2f AH discount=%.1f%%'%(GetMarketPrice(code), dis * 100)
-  return ''
+  return GenericDynamicStrategy(
+    '招商银行H',
+    'P/B',
+    [1.0, 0.7],
+    [0.25, 0.3],
+    [1.5, 2.5],
+    buy_condition = lambda code: GetAHDiscount(code) >= -0.01 and GetMarketPriceChange(code) < 0);
 
 def BuyCMB():
   return GenericDynamicStrategy(
     '招商银行',
     'P/B',
     [1.0, 0.7],
-    [0.2, 0.5],
+    [0.25, 0.3],
     [1.5, 2.5],
     buy_condition = lambda code: GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0);
 
@@ -571,7 +574,7 @@ def BuyA50():
     '南方A50',
     'P/E',
     [8, 6],
-    [0.30, 0.60],
+    [0.30, 0.50],
     [10, 12],
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
@@ -580,7 +583,7 @@ def BuyCIB():
     '兴业银行',
     'P/B',
     [1, 0.7],
-    [0.25, 0.4],
+    [0.2, 0.3],
     [1.5, 2.5],
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
@@ -589,9 +592,10 @@ def BuyBOCH():
     '中国银行H',
     'DR',
     [0.07, 0.085],
-    [0.3, 0.5],
+    [0.2, 0.3],
     [.055, .03],
-    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= -0.01);
+    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= -0.01,
+    sell_condition = lambda code: GetPB(code, GetMarketPrice(code)) > 1.5);
 
 STRATEGY_FUNCS = {
   BuyApple: '',

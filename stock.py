@@ -730,7 +730,7 @@ def PrintHoldingSecurities(all_records):
   silent_column = [
     #'MV',
     'MP',
-    'HS',
+    #'HS',
     '#TxN',
     'TNF',
     'DTP',
@@ -793,7 +793,8 @@ def PrintHoldingSecurities(all_records):
     if remain_stock > 0:
       stat_records_map.append(record)
   
-  for dt in [total_investment, total_market_value, total_transaction_fee]:
+  for dt in [cash_flow, total_market_value, total_capital,
+             total_investment, total_transaction_fee]:
     dt['USD'] += dt['HKD']
     dt['USD'] += dt['YEN']
   

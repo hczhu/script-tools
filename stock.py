@@ -164,6 +164,13 @@ CURRENCY = 'RMB'
 NO_RISK_RATE = 0.05
 LOAN_RATE = 0.016
 
+
+REAL_TIME_VALUE_CACHE = {
+}
+
+REALTIME_VALUE_FUNC = {
+}
+
 CODE_TO_NAME = {
 }
 
@@ -203,7 +210,6 @@ WATCH_LIST_CB = {
 WATCH_LIST_ETF = {
   #南方A50 ETF
   '02822': '南方A50',
-  '510300': 'iShare A50 ETF',
 } 
 
 AH_PAIR = {
@@ -402,6 +408,26 @@ def GetAHDiscount(code, mp = 0):
   mp_rmb, mp_pair_rmb = GetMarketPriceInRMB(code), GetMarketPriceInRMB(AH_PAIR[code])
   return (mp_pair_rmb - mp_rmb) / mp_rmb
 
+def GetRZ(code, mp = 0):
+  url_pattern = 'http://data.eastmoney.com/rzrq/detail/%s,1.html'
+  rz = GetValueFromUrl(url_pattern%(code),
+                         [
+                          '<th>融资余额(元)</th>',
+                          '<td class="right">',
+                         ],
+                         '</td>' , lambda s: int(s.replace(',', '')))
+  rq = GetValueFromUrl(url_pattern%(code),
+                         [
+                          '<th>融资余额(元)</th>',
+                          '<td class="right">',
+                          '<td class="right">',
+                          '<td class="right">',
+                          '<td class="right">',
+                         ],
+                         '</td>' , lambda s: int(s.replace(',', '')))
+  return rz - rq
+  
+
 FINANCIAL_FUNC = {
   'P/E': GetPE,
   'P/B': GetPB,
@@ -537,19 +563,21 @@ def BuyCMBH():
   return GenericDynamicStrategy(
     '招商银行H',
     'P/B',
-    [1.0, 0.7],
-    [0.25, 0.3],
+    [1.1, 0.7],
+    [0.2, 0.3],
     [1.5, 2.5],
-    buy_condition = lambda code: GetAHDiscount(code) >= -0.01 and GetMarketPriceChange(code) < 0);
+    buy_condition = lambda code: GetAHDiscount(code) >= -0.01 and GetMarketPriceChange(code) < 0 and
+    GetRZ(AH_PAIR[code]) < 3909913752 / 2)
 
 def BuyCMB():
   return GenericDynamicStrategy(
     '招商银行',
     'P/B',
-    [1.0, 0.7],
-    [0.25, 0.3],
+    [1.1, 0.7],
+    [0.2, 0.3],
     [1.5, 2.5],
-    buy_condition = lambda code: GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0);
+    buy_condition = lambda code: GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0 and
+    GetRZ(code) < 3909913752 / 2)
 
 def BuyDeNA():
   return GenericDynamicStrategy(
@@ -582,10 +610,10 @@ def BuyCIB():
   return GenericDynamicStrategy(
     '兴业银行',
     'P/B',
-    [1, 0.7],
+    [1.05, 0.7],
     [0.2, 0.3],
     [1.5, 2.5],
-    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
+    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetRZ(code) < 6157420241 / 2);
 
 def BuyBOCH():
   return GenericDynamicStrategy(

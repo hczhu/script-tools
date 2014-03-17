@@ -711,7 +711,8 @@ def ReadRecords(input):
 
 def PrintHoldingSecurities(all_records):
   global NET_ASSET
-  table_header = ['MV',
+  table_header = [
+                  'Percent',
                   'CC',
                   '#TxN',
                   'TNF',
@@ -725,7 +726,6 @@ def PrintHoldingSecurities(all_records):
                   'P/B',
                   'DR',
                   'AHD',
-                  'Percent',
                   'Stock name']
   silent_column = [
     'MV',

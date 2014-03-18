@@ -435,6 +435,7 @@ FINANCIAL_FUNC = {
   'CAP': GetCAP,
   'AHD': GetAHDiscount,
   'DR': GetDR,
+  'MP': lambda code, mp: GetMarketPrice(code),
 }
 
 #--------------End of logic util functions---------------
@@ -519,7 +520,7 @@ def GenericDynamicStrategy(name,
       indicator_value - sell_range[0]) / (
         sell_range[1] - sell_range[0])
     target_percent = max(0, target_percent)
-    percent = target_percent - current_percent
+    percent = current_percent - target_percent 
     if percent >= percent_delta and sell_condition(code):
       percent = percent_delta
       return 'Sell %s %d units @%.2f change: %.1f%% due to %s = %.3f. Target: %.1f%% current: %.1f%%'%(
@@ -615,6 +616,15 @@ def BuyCIB():
     [1.5, 2.5],
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetRZ(code) < 6157420241 / 2);
 
+def SellCIB():
+  return GenericDynamicStrategy(
+    '兴业银行',
+    'MP',
+    [8, 7],
+    [0.2, 0.3],
+    [9, 9.4],
+    sell_condition = lambda code: GetMarketPriceChange(code) > 0.0 and GetRZ(code) > 6057420241);
+
 def BuyBOCH():
   return GenericDynamicStrategy(
     '中国银行H',
@@ -635,6 +645,7 @@ STRATEGY_FUNCS = {
   BuyCIB: '',
   BuyA50: '',
   BuyBOCH: '',
+  SellCIB: '',
 }
 
 #--------------End of strategy functions-----
@@ -982,7 +993,6 @@ try:
     PrintWatchedBank()
   
   PrintHoldingSecurities(ReadRecords(sys.stdin))
-  
   RunStrategies()
 except Exception as ins:
   print 'Run time error: ', ins

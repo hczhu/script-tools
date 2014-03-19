@@ -92,7 +92,7 @@ SPS = {
 EPS = {
   #南方A50ETF，数据来自sse 50ETF统计页面
   # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
-  '南方A50': 8.1979 / 7.91,
+  '南方A50': 8.1276 / 7.91,
   # 来自DeNA 2013H1财报估计
   # '2432': 199.51 * 4 / 3,
   # 来自DeNA 2013Q3财报估计，打八折
@@ -506,8 +506,8 @@ def GenericDynamicStrategy(name,
     percent = target_percent - current_percent
     if percent >= percent_delta and buy_condition(code):
       percent = percent_delta
-      return 'Buy %s %d units @%.2f change: %.1f%% due to %s = %.3f. Target: %.1f%% current: %.1f%%'%(
-          CODE_TO_NAME[code],
+      return 'Buy %s(%s) %d units @%.2f change: %.1f%% due to %s = %.3f. Target: %.1f%% current: %.1f%%'%(
+          CODE_TO_NAME[code], code,
           int(NET_ASSET * percent / mp_rmb),
           mp,
           GetMarketPriceChange(code), indicator, indicator_value,
@@ -523,8 +523,8 @@ def GenericDynamicStrategy(name,
     percent = current_percent - target_percent 
     if percent >= percent_delta and sell_condition(code):
       percent = percent_delta
-      return 'Sell %s %d units @%.2f change: %.1f%% due to %s = %.3f. Target: %.1f%% current: %.1f%%'%(
-          CODE_TO_NAME[code],
+      return 'Sell %s(%s) %d units @%.2f change: %.1f%% due to %s = %.3f. Target: %.1f%% current: %.1f%%'%(
+          CODE_TO_NAME[code], code,
           int(NET_ASSET * percent / mp_rmb),
           mp,
           GetMarketPriceChange(code), indicator, indicator_value,
@@ -543,21 +543,18 @@ def BuyApple():
 def BuyBig4BanksH():
   codes = map(lambda name: NAME_TO_CODE[name],
               [
-               '中国银行H',
                '工商银行H',
                '建设银行H',
-               '农业银行H',
+               '中国银行H',
               ])
-  discount, buy = -1, ''
   for code in codes:
     dis = GetAHDiscount(code)
     changeH = GetMarketPriceChange(code)
     change = GetMarketPriceChange(AH_PAIR[code])
-    if dis > discount and changeH < change and GetPB(code, GetMarketPrice(code)) < 1.0:
-      discount = dis
-      buy = code
-  if discount > 0.0:
-    return '%s @%.2f AH discount=%.1f%%'%(CODE_TO_NAME[buy], GetMarketPrice(buy), discount * 100.0)
+    if dis > 0 and changeH < 0:
+      return 'Buy %s(%s) %d units @%.2f AH discount=%.1f%%'%(
+        CODE_TO_NAME[code], code, int(NET_ASSET * 0.02 / GetMarketPriceInRMB(code)),
+        GetMarketPrice(code), dis * 100.0)
   return ''
 
 def BuyCMBH():
@@ -602,7 +599,7 @@ def BuyA50():
   return GenericDynamicStrategy(
     '南方A50',
     'P/E',
-    [8, 6],
+    [8, 7],
     [0.30, 0.50],
     [10, 12],
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
@@ -625,14 +622,25 @@ def SellCIB():
     [9, 9.4],
     sell_condition = lambda code: GetMarketPriceChange(code) > 0.0 and GetRZ(code) > 6057420241);
 
+def SellMSH():
+  code = NAME_TO_CODE['民生银行H']
+  if holding_percent[code] == 0:
+    return ''
+  mp = GetMarketPriceInRMB(code)
+  if GetMarketPriceChange(code) > 0.0:
+    sell_percent = min(holding_percent[code], 0.02)
+    sell_units = int(NET_ASSET * sell_percent / mp)
+    return 'Sell %d units 民生银行H(%s) @%f'%(sell_units, code, GetMarketPrice(code))
+  return ''
+
 def BuyBOCH():
   return GenericDynamicStrategy(
     '中国银行H',
     'DR',
-    [0.07, 0.085],
-    [0.2, 0.3],
+    [0.07, 0.08],
+    [0.2, 0.4],
     [.055, .03],
-    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= -0.01,
+    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= 0.0,
     sell_condition = lambda code: GetPB(code, GetMarketPrice(code)) > 1.5);
 
 STRATEGY_FUNCS = {
@@ -646,6 +654,7 @@ STRATEGY_FUNCS = {
   BuyA50: '',
   BuyBOCH: '',
   SellCIB: '',
+  SellMSH: '',
 }
 
 #--------------End of strategy functions-----
@@ -769,6 +778,7 @@ def PrintHoldingSecurities(all_records):
   silent_column = [
     'MV',
     'MP',
+    'HS',
     #'HS',
     '#TxN',
     'TNF',

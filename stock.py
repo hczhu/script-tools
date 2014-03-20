@@ -92,7 +92,7 @@ SPS = {
 EPS = {
   #南方A50ETF，数据来自sse 50ETF统计页面
   # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
-  '南方A50': 8.1276 / 7.91,
+  '南方A50': 8.0139 / 7.87,
   # 来自DeNA 2013H1财报估计
   # '2432': 199.51 * 4 / 3,
   # 来自DeNA 2013Q3财报估计，打八折
@@ -128,14 +128,19 @@ DVPS = {
   '中国银行': EPS['中国银行'] * 0.35 * 0.9,
 }
 
+URL_CONTENT_CACHE = {
+}
+
 #----------End of manually upated financial data-------
 
 #----------Beginning of crawler util functions-----------------
 
 def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True):
   try:
-    request=urllib2.Request(url)
-    content=urllib2.urlopen(request).read()
+    if url not in URL_CONTENT_CACHE:
+      request = urllib2.Request(url)
+      URL_CONTENT_CACHE[url] = urllib2.urlopen(request).read()
+    content = URL_CONTENT_CACHE[url]
     for fs in feature_str:
       content = content[len(fs) + content.find(fs):]
     return func(content[0:content.find(end_str)])
@@ -155,6 +160,15 @@ def GetJapanStockPriceAndChange(code):
   except:
     return [float('inf'), 0.0]
 
+def GetJapanStockBeta(code):
+  url = 'http://jp.reuters.com/investing/quotes/quote?symbol=%s.T'%(str(code))
+  try:
+    return GetValueFromUrl(url,
+        ['<span id="quoteBeta">'],
+         '</span>', lambda s: float(s.replace(',', '')))
+  except:
+    return 0.0
+
 #----------End of crawler util functions-----------------
 
 #----------Begining of global variables------------------
@@ -164,6 +178,9 @@ CURRENCY = 'RMB'
 NO_RISK_RATE = 0.05
 LOAN_RATE = 0.016
 
+STOCK_BETA = {
+  '2432': GetJapanStockBeta,
+}
 
 REAL_TIME_VALUE_CACHE = {
 }
@@ -252,6 +269,12 @@ market_price_cache = {
 
 market_price_func = {
   '2432': lambda: GetJapanStockPriceAndChange('2432'),
+  'ni225': lambda: [GetValueFromUrl(':http://www.investing.com/indices/japan-ni225',
+                                    ['<div id="quotes_summary_current_data">', 'id="last_last">'],
+                                    '</span>', lambda s: float(s.replace(',', ''))),
+                    GetValueFromUrl(':http://www.investing.com/indices/japan-ni225',
+                                    ['<div id="quotes_summary_current_data">', 'dir="ltr">('],
+                                    '%)', lambda s: float(s.replace(',', '')))],
 }
 
 total_capital = defaultdict(int)
@@ -551,7 +574,7 @@ def BuyBig4BanksH():
     dis = GetAHDiscount(code)
     changeH = GetMarketPriceChange(code)
     change = GetMarketPriceChange(AH_PAIR[code])
-    if dis > 0 and changeH < 0:
+    if dis >= 0.01 and changeH < 0:
       return 'Buy %s(%s) %d units @%.2f AH discount=%.1f%%'%(
         CODE_TO_NAME[code], code, int(NET_ASSET * 0.02 / GetMarketPriceInRMB(code)),
         GetMarketPrice(code), dis * 100.0)
@@ -584,7 +607,7 @@ def BuyDeNA():
     [1.5, 0.8],
     [0.08, 0.15],
     [2.0, 3.0],
-    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
+    buy_condition = lambda code: GetMarketPriceChange(code) < min(0.0, 2 * GetMarketPriceChange('ni225')));
 
 def BuyMSBH():
   return GenericDynamicStrategy(
@@ -644,17 +667,17 @@ def BuyBOCH():
     sell_condition = lambda code: GetPB(code, GetMarketPrice(code)) > 1.5);
 
 STRATEGY_FUNCS = {
-  BuyApple: '',
+  BuyApple: 'Buy Apple',
   BuyBig4BanksH: 'Buy 四大行H股 ',
-  BuyDeNA:  '',
+  BuyDeNA:  'Buy :DeNA',
   BuyCMBH:  'Buy 招商银行H ',
-  BuyCMB:  '',
-  BuyMSBH: '',
-  BuyCIB: '',
-  BuyA50: '',
-  BuyBOCH: '',
-  SellCIB: '',
-  SellMSH: '',
+  BuyCMB:  'Buy CMB',
+  BuyMSBH: 'Buy MSBH',
+  BuyCIB: 'Buy CIB',
+  BuyA50: 'Buy A50',
+  BuyBOCH: 'Buy BOCH',
+  SellCIB: 'Sell CIB',
+  SellMSH: 'Sell MSH',
 }
 
 #--------------End of strategy functions-----
@@ -985,7 +1008,7 @@ def RunStrategies():
     sys.stderr.write("Running straregy: %s\n"%(STRATEGY_FUNCS[strategy]))
     suggestion = strategy()
     if suggestion != '':
-      print '%s%s'%(STRATEGY_FUNCS[strategy], suggestion)
+      print '%s'%(suggestion)
 
 try:
   InitAll()

@@ -92,7 +92,7 @@ SPS = {
 EPS = {
   #南方A50ETF，数据来自sse 50ETF统计页面
   # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
-  '南方A50': 8.0139 / 7.87,
+  '南方A50': 8.3291 / 8.11,
   # 来自DeNA 2013H1财报估计
   # '2432': 199.51 * 4 / 3,
   # 来自DeNA 2013Q3财报估计，打八折

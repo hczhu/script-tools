@@ -511,6 +511,7 @@ def GenericDynamicStrategy(name,
                            buy_range,
                            hold_percent_range,
                            sell_range,
+                           sell_start_percent,
                            percent_delta = 0.015,
                            buy_condition = lambda code: True,
                            sell_condition = lambda code: True):
@@ -539,9 +540,8 @@ def GenericDynamicStrategy(name,
     current_percent = holding_percent[code]
     if code in AH_PAIR:
       current_percent += holding_percent[AH_PAIR[code]]
-    target_percent = current_percent - current_percent * (
-      indicator_value - sell_range[0]) / (
-        sell_range[1] - sell_range[0])
+    target_percent = sell_start_percent - sell_start_percent * (
+      indicator_value - sell_range[0]) / (sell_range[1] - sell_range[0])
     target_percent = max(0, target_percent)
     percent = current_percent - target_percent 
     if percent >= percent_delta and sell_condition(code):
@@ -560,7 +560,8 @@ def BuyApple():
     'DR',
     [0.02, 0.04],
     [0.05, 0.3],
-    [0.1, 0],
+    [0.15, 0],
+    0.1,
     buy_condition = lambda code: GetMarketPriceChange(code) <= 0);
   
 def BuyBig4BanksH():
@@ -587,6 +588,7 @@ def BuyCMBH():
     [1.1, 0.7],
     [0.2, 0.3],
     [1.5, 2.5],
+    0.25,
     buy_condition = lambda code: GetAHDiscount(code) >= -0.01 and GetMarketPriceChange(code) < 0 and
     GetRZ(AH_PAIR[code]) < 3909913752 / 2)
 
@@ -597,6 +599,7 @@ def BuyCMB():
     [1.1, 0.7],
     [0.2, 0.3],
     [1.5, 2.5],
+    0.25,
     buy_condition = lambda code: GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0 and
     GetRZ(code) < 3909913752 / 2)
 
@@ -607,6 +610,7 @@ def BuyDeNA():
     [1.5, 0.8],
     [0.08, 0.15],
     [2.0, 3.0],
+    0.1,
     buy_condition = lambda code: GetMarketPriceChange(code) < min(0.0, 2 * GetMarketPriceChange('ni225')));
 
 def BuyMSBH():
@@ -616,6 +620,7 @@ def BuyMSBH():
     [0.30, 0.50],
     [0.1, 0.2],
     [0.2, 0.1],
+    0.1,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
 def BuyA50():
@@ -625,6 +630,7 @@ def BuyA50():
     [8, 7],
     [0.30, 0.50],
     [10, 12],
+    0.25,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
 def BuyCIB():
@@ -634,6 +640,7 @@ def BuyCIB():
     [1.05, 0.7],
     [0.2, 0.3],
     [1.5, 2.5],
+    0.2,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetRZ(code) < 6157420241 / 2);
 
 def SellCIB():
@@ -663,6 +670,7 @@ def BuyBOCH():
     [0.07, 0.08],
     [0.2, 0.4],
     [.055, .03],
+    0.2,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= 0.0,
     sell_condition = lambda code: GetPB(code, GetMarketPrice(code)) > 1.5);
 
@@ -676,8 +684,8 @@ STRATEGY_FUNCS = {
   BuyCIB: 'Buy CIB',
   BuyA50: 'Buy A50',
   BuyBOCH: 'Buy BOCH',
-  SellCIB: 'Sell CIB',
-  SellMSH: 'Sell MSH',
+  #SellCIB: 'Sell CIB',
+  #SellMSH: 'Sell MSH',
 }
 
 #--------------End of strategy functions-----

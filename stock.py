@@ -269,12 +269,10 @@ market_price_cache = {
 
 market_price_func = {
   '2432': lambda: GetJapanStockPriceAndChange('2432'),
-  'ni225': lambda: [GetValueFromUrl(':http://www.investing.com/indices/japan-ni225',
-                                    ['<div id="quotes_summary_current_data">', 'id="last_last">'],
-                                    '</span>', lambda s: float(s.replace(',', ''))),
-                    GetValueFromUrl(':http://www.investing.com/indices/japan-ni225',
-                                    ['<div id="quotes_summary_current_data">', 'dir="ltr">('],
-                                    '%)', lambda s: float(s.replace(',', '')))],
+  'ni225': lambda: [0,
+                    GetValueFromUrl('http://www.bloomberg.com/quote/NKY:IND',
+                                    ['<meta itemprop="priceChangePercent" content="'],
+                                    '"', lambda s: float(s.replace(',', '')))]
 }
 
 total_capital = defaultdict(int)
@@ -332,6 +330,9 @@ def GetPB1(code, mp):
   if code in BVPS1:
     return mp / BVPS1[code]
   return float('inf')
+
+def GetBeta(code):
+  return STOCK_BETA[code](code) if code in STOCK_BETA else 10
 
 def GetPB(code, mp):
   if code in BVPS:
@@ -611,7 +612,8 @@ def BuyDeNA():
     [0.08, 0.15],
     [2.0, 3.0],
     0.1,
-    buy_condition = lambda code: GetMarketPriceChange(code) < min(0.0, 2 * GetMarketPriceChange('ni225')));
+    buy_condition = lambda code: GetMarketPriceChange(code) < min(0.0,
+      3 * GetBeta(code) * GetMarketPriceChange('ni225')));
 
 def BuyMSBH():
   return GenericDynamicStrategy(

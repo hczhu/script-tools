@@ -275,6 +275,11 @@ market_price_func = {
                                     '"', lambda s: float(s.replace(',', '')))]
 }
 
+RZ_BASE = {
+  '兴业银行': 6157420241,
+  '招商银行': 3909913752,
+}
+
 total_capital = defaultdict(int)
 
 total_capital_cost = defaultdict(int)
@@ -299,6 +304,8 @@ def GetCurrency(code):
     return 'HKD'
   elif code.isalpha():
     return 'USD'
+  elif len(code) == 4:
+    return 'YEN'
   return 'RMB'
 
 def myround(x, n):
@@ -433,24 +440,27 @@ def GetAHDiscount(code, mp = 0):
   return (mp_pair_rmb - mp_rmb) / mp_rmb
 
 def GetRZ(code, mp = 0):
+  if GetCurrency(code) != 'RMB': return 0.0
   url_pattern = 'http://data.eastmoney.com/rzrq/detail/%s,1.html'
-  rz = GetValueFromUrl(url_pattern%(code),
-                         [
-                          '<th>融资余额(元)</th>',
-                          '<td class="right">',
-                         ],
-                         '</td>' , lambda s: int(s.replace(',', '')))
-  rq = GetValueFromUrl(url_pattern%(code),
-                         [
-                          '<th>融资余额(元)</th>',
-                          '<td class="right">',
-                          '<td class="right">',
-                          '<td class="right">',
-                          '<td class="right">',
-                         ],
-                         '</td>' , lambda s: int(s.replace(',', '')))
-  return rz - rq
-  
+  try:
+    rz = GetValueFromUrl(url_pattern%(code),
+                           [
+                            '<th>融资余额(元)</th>',
+                            '<td class="right">',
+                           ],
+                           '</td>' , lambda s: int(s.replace(',', '')))
+    rq = GetValueFromUrl(url_pattern%(code),
+                           [
+                            '<th>融资余额(元)</th>',
+                            '<td class="right">',
+                            '<td class="right">',
+                            '<td class="right">',
+                            '<td class="right">',
+                           ],
+                           '</td>' , lambda s: int(s.replace(',', '')))
+  except:
+    return float('inf')
+  return 1.0 * (rz - rq) / RZ_BASE[CODE_TO_NAME[code]] if code in CODE_TO_NAME and CODE_TO_NAME[code] in RZ_BASE else rz - rq
 
 FINANCIAL_FUNC = {
   'P/E': GetPE,
@@ -591,7 +601,7 @@ def BuyCMBH():
     [1.5, 2.5],
     0.25,
     buy_condition = lambda code: GetAHDiscount(code) >= -0.01 and GetMarketPriceChange(code) < 0 and
-    GetRZ(AH_PAIR[code]) < 3909913752 / 2)
+    GetRZ(AH_PAIR[code]) < 0.5)
 
 def BuyCMB():
   return GenericDynamicStrategy(
@@ -602,7 +612,7 @@ def BuyCMB():
     [1.5, 2.5],
     0.25,
     buy_condition = lambda code: GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0 and
-    GetRZ(code) < 3909913752 / 2)
+    GetRZ(code) < 0.5)
 
 def BuyDeNA():
   return GenericDynamicStrategy(
@@ -643,7 +653,7 @@ def BuyCIB():
     [0.2, 0.3],
     [1.5, 2.5],
     0.2,
-    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetRZ(code) < 6157420241 / 2);
+    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetRZ(code) < 0.5);
 
 def SellCIB():
   return GenericDynamicStrategy(
@@ -652,7 +662,7 @@ def SellCIB():
     [8, 7],
     [0.2, 0.3],
     [9, 9.4],
-    sell_condition = lambda code: GetMarketPriceChange(code) > 0.0 and GetRZ(code) > 6057420241);
+    sell_condition = lambda code: GetMarketPriceChange(code) > 0.0 and GetRZ(code) > 1.0);
 
 def SellMSH():
   code = NAME_TO_CODE['民生银行H']
@@ -807,6 +817,7 @@ def PrintHoldingSecurities(all_records):
                   'P/B',
                   'DR',
                   'AHD',
+                  'RZ',
                   'Stock name']
   silent_column = [
     'MV',
@@ -868,6 +879,7 @@ def PrintHoldingSecurities(all_records):
         'P/B': myround(GetPB(key, mp), 2),
         'DR':  myround(GetDR(key, mp) * 100 , 2),
         'AHD': str(myround(100.0 * (mp_pair_rmb - mp * ex_rate ) / mp / ex_rate, 1)) + '%',
+        'RZ': round(GetRZ(key), 1) if remain_stock > 0 else 0.0,
         'Stock name': name + '(' + key + ')',
     }
     for col in ['MV', 'CC', '#TxN', 'TNF', 'DTP', '#DT']:
@@ -1026,8 +1038,8 @@ try:
   if 'etf' in set(sys.argv):
     PrintWatchedETF()
   
-  if 'stock' in set(sys.argv) or 'insurance' in set(sys.argv):
-    PrintWatchedInsurance()
+  #if 'stock' in set(sys.argv) or 'insurance' in set(sys.argv):
+    #PrintWatchedInsurance()
   
   if 'stock' in set(sys.argv) or 'internet' in set(sys.argv):
     PrintWatchedInternet()

@@ -57,8 +57,7 @@ BVPS = {
               - (532 + 446) * 10**6 #减去商誉和无形资产
               - 1309940 * 10**6 * 1.03# 资产估计，三季度末乘以股份行四季度环比
               * (2.1 / 100 + 0.86 / 100) # 贷款总额乘以不良率, GDP下行3个点，再加上股份行平均值
-              ) / SHARES['兴业银行']
-              * 0.95, # 激进打折
+              ) / SHARES['兴业银行'],
 
   # 招商银行, 2013年业绩快报数据
   '招商银行': (
@@ -879,7 +878,7 @@ def PrintHoldingSecurities(all_records):
         'P/B': myround(GetPB(key, mp), 2),
         'DR':  myround(GetDR(key, mp) * 100 , 2),
         'AHD': str(myround(100.0 * (mp_pair_rmb - mp * ex_rate ) / mp / ex_rate, 1)) + '%',
-        'RZ': round(GetRZ(key), 1) if remain_stock > 0 else 0.0,
+        'RZ': round(GetRZ(key), 3) if remain_stock > 0 else 0.0,
         'Stock name': name + '(' + key + ')',
     }
     for col in ['MV', 'CC', '#TxN', 'TNF', 'DTP', '#DT']:

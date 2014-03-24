@@ -604,7 +604,7 @@ def BuyDeNA():
   return GenericDynamicStrategy(
     ':DeNA',
     'P/S',
-    [1.5, 0.8],
+    [1.6, 0.8],
     [0.08, 0.15],
     [2.0, 3.0],
     buy_condition = lambda code: GetMarketPriceChange(code) < min(0.0, 2 * GetMarketPriceChange('ni225')));
@@ -676,8 +676,8 @@ STRATEGY_FUNCS = {
   BuyCIB: 'Buy CIB',
   BuyA50: 'Buy A50',
   BuyBOCH: 'Buy BOCH',
-  SellCIB: 'Sell CIB',
-  SellMSH: 'Sell MSH',
+  #SellCIB: 'Sell CIB',
+  #SellMSH: 'Sell MSH',
 }
 
 #--------------End of strategy functions-----

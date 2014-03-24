@@ -269,12 +269,15 @@ market_price_cache = {
 
 market_price_func = {
   '2432': lambda: GetJapanStockPriceAndChange('2432'),
-  'ni225': lambda: [GetValueFromUrl(':http://www.investing.com/indices/japan-ni225',
-                                    ['<div id="quotes_summary_current_data">', 'id="last_last">'],
-                                    '</span>', lambda s: float(s.replace(',', ''))),
-                    GetValueFromUrl(':http://www.investing.com/indices/japan-ni225',
-                                    ['<div id="quotes_summary_current_data">', 'dir="ltr">('],
-                                    '%)', lambda s: float(s.replace(',', '')))],
+  'ni225': lambda: [0,
+                    GetValueFromUrl('http://www.bloomberg.com/quote/NKY:IND',
+                                    ['<meta itemprop="priceChangePercent" content="'],
+                                    '"', lambda s: float(s.replace(',', '')))]
+}
+
+RZ_BASE = {
+  '兴业银行': 6157420241,
+  '招商银行': 3909913752,
 }
 
 total_capital = defaultdict(int)
@@ -301,6 +304,8 @@ def GetCurrency(code):
     return 'HKD'
   elif code.isalpha():
     return 'USD'
+  elif len(code) == 4:
+    return 'YEN'
   return 'RMB'
 
 def myround(x, n):
@@ -332,6 +337,9 @@ def GetPB1(code, mp):
   if code in BVPS1:
     return mp / BVPS1[code]
   return float('inf')
+
+def GetBeta(code):
+  return STOCK_BETA[code](code) if code in STOCK_BETA else 10
 
 def GetPB(code, mp):
   if code in BVPS:
@@ -432,24 +440,27 @@ def GetAHDiscount(code, mp = 0):
   return (mp_pair_rmb - mp_rmb) / mp_rmb
 
 def GetRZ(code, mp = 0):
+  if GetCurrency(code) != 'RMB': return 0.0
   url_pattern = 'http://data.eastmoney.com/rzrq/detail/%s,1.html'
-  rz = GetValueFromUrl(url_pattern%(code),
-                         [
-                          '<th>融资余额(元)</th>',
-                          '<td class="right">',
-                         ],
-                         '</td>' , lambda s: int(s.replace(',', '')))
-  rq = GetValueFromUrl(url_pattern%(code),
-                         [
-                          '<th>融资余额(元)</th>',
-                          '<td class="right">',
-                          '<td class="right">',
-                          '<td class="right">',
-                          '<td class="right">',
-                         ],
-                         '</td>' , lambda s: int(s.replace(',', '')))
-  return rz - rq
-  
+  try:
+    rz = GetValueFromUrl(url_pattern%(code),
+                           [
+                            '<th>融资余额(元)</th>',
+                            '<td class="right">',
+                           ],
+                           '</td>' , lambda s: int(s.replace(',', '')))
+    rq = GetValueFromUrl(url_pattern%(code),
+                           [
+                            '<th>融资余额(元)</th>',
+                            '<td class="right">',
+                            '<td class="right">',
+                            '<td class="right">',
+                            '<td class="right">',
+                           ],
+                           '</td>' , lambda s: int(s.replace(',', '')))
+  except:
+    return float('inf')
+  return 1.0 * (rz - rq) / RZ_BASE[CODE_TO_NAME[code]] if code in CODE_TO_NAME and CODE_TO_NAME[code] in RZ_BASE else rz - rq
 
 FINANCIAL_FUNC = {
   'P/E': GetPE,
@@ -511,6 +522,7 @@ def GenericDynamicStrategy(name,
                            buy_range,
                            hold_percent_range,
                            sell_range,
+                           sell_start_percent,
                            percent_delta = 0.015,
                            buy_condition = lambda code: True,
                            sell_condition = lambda code: True):
@@ -539,9 +551,8 @@ def GenericDynamicStrategy(name,
     current_percent = holding_percent[code]
     if code in AH_PAIR:
       current_percent += holding_percent[AH_PAIR[code]]
-    target_percent = current_percent - current_percent * (
-      indicator_value - sell_range[0]) / (
-        sell_range[1] - sell_range[0])
+    target_percent = sell_start_percent - sell_start_percent * (
+      indicator_value - sell_range[0]) / (sell_range[1] - sell_range[0])
     target_percent = max(0, target_percent)
     percent = current_percent - target_percent 
     if percent >= percent_delta and sell_condition(code):
@@ -560,7 +571,8 @@ def BuyApple():
     'DR',
     [0.02, 0.04],
     [0.05, 0.3],
-    [0.1, 0],
+    [0.15, 0],
+    0.1,
     buy_condition = lambda code: GetMarketPriceChange(code) <= 0);
   
 def BuyBig4BanksH():
@@ -587,8 +599,9 @@ def BuyCMBH():
     [1.1, 0.7],
     [0.2, 0.3],
     [1.5, 2.5],
+    0.25,
     buy_condition = lambda code: GetAHDiscount(code) >= -0.01 and GetMarketPriceChange(code) < 0 and
-    GetRZ(AH_PAIR[code]) < 3909913752 / 2)
+    GetRZ(AH_PAIR[code]) < 0.5)
 
 def BuyCMB():
   return GenericDynamicStrategy(
@@ -597,8 +610,9 @@ def BuyCMB():
     [1.1, 0.7],
     [0.2, 0.3],
     [1.5, 2.5],
+    0.25,
     buy_condition = lambda code: GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0 and
-    GetRZ(code) < 3909913752 / 2)
+    GetRZ(code) < 0.5)
 
 def BuyDeNA():
   return GenericDynamicStrategy(
@@ -607,7 +621,9 @@ def BuyDeNA():
     [1.6, 0.8],
     [0.08, 0.15],
     [2.0, 3.0],
-    buy_condition = lambda code: GetMarketPriceChange(code) < min(0.0, 2 * GetMarketPriceChange('ni225')));
+    0.1,
+    buy_condition = lambda code: GetMarketPriceChange(code) < min(0.0,
+      3 * GetBeta(code) * GetMarketPriceChange('ni225')));
 
 def BuyMSBH():
   return GenericDynamicStrategy(
@@ -616,6 +632,7 @@ def BuyMSBH():
     [0.30, 0.50],
     [0.1, 0.2],
     [0.2, 0.1],
+    0.1,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
 def BuyA50():
@@ -625,6 +642,7 @@ def BuyA50():
     [8, 7],
     [0.30, 0.50],
     [10, 12],
+    0.25,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
 def BuyCIB():
@@ -634,7 +652,8 @@ def BuyCIB():
     [1.05, 0.7],
     [0.2, 0.3],
     [1.5, 2.5],
-    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetRZ(code) < 6157420241 / 2);
+    0.2,
+    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetRZ(code) < 0.5);
 
 def SellCIB():
   return GenericDynamicStrategy(
@@ -643,7 +662,7 @@ def SellCIB():
     [8, 7],
     [0.2, 0.3],
     [9, 9.4],
-    sell_condition = lambda code: GetMarketPriceChange(code) > 0.0 and GetRZ(code) > 6057420241);
+    sell_condition = lambda code: GetMarketPriceChange(code) > 0.0 and GetRZ(code) > 1.0);
 
 def SellMSH():
   code = NAME_TO_CODE['民生银行H']
@@ -663,6 +682,7 @@ def BuyBOCH():
     [0.07, 0.08],
     [0.2, 0.4],
     [.055, .03],
+    0.2,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= 0.0,
     sell_condition = lambda code: GetPB(code, GetMarketPrice(code)) > 1.5);
 
@@ -797,6 +817,7 @@ def PrintHoldingSecurities(all_records):
                   'P/B',
                   'DR',
                   'AHD',
+                  'RZ',
                   'Stock name']
   silent_column = [
     'MV',
@@ -858,6 +879,7 @@ def PrintHoldingSecurities(all_records):
         'P/B': myround(GetPB(key, mp), 2),
         'DR':  myround(GetDR(key, mp) * 100 , 2),
         'AHD': str(myround(100.0 * (mp_pair_rmb - mp * ex_rate ) / mp / ex_rate, 1)) + '%',
+        'RZ': round(GetRZ(key), 1) if remain_stock > 0 else 0.0,
         'Stock name': name + '(' + key + ')',
     }
     for col in ['MV', 'CC', '#TxN', 'TNF', 'DTP', '#DT']:
@@ -1016,8 +1038,8 @@ try:
   if 'etf' in set(sys.argv):
     PrintWatchedETF()
   
-  if 'stock' in set(sys.argv) or 'insurance' in set(sys.argv):
-    PrintWatchedInsurance()
+  #if 'stock' in set(sys.argv) or 'insurance' in set(sys.argv):
+    #PrintWatchedInsurance()
   
   if 'stock' in set(sys.argv) or 'internet' in set(sys.argv):
     PrintWatchedInternet()

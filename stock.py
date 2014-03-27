@@ -279,6 +279,10 @@ RZ_BASE = {
   '招商银行': 3909913752,
 }
 
+STOCK_CURRENCY = {
+  ':DeNA': 'YEN',
+}
+
 total_capital = defaultdict(int)
 
 total_capital_cost = defaultdict(int)
@@ -395,8 +399,10 @@ def GetMarketPriceChange(code):
 
 def GetMarketPriceInRMB(code):
   mp = GetMarketPrice(code)
+  if code in CODE_TO_NAME and CODE_TO_NAME[code] in STOCK_CURRENCY:
+    return mp * EX_RATE[STOCK_CURRENCY[CODE_TO_NAME[code]] + '-RMB']
   if code.isdigit() and code[0] == '0':
-    mp *= EX_RATE['HKD-RMB']
+    return mp * EX_RATE['HKD-RMB']
   elif not code.isdigit():
     mp *= EX_RATE['USD-RMB']
   return mp

@@ -617,12 +617,12 @@ def BuyDeNA():
   return GenericDynamicStrategy(
     ':DeNA',
     'P/S',
-    [1.6, 0.8],
-    [0.08, 0.15],
+    [1.7, 1.0],
+    [0.06, 0.15],
     [2.0, 3.0],
-    0.1,
+    0.08,
     buy_condition = lambda code: GetMarketPriceChange(code) < min(0.0,
-      3 * GetBeta(code) * GetMarketPriceChange('ni225')));
+      2 * GetBeta(code) * GetMarketPriceChange('ni225')));
 
 def BuyMSBH():
   return GenericDynamicStrategy(

@@ -663,8 +663,8 @@ def BuyA50():
     '南方A50',
     'P/E',
     [8, 7],
-    [0.30, 0.50],
-    [10, 12],
+    [0.35, 0.60],
+    [10, 15],
     0.25,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
@@ -706,7 +706,7 @@ def BuyBOCH():
     [0.2, 0.4],
     [.055, .03],
     0.2,
-    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= 0.0,
+    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= -1.0,
     sell_condition = lambda code: GetPB(code, GetMarketPrice(code)) > 1.5);
 
 STRATEGY_FUNCS = {

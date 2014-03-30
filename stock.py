@@ -704,10 +704,11 @@ def BuyBOCH():
     'DR',
     [0.07, 0.85],
     [0.2, 0.4],
-    [.055, .03],
+    [.04, .02],
     0.2,
-    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) >= -1.0,
-    sell_condition = lambda code: GetPB(code, GetMarketPrice(code)) > 1.5);
+    buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < 1.0 and GetMarketPriceChange(
+                                 code) < 0.0 and GetAHDiscount(code) >= -1.0,
+    sell_condition = lambda code: GetPB(code, GetMarketPrice(code)) > 1.2);
 
 STRATEGY_FUNCS = {
   BuyApple: 'Buy Apple',

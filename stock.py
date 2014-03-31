@@ -662,7 +662,7 @@ def BuyA50():
   return GenericDynamicStrategy(
     '南方A50',
     'P/E',
-    [8, 7],
+    [8.2, 7],
     [0.35, 0.60],
     [10, 15],
     0.25,

@@ -56,6 +56,9 @@ BVPS0 = {
   '中国银行': 10**6 * 961477.0 / SHARES['中国银行'],
 }
 
+EPS0 = {
+}
+
 EPS = {
   #南方A50ETF，数据来自sse 50ETF统计页面
   # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
@@ -357,6 +360,9 @@ def myround(x, n):
     return int(x)
   return round(x, n)
 
+def GetPE0(code, mp):
+  return myround(mp / EPS0[code], 1) if code in EPS0 else float('inf')
+
 def GetPE(code, mp):
   if code in EPS:
     return myround(mp / EPS[code], 1)
@@ -380,6 +386,9 @@ def GetPB1(code, mp):
 def GetBeta(code):
   return STOCK_BETA[code](code) if code in STOCK_BETA else 10
 
+def GetPB0(code, mp):
+  return mp / BVPS0[code] if code in BVPS0 else float('inf')
+ 
 def GetPB(code, mp):
   if code in BVPS:
     return mp / BVPS[code]
@@ -680,10 +689,10 @@ def BuyA50():
   return GenericDynamicStrategy(
     '南方A50',
     'P/E',
-    [8, 7],
+    [8.2, 7],
     [0.40, 0.80],
     [10, 15],
-    0.25,
+    0.3,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
 def BuyCIB():
@@ -721,8 +730,8 @@ def BuyBOCH():
     '中国银行H',
     'DR',
     [0.07, 0.85],
-    [0.2, 0.4],
-    [.04, .02],
+    [0.3, 0.5],
+    [.05, .03],
     0.2,
     buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < 1.0 and GetMarketPriceChange(
                                  code) < 0.0 and GetAHDiscount(code) >= -1.0,
@@ -769,12 +778,12 @@ def InitAll():
       if code in AH_PAIR:
         dt[AH_PAIR[code]] = dt[code] + 'H'.encode('utf-8')
 
-  for dt in [EPS, DVPS, SPS, BVPS, ETF_BOOK_VALUE_FUNC]:
+  for dt in [EPS0, EPS, DVPS, SPS, BVPS0, BVPS, ETF_BOOK_VALUE_FUNC]:
     keys = dt.keys()
     for key in keys:
       dt[NAME_TO_CODE[key]] = dt[key]
 
-  for dt in [EPS, DVPS, SPS, BVPS]:
+  for dt in [EPS0, EPS, DVPS, SPS, BVPS0, BVPS]:
     for key in dt.keys():
       if key in AH_PAIR:
         dt[AH_PAIR[key]] = dt[key] * EX_RATE[GetCurrency(key) + '-' + GetCurrency(AH_PAIR[key])]
@@ -862,8 +871,10 @@ def PrintHoldingSecurities(all_records):
                   'HS',
                   'MP',
                   'Chg',
+                  'P/E0',
                   'P/E',
                   'P/S',
+                  'P/B0',
                   'P/B',
                   'DR',
                   'AHD',
@@ -924,8 +935,10 @@ def PrintHoldingSecurities(all_records):
         '#DT': dt,
         'HS': remain_stock,
         'MP': str(mp),
+        'P/E0': myround(GetPE0(key, mp), 2),
         'P/E': myround(GetPE(key, mp), 2),
         'P/S': myround(GetPS(key, mp), 2),
+        'P/B0': myround(GetPB0(key, mp), 2),
         'P/B': myround(GetPB(key, mp), 2),
         'DR':  myround(GetDR(key, mp) * 100 , 2),
         'AHD': str(myround(100.0 * (mp_pair_rmb - mp * ex_rate ) / mp / ex_rate, 1)) + '%',

@@ -733,7 +733,7 @@ def BuyBOCH():
     [0.3, 0.5],
     [.05, .03],
     0.2,
-    buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < 1.0 and GetMarketPriceChange(
+    buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < .09 and GetMarketPriceChange(
                                  code) < 0.0 and GetAHDiscount(code) >= -1.0,
     sell_condition = lambda code: GetPB(code, GetMarketPrice(code)) > 1.2);
 

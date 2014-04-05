@@ -30,6 +30,8 @@ import traceback
 # GDP每下行1个点，不良率上升0.7个点。
 # GDP数据 2013 - 7.7, 2012 - 7.65, 2011 - 9.30, 2010 - 10.45, 2009 - 9.21
 
+# 带0后缀的财务数据是最近4个季度的数据，未带0后缀的是未来四个季度后的数据估计
+
 # Number of total shares
 # TODO: 考虑可转债
 SHARES = {
@@ -403,7 +405,7 @@ def GetPS(code, mp):
 
 def GetDR(code, mp):
   if code in DVPS:
-    return round(DVPS[code] / mp * DV_TAX, 3)
+    return round(DVPS[code] / mp * (1.0 - DV_TAX), 3)
   return 0.0
   
 def GetPB1(code, mp):
@@ -415,7 +417,15 @@ def GetBeta(code):
   return STOCK_BETA[code](code) if code in STOCK_BETA else 10
 
 def GetPB0(code, mp):
-  return mp / BVPS0[code] if code in BVPS0 else float('inf')
+  if code in BVPS0:
+    dilution = 1.0
+    if code in CB:
+      trans = CB[code][1]
+      if trans < BVPS0[code]:
+        dilution = (1.0 + CB[code][0] * 1.0 / BVPS0[code] / SHARES[code]) / (
+          1.0 + CB[code][0] / trans / SHARES[code])
+    return mp / (BVPS0[code] * dilution)
+  return float('inf')
  
 def GetPB(code, mp):
   if code in BVPS:
@@ -424,8 +434,9 @@ def GetPB(code, mp):
       trans = CB[code][1]
       if code in DVPS:
         trans -= DVPS[code]
-      dilution = (1.0 + CB[code][0] * 1.0 / BVPS[code] / SHARES[code]) / (
-        1.0 + CB[code][0] / trans / SHARES[code])
+      if trans < BVPS[code]:
+        dilution = (1.0 + CB[code][0] * 1.0 / BVPS[code] / SHARES[code]) / (
+          1.0 + CB[code][0] / trans / SHARES[code])
     return mp / (BVPS[code] * dilution)
   return float('inf')
  
@@ -727,7 +738,7 @@ def BuyA50():
     '南方A50',
     'P/E',
     [8.2, 7],
-    [0.40, 0.80],
+    [0.40, 0.70],
     [10, 15],
     0.3,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
@@ -767,7 +778,7 @@ def BuyBOCH():
     '中国银行H',
     'DR',
     [0.07, 0.85],
-    [0.3, 0.5],
+    [0.4, 0.6],
     [.05, .03],
     0.2,
     buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < 1.0 and GetMarketPriceChange(

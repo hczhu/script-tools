@@ -31,17 +31,17 @@ import traceback
 # GDP数据 2013 - 7.7, 2012 - 7.65, 2011 - 9.30, 2010 - 10.45, 2009 - 9.21
 
 # Number of total shares
+# TODO: 考虑可转债
 SHARES = {
-  # 招商银行，2013年末
   '招商银行': 25219845680,
 
-  #2013年3季度末
-  #'中国银行': int(189179033607 / 0.6777),
-  #2013年末
   '中国银行': 279364552437,
 
-  #2013年3季度末
-  '兴业银行': int(3402173769 / 0.1786),
+  '兴业银行': 19052336751,
+
+  '民生银行': 28366192773,
+
+  '建设银行': 250010977486,
 }
 
 # 最大市值估计
@@ -49,15 +49,31 @@ CAP = {
 }
 
 BVPS0 = {
+  # 最近一次报告期的净资产加上资产减值准备
   # 招商银行, 2013年年报
   '招商银行': 10**6 * 265465.0 / SHARES['招商银行'],
   
   # 2013年年报估计
   '中国银行': 10**6 * 961477.0 / SHARES['中国银行'],
+
+  # 2013年年报
+  '兴业银行': 199769.0 * 10**6 / SHARES['兴业银行'],
+
+  # 2013年年报
+  '民生银行': 204287.0 * 10**6 / SHARES['民生银行'],
+
+  '建设银行': 1074329.0 * 10**6 / SHARES['建设银行'],
 }
 
 EPS0 = {
+  '兴业银行': 41211.0 * 10**6 / SHARES['兴业银行'],
 }
+
+# 银行资产增长受限于以下几个约束
+# 1. 核心资产充足率 8.5% 9.5%
+# 2. 存贷比 < 75%
+# 3. M2增长 < 13%
+# 4. 存款准备金率 < 20%
 
 EPS = {
   #南方A50ETF，数据来自sse 50ETF统计页面
@@ -89,6 +105,10 @@ EPS = {
               / SHARES['中国银行'],
 }
 
+# 银行重点考虑一下三方面的资产减值风险
+# 1. 房地产开发贷款
+# 2. 过剩产业贷款
+# 3. 地方融资平台
 BVPS = {
   # 兴业银行，2013年3季度财报
   '兴业银行': (
@@ -241,8 +261,8 @@ WATCH_LIST_BANK = {
   '600016': '民生银行',
   '601166': '兴业银行',
   '600000': '浦发银行',
-  #'600015': '华夏银行',
-  #'601328': '交通银行',
+  '600015': '华夏银行',
+  '601328': '交通银行',
   #'601998': '中信银行',
   #'601818': '光大银行',
 }
@@ -513,7 +533,9 @@ def GetRZ(code, mp = 0):
   return 1.0 * (rz - rq) / RZ_BASE[CODE_TO_NAME[code]] if code in CODE_TO_NAME and CODE_TO_NAME[code] in RZ_BASE else rz - rq
 
 FINANCIAL_FUNC = {
+  'P/E0': GetPE0,
   'P/E': GetPE,
+  'P/B0': GetPB0,
   'P/B': GetPB,
   'P/S': GetPS,
   'CAP': GetCAP,
@@ -619,7 +641,7 @@ def BuyApple():
   return GenericDynamicStrategy(
     'Apple',
     'DR',
-    [0.02, 0.04],
+    [0.025, 0.04],
     [0.05, 0.3],
     [0.15, 0],
     0.1,
@@ -736,6 +758,17 @@ def BuyBOCH():
     buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < 1.0 and GetMarketPriceChange(
                                  code) < 0.0 and GetAHDiscount(code) >= -1.0,
     sell_condition = lambda code: GetPB(code, GetMarketPrice(code)) > 1.2);
+ 
+def CIBtoCMB():
+  cib = NAME_TO_CODE['兴业银行']
+  cmb = NAME_TO_CODE['招商银行']
+  cib_percent = holding_percent[cib]
+  if cib_percent > 0.2:
+    cib_mp = GetMarketPrice(cib);
+    cmb_mp = GetMarketPrice(cmb);
+    if GetPB0(cmb, cmb_mp) / GetPB0(cib, cib_mp) < 1.05:
+      return '兴业银行@%.2f --> 招商银行@%.2f'%(cib_mp, cmb_mp)
+  return ''
 
 STRATEGY_FUNCS = {
   BuyApple: 'Buy Apple',
@@ -747,6 +780,7 @@ STRATEGY_FUNCS = {
   BuyCIB: 'Buy CIB',
   BuyA50: 'Buy A50',
   BuyBOCH: 'Buy BOCH',
+  CIBtoCMB: 'CIB->CMB',
   #SellCIB: 'Sell CIB',
   #SellMSH: 'Sell MSH',
 }
@@ -1057,7 +1091,9 @@ def PrintWatchedStocks(watch_list, table_header, sort_key, rev = False):
 def PrintWatchedBank():
   table_header = [
                   'Change',
+                  'P/E0',
                   'P/E',
+                  'P/B0',
                   'P/B',
                   'DR',
                   'AHD',

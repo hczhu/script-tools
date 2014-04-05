@@ -426,7 +426,6 @@ def GetPB(code, mp):
         trans -= DVPS[code]
       dilution = (1.0 + CB[code][0] * 1.0 / BVPS[code] / SHARES[code]) / (
         1.0 + CB[code][0] / trans / SHARES[code])
-    print CODE_TO_NAME[code], dilution
     return mp / (BVPS[code] * dilution)
   return float('inf')
  
@@ -828,10 +827,15 @@ def InitAll():
       if code in AH_PAIR:
         dt[AH_PAIR[code]] = dt[code] + 'H'.encode('utf-8')
 
-  for dt in [CB, EPS0, EPS, DVPS, SPS, BVPS0, BVPS, ETF_BOOK_VALUE_FUNC]:
+  for dt in [SHARES, CB, EPS0, EPS, DVPS, SPS, BVPS0, BVPS, ETF_BOOK_VALUE_FUNC]:
     keys = dt.keys()
     for key in keys:
       dt[NAME_TO_CODE[key]] = dt[key]
+
+  for dt in [SHARES]:
+    for key in dt.keys():
+      if key in AH_PAIR:
+        dt[AH_PAIR[key]] = dt[key]
 
   for dt in [EPS0, EPS, DVPS, SPS, BVPS0, BVPS]:
     for key in dt.keys():

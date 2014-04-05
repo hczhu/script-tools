@@ -44,6 +44,12 @@ SHARES = {
   '建设银行': 250010977486,
 }
 
+# (总面值，目前转股价)
+CB = {
+  '中国银行': [39386761000, 2.82 - 0.196],
+  '民生银行': [19993085000, 9.92 - 0.1],
+}
+
 # 最大市值估计
 CAP = {
 }
@@ -168,22 +174,24 @@ SPS = {
   ':DeNA': 182.6 * 10 ** 9 / 130828462 * 0.8,
 }
 
+DV_TAX = 0.1
+
 # The portion of EPS used for dividend.
 DVPS = {
   # Apple once a quarter.
   # 20140206 - 3.05
   # Tax rate 0.1
-  'Apple': 3.05 * 4 * 0.9,
+  'Apple': 3.05 * 4,
 
   # :DeNA once a year.
   # For FY2013
-  ':DeNA': 37.0 * 0.9,
+  ':DeNA': 37.0,
 
   # 假定30%分红率，税率10%.
-  '招商银行': EPS['招商银行'] * 0.3 * 0.9,
+  '招商银行': EPS['招商银行'] * 0.3,
 
   # 过去四年年分红率 [0.35, 0.34, 0.36, 0.35]
-  '中国银行': EPS['中国银行'] * 0.35 * 0.9,
+  '中国银行': EPS['中国银行'] * 0.35,
 }
 
 URL_CONTENT_CACHE = {
@@ -395,7 +403,7 @@ def GetPS(code, mp):
 
 def GetDR(code, mp):
   if code in DVPS:
-    return round(DVPS[code] / mp, 3)
+    return round(DVPS[code] / mp * DV_TAX, 3)
   return 0.0
   
 def GetPB1(code, mp):
@@ -411,7 +419,15 @@ def GetPB0(code, mp):
  
 def GetPB(code, mp):
   if code in BVPS:
-    return mp / BVPS[code]
+    dilution = 1.0
+    if code in CB:
+      trans = CB[code][1]
+      if code in DVPS:
+        trans -= DVPS[code]
+      dilution = (1.0 + CB[code][0] * 1.0 / BVPS[code] / SHARES[code]) / (
+        1.0 + CB[code][0] / trans / SHARES[code])
+    print CODE_TO_NAME[code], dilution
+    return mp / (BVPS[code] * dilution)
   return float('inf')
  
 def GetCAP(code, mp):
@@ -812,7 +828,7 @@ def InitAll():
       if code in AH_PAIR:
         dt[AH_PAIR[code]] = dt[code] + 'H'.encode('utf-8')
 
-  for dt in [EPS0, EPS, DVPS, SPS, BVPS0, BVPS, ETF_BOOK_VALUE_FUNC]:
+  for dt in [CB, EPS0, EPS, DVPS, SPS, BVPS0, BVPS, ETF_BOOK_VALUE_FUNC]:
     keys = dt.keys()
     for key in keys:
       dt[NAME_TO_CODE[key]] = dt[key]
@@ -821,6 +837,11 @@ def InitAll():
     for key in dt.keys():
       if key in AH_PAIR:
         dt[AH_PAIR[key]] = dt[key] * EX_RATE[GetCurrency(key) + '-' + GetCurrency(AH_PAIR[key])]
+
+  for dt in [CB]:
+    for key in dt.keys():
+      if key in AH_PAIR:
+        dt[AH_PAIR[key]] = map(lambda x: x * EX_RATE[GetCurrency(key) + '-' + GetCurrency(AH_PAIR[key])], dt[key])
 
   if 'all' in set(sys.argv):
     sys.argv += ['stock', 'hold', 'etf', 'Price']

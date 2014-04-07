@@ -30,18 +30,26 @@ import traceback
 # GDP每下行1个点，不良率上升0.7个点。
 # GDP数据 2013 - 7.7, 2012 - 7.65, 2011 - 9.30, 2010 - 10.45, 2009 - 9.21
 
+# 带0后缀的财务数据是最近4个季度的数据，未带0后缀的是未来四个季度后的数据估计
+
 # Number of total shares
+# TODO: 考虑可转债
 SHARES = {
-  # 招商银行，2013年末
   '招商银行': 25219845680,
 
-  #2013年3季度末
-  #'中国银行': int(189179033607 / 0.6777),
-  #2013年末
   '中国银行': 279364552437,
 
-  #2013年3季度末
-  '兴业银行': int(3402173769 / 0.1786),
+  '兴业银行': 19052336751,
+
+  '民生银行': 28366192773,
+
+  '建设银行': 250010977486,
+}
+
+# (总面值，目前转股价)
+CB = {
+  '中国银行': [39386761000, 2.82 - 0.196],
+  '民生银行': [19993085000, 9.92 - 0.1],
 }
 
 # 最大市值估计
@@ -49,15 +57,31 @@ CAP = {
 }
 
 BVPS0 = {
+  # 最近一次报告期的净资产加上资产减值准备
   # 招商银行, 2013年年报
   '招商银行': 10**6 * 265465.0 / SHARES['招商银行'],
   
   # 2013年年报估计
   '中国银行': 10**6 * 961477.0 / SHARES['中国银行'],
+
+  # 2013年年报
+  '兴业银行': 199769.0 * 10**6 / SHARES['兴业银行'],
+
+  # 2013年年报
+  '民生银行': 204287.0 * 10**6 / SHARES['民生银行'],
+
+  '建设银行': 1074329.0 * 10**6 / SHARES['建设银行'],
 }
 
 EPS0 = {
+  '兴业银行': 41211.0 * 10**6 / SHARES['兴业银行'],
 }
+
+# 银行资产增长受限于以下几个约束
+# 1. 核心资产充足率 8.5% 9.5%
+# 2. 存贷比 < 75%
+# 3. M2增长 < 13%
+# 4. 存款准备金率 < 20%
 
 EPS = {
   #南方A50ETF，数据来自sse 50ETF统计页面
@@ -89,6 +113,10 @@ EPS = {
               / SHARES['中国银行'],
 }
 
+# 银行重点考虑一下三方面的资产减值风险
+# 1. 房地产开发贷款
+# 2. 过剩产业贷款
+# 3. 地方融资平台，把不可偿付比例16%作为坏账比例的近似
 BVPS = {
   # 兴业银行，2013年3季度财报
   '兴业银行': (
@@ -148,22 +176,24 @@ SPS = {
   ':DeNA': 182.6 * 10 ** 9 / 130828462 * 0.8,
 }
 
+DV_TAX = 0.1
+
 # The portion of EPS used for dividend.
 DVPS = {
   # Apple once a quarter.
   # 20140206 - 3.05
   # Tax rate 0.1
-  'Apple': 3.05 * 4 * 0.9,
+  'Apple': 3.05 * 4,
 
   # :DeNA once a year.
   # For FY2013
-  ':DeNA': 37.0 * 0.9,
+  ':DeNA': 37.0,
 
   # 假定30%分红率，税率10%.
-  '招商银行': EPS['招商银行'] * 0.3 * 0.9,
+  '招商银行': EPS['招商银行'] * 0.3,
 
   # 过去四年年分红率 [0.35, 0.34, 0.36, 0.35]
-  '中国银行': EPS['中国银行'] * 0.35 * 0.9,
+  '中国银行': EPS['中国银行'] * 0.35,
 }
 
 URL_CONTENT_CACHE = {
@@ -241,10 +271,10 @@ WATCH_LIST_BANK = {
   '600016': '民生银行',
   '601166': '兴业银行',
   '600000': '浦发银行',
-  #'600015': '华夏银行',
-  #'601328': '交通银行',
-  #'601998': '中信银行',
-  #'601818': '光大银行',
+  '600015': '华夏银行',
+  '601328': '交通银行',
+  '601998': '中信银行',
+  '601818': '光大银行',
 }
 
 WATCH_LIST_INSURANCE = {
@@ -375,7 +405,7 @@ def GetPS(code, mp):
 
 def GetDR(code, mp):
   if code in DVPS:
-    return round(DVPS[code] / mp, 3)
+    return round(DVPS[code] / mp * (1.0 - DV_TAX), 3)
   return 0.0
   
 def GetPB1(code, mp):
@@ -387,11 +417,27 @@ def GetBeta(code):
   return STOCK_BETA[code](code) if code in STOCK_BETA else 10
 
 def GetPB0(code, mp):
-  return mp / BVPS0[code] if code in BVPS0 else float('inf')
+  if code in BVPS0:
+    dilution = 1.0
+    if code in CB:
+      trans = CB[code][1]
+      if trans < BVPS0[code]:
+        dilution = (1.0 + CB[code][0] * 1.0 / BVPS0[code] / SHARES[code]) / (
+          1.0 + CB[code][0] / trans / SHARES[code])
+    return mp / (BVPS0[code] * dilution)
+  return float('inf')
  
 def GetPB(code, mp):
   if code in BVPS:
-    return mp / BVPS[code]
+    dilution = 1.0
+    if code in CB:
+      trans = CB[code][1]
+      if code in DVPS:
+        trans -= DVPS[code]
+      if trans < BVPS[code]:
+        dilution = (1.0 + CB[code][0] * 1.0 / BVPS[code] / SHARES[code]) / (
+          1.0 + CB[code][0] / trans / SHARES[code])
+    return mp / (BVPS[code] * dilution)
   return float('inf')
  
 def GetCAP(code, mp):
@@ -513,7 +559,9 @@ def GetRZ(code, mp = 0):
   return 1.0 * (rz - rq) / RZ_BASE[CODE_TO_NAME[code]] if code in CODE_TO_NAME and CODE_TO_NAME[code] in RZ_BASE else rz - rq
 
 FINANCIAL_FUNC = {
+  'P/E0': GetPE0,
   'P/E': GetPE,
+  'P/B0': GetPB0,
   'P/B': GetPB,
   'P/S': GetPS,
   'CAP': GetCAP,
@@ -690,7 +738,7 @@ def BuyA50():
     '南方A50',
     'P/E',
     [8.2, 7],
-    [0.40, 0.80],
+    [0.40, 0.70],
     [10, 15],
     0.3,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
@@ -730,12 +778,23 @@ def BuyBOCH():
     '中国银行H',
     'DR',
     [0.07, 0.85],
-    [0.3, 0.5],
+    [0.4, 0.6],
     [.05, .03],
     0.2,
     buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < .09 and GetMarketPriceChange(
                                  code) < 0.0 and GetAHDiscount(code) >= -1.0,
     sell_condition = lambda code: GetPB(code, GetMarketPrice(code)) > 1.2);
+ 
+def CIBtoCMB():
+  cib = NAME_TO_CODE['兴业银行']
+  cmb = NAME_TO_CODE['招商银行']
+  cib_percent = holding_percent[cib]
+  if cib_percent > 0.2:
+    cib_mp = GetMarketPrice(cib);
+    cmb_mp = GetMarketPrice(cmb);
+    if GetPB0(cmb, cmb_mp) / GetPB0(cib, cib_mp) < 1.05:
+      return '兴业银行@%.2f --> 招商银行@%.2f'%(cib_mp, cmb_mp)
+  return ''
 
 STRATEGY_FUNCS = {
   BuyApple: 'Buy Apple',
@@ -747,6 +806,7 @@ STRATEGY_FUNCS = {
   BuyCIB: 'Buy CIB',
   BuyA50: 'Buy A50',
   BuyBOCH: 'Buy BOCH',
+  CIBtoCMB: 'CIB->CMB',
   #SellCIB: 'Sell CIB',
   #SellMSH: 'Sell MSH',
 }
@@ -778,15 +838,25 @@ def InitAll():
       if code in AH_PAIR:
         dt[AH_PAIR[code]] = dt[code] + 'H'.encode('utf-8')
 
-  for dt in [EPS0, EPS, DVPS, SPS, BVPS0, BVPS, ETF_BOOK_VALUE_FUNC]:
+  for dt in [SHARES, CB, EPS0, EPS, DVPS, SPS, BVPS0, BVPS, ETF_BOOK_VALUE_FUNC]:
     keys = dt.keys()
     for key in keys:
       dt[NAME_TO_CODE[key]] = dt[key]
+
+  for dt in [SHARES]:
+    for key in dt.keys():
+      if key in AH_PAIR:
+        dt[AH_PAIR[key]] = dt[key]
 
   for dt in [EPS0, EPS, DVPS, SPS, BVPS0, BVPS]:
     for key in dt.keys():
       if key in AH_PAIR:
         dt[AH_PAIR[key]] = dt[key] * EX_RATE[GetCurrency(key) + '-' + GetCurrency(AH_PAIR[key])]
+
+  for dt in [CB]:
+    for key in dt.keys():
+      if key in AH_PAIR:
+        dt[AH_PAIR[key]] = map(lambda x: x * EX_RATE[GetCurrency(key) + '-' + GetCurrency(AH_PAIR[key])], dt[key])
 
   if 'all' in set(sys.argv):
     sys.argv += ['stock', 'hold', 'etf', 'Price']
@@ -1057,7 +1127,9 @@ def PrintWatchedStocks(watch_list, table_header, sort_key, rev = False):
 def PrintWatchedBank():
   table_header = [
                   'Change',
+                  'P/E0',
                   'P/E',
+                  'P/B0',
                   'P/B',
                   'DR',
                   'AHD',

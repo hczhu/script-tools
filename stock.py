@@ -33,7 +33,6 @@ import traceback
 # 带0后缀的财务数据是最近4个季度的数据，未带0后缀的是未来四个季度后的数据估计
 
 # Number of total shares
-# TODO: 考虑可转债
 SHARES = {
   '招商银行': 25219845680,
 
@@ -111,6 +110,15 @@ EPS = {
               - 23510 * 1.3 # 减去资产减值损失
               ) * (1.0 - 0.225)  # 扣税
               / SHARES['中国银行'],
+
+  '兴业银行': 10**6 * (
+              29184 * 1.3 # 手续费和佣金净收入，按过去两年的平均增长估计
+              + 4507 # 其非利息他净收入不变
+              + (3507220 * 1.08) * 2.55 / 100 # 利息净收入 = 生息资产估计 * 净息差估计，生息资产增长受限于核心资本充足率，贷存比和M1增长
+              - 45565 * 1.12 # 减去业务管理费估计
+              - 10218 * 1.5 # 减去资产减值损失
+              ) * (1.0 - 0.24)  # 扣税
+              / SHARES['兴业银行'],
 }
 
 # 银行重点考虑一下三方面的资产减值风险
@@ -297,6 +305,10 @@ WATCH_LIST_ETF = {
   '02822': '南方A50',
 } 
 
+WATCH_LIST_OTHER = {
+  '000666': '经纬纺机',
+}
+
 AH_PAIR = {
     '600036': '03968',
     '601988': '03988',
@@ -309,6 +321,7 @@ AH_PAIR = {
     '601328': '03328',
     '601818': '06818',
     '601336': '01336',
+    '000666': '00350',
 }
 
 CB_INFO = {
@@ -372,11 +385,11 @@ NET_ASSET = 0.0
 
 #--------------Beginning of logic util functions---------------
 def GetCurrency(code):
-  if code.isdigit() and code[0] == '0':
+  if code.isdigit() and code[0] == '0' and len(code) == 5:
     return 'HKD'
   elif code.isalpha():
     return 'USD'
-  elif len(code) == 4:
+  elif code.isdigit() and len(code) == 4:
     return 'YEN'
   return 'RMB'
 
@@ -620,7 +633,7 @@ def GenericDynamicStrategy(name,
                            buy_range,
                            hold_percent_range,
                            sell_range,
-                           sell_start_percent,
+                           sell_start_percent = 0.0,
                            percent_delta = 0.015,
                            buy_condition = lambda code: True,
                            sell_condition = lambda code: True):
@@ -796,6 +809,15 @@ def CIBtoCMB():
       return '兴业银行@%.2f --> 招商银行@%.2f'%(cib_mp, cmb_mp)
   return ''
 
+def JingWeiAQ():
+  return GenericDynamicStrategy(
+    '经纬纺机H',
+    'MP',
+    [7.0, 6.8],
+    [0.05, 0.1],
+    [7.5, 7.8],
+    0.0)
+
 STRATEGY_FUNCS = {
   BuyApple: 'Buy Apple',
   BuyBig4BanksH: 'Buy 四大行H股 ',
@@ -807,6 +829,7 @@ STRATEGY_FUNCS = {
   BuyA50: 'Buy A50',
   BuyBOCH: 'Buy BOCH',
   CIBtoCMB: 'CIB->CMB',
+  JingWeiAQ: 'Buy Jingwei for AQ'
   #SellCIB: 'Sell CIB',
   #SellMSH: 'Sell MSH',
 }
@@ -823,7 +846,7 @@ def InitAll():
     AH_PAIR[AH_PAIR[key]] = key
 
   for dt in [WATCH_LIST_BANK, WATCH_LIST_INSURANCE, WATCH_LIST_INTERNET,
-             WATCH_LIST_ETF, WATCH_LIST_CB]:
+             WATCH_LIST_ETF, WATCH_LIST_CB, WATCH_LIST_OTHER]:
     for code in dt.keys():
       CODE_TO_NAME[code] = dt[code]
       if code in AH_PAIR:

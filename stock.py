@@ -713,6 +713,14 @@ def BuyCMBH():
     0.2,
     buy_condition = lambda code: GetAHDiscount(code) >= -0.02 and GetMarketPriceChange(code) < 0)
 
+def SellCMBH():
+  code = NAME_TO_CODE['招商银行H']
+  if holding_percent[code] > 0.0 and GetAHDiscount(code) <= -0.1 and GetMarketPriceChange(code) > 0:
+    mp = GetMarketPrice(code)
+    mp_rmb = GetMarketPriceInRMB(code)
+    return 'Sell 招商银行H @%.1f %.0f Units'%(mp, holding_percent / 2 * NET_ASSET / mp_rmb)
+  return ''
+
 def BuyCMB():
   return GenericDynamicStrategy(
     '招商银行',
@@ -812,7 +820,7 @@ def JingWeiAQ():
     '经纬纺机H',
     'MP',
     [7.0, 6.8],
-    [0.05, 0.1],
+    [0.8, 0.1],
     [7.5, 7.8],
     0.0)
 
@@ -847,6 +855,7 @@ STRATEGY_FUNCS = {
   BuyBig4BanksH: 'Buy 四大行H股 ',
   BuyDeNA:  'Buy :DeNA',
   BuyCMBH:  'Buy 招商银行H ',
+  SellCMBH:  'Sell 招商银行H ',
   BuyCMB:  'Buy CMB',
   BuyMSBH: 'Buy MSBH',
   BuyCIB: 'Buy CIB',

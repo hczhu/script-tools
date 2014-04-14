@@ -568,7 +568,7 @@ def GetRZ(code, mp = 0):
                            ],
                            '</td>' , lambda s: int(s.replace(',', '')))
   except:
-    return float('inf')
+    return float('-1')
   return 1.0 * (rz - rq) / RZ_BASE[CODE_TO_NAME[code]] if code in CODE_TO_NAME and CODE_TO_NAME[code] in RZ_BASE else rz - rq
 
 FINANCIAL_FUNC = {
@@ -711,8 +711,7 @@ def BuyCMBH():
     [0.2, 0.3],
     [1.5, 2.5],
     0.2,
-    buy_condition = lambda code: GetAHDiscount(code) >= -0.02 and GetMarketPriceChange(code) < 0 and
-    GetRZ(AH_PAIR[code]) < 0.5)
+    buy_condition = lambda code: GetAHDiscount(code) >= -0.02 and GetMarketPriceChange(code) < 0)
 
 def BuyCMB():
   return GenericDynamicStrategy(
@@ -722,19 +721,18 @@ def BuyCMB():
     [0.2, 0.3],
     [1.5, 2.5],
     0.2,
-    buy_condition = lambda code: GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0 and
-    GetRZ(code) < 0.5)
+    buy_condition = lambda code: GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0)
 
 def BuyDeNA():
   return GenericDynamicStrategy(
     ':DeNA',
     'P/S',
-    [1.8, 1.0],
+    [1.7, 1.0],
     [0.06, 0.15],
     [2.0, 3.0],
     0.08,
     buy_condition = lambda code: GetMarketPriceChange(code) < min(0.0,
-      2 * GetBeta(code) * GetMarketPriceChange('ni225')));
+      1.5 * GetBeta(code) * GetMarketPriceChange('ni225')));
 
 def BuyMSBH():
   return GenericDynamicStrategy(
@@ -764,7 +762,7 @@ def BuyCIB():
     [0.2, 0.3],
     [1.5, 2.5],
     0.2,
-    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetRZ(code) < 0.5);
+    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
 def SellCIB():
   return GenericDynamicStrategy(
@@ -773,7 +771,7 @@ def SellCIB():
     [8, 7],
     [0.2, 0.3],
     [9, 9.4],
-    sell_condition = lambda code: GetMarketPriceChange(code) > 0.0 and GetRZ(code) > 1.0);
+    sell_condition = lambda code: GetMarketPriceChange(code) > 0.0);
 
 def SellMSH():
   code = NAME_TO_CODE['民生银行H']
@@ -818,6 +816,32 @@ def JingWeiAQ():
     [7.5, 7.8],
     0.0)
 
+def CIBtoCMB():
+  cib = NAME_TO_CODE['兴业银行']
+  cmb = NAME_TO_CODE['招商银行']
+  cib_percent = holding_percent[cib]
+  cmb_percent = holding_percent[cmb]
+  if cib_percent > 0.15 and cib_percent > cmb_percent:
+    cib_mp = GetMarketPrice(cib);
+    cmb_mp = GetMarketPrice(cmb);
+    value = (cib_percent - cmb_percent) / 2 * NET_ASSET
+    if GetPB0(cmb, cmb_mp) / GetPB0(cib, cib_mp) < 1.05:
+      return '兴业银行@%.2f --> 招商银行@%.2f'%(cib_mp, value / cib_mp, cmb_mp)
+  return ''
+
+def CMBtoCIB():
+  cib = NAME_TO_CODE['兴业银行']
+  cmb = NAME_TO_CODE['招商银行']
+  cib_percent = holding_percent[cib]
+  cmb_percent = holding_percent[cmb]
+  if cmb_percent > 0.2 and cmb_percent > cib_percent:
+    cib_mp = GetMarketPrice(cib);
+    cmb_mp = GetMarketPrice(cmb);
+    value = (cmb_percent - cib_percent) / 2 * NET_ASSET
+    if GetPB0(cmb, cmb_mp) / GetPB0(cib, cib_mp) > 1.1:
+      return '招商银行@%.2f %.0f Units-> 兴业银行@%.2f'%(cmb_mp, value / cmb_mp, cib_mp)
+  return ''
+
 STRATEGY_FUNCS = {
   BuyApple: 'Buy Apple',
   BuyBig4BanksH: 'Buy 四大行H股 ',
@@ -829,6 +853,7 @@ STRATEGY_FUNCS = {
   BuyA50: 'Buy A50',
   BuyBOCH: 'Buy BOCH',
   CIBtoCMB: 'CIB->CMB',
+  CMBtoCIB: 'CMB->CIB',
   JingWeiAQ: 'Buy Jingwei for AQ'
   #SellCIB: 'Sell CIB',
   #SellMSH: 'Sell MSH',

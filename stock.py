@@ -718,7 +718,7 @@ def SellCMBH():
   if holding_percent[code] > 0.0 and GetAHDiscount(code) <= -0.1 and GetMarketPriceChange(code) > 0:
     mp = GetMarketPrice(code)
     mp_rmb = GetMarketPriceInRMB(code)
-    return 'Sell 招商银行H @%.1f %.0f Units'%(mp, holding_percent / 2 * NET_ASSET / mp_rmb)
+    return 'Sell 招商银行H(%s) @%.1f %.0f Units'%(code, mp, holding_percent / 2 * NET_ASSET / mp_rmb)
   return ''
 
 def BuyCMB():

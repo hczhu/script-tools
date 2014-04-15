@@ -829,7 +829,7 @@ def CIBtoCMB():
   cmb = NAME_TO_CODE['招商银行']
   cib_percent = holding_percent[cib]
   cmb_percent = holding_percent[cmb]
-  if cib_percent > 0.15 and cib_percent > cmb_percent:
+  if cib_percent > 0.2 and cib_percent > cmb_percent:
     cib_mp = GetMarketPrice(cib);
     cmb_mp = GetMarketPrice(cmb);
     value = (cib_percent - cmb_percent) / 2 * NET_ASSET

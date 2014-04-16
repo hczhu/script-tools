@@ -85,7 +85,7 @@ EPS0 = {
 EPS = {
   #南方A50ETF，数据来自sse 50ETF统计页面
   # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
-  '南方A50': 8.3985 / 8.15,
+  '南方A50': 8.6319 / 8.37,
   # 来自DeNA 2013H1财报估计
   # '2432': 199.51 * 4 / 3,
   # 来自DeNA 2013Q3财报估计，打八折
@@ -757,8 +757,8 @@ def BuyA50():
     '南方A50',
     'P/E',
     [8.2, 7],
-    [0.40, 0.70],
-    [10, 15],
+    [0.50, 0.80],
+    [12, 15],
     0.3,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
@@ -796,13 +796,13 @@ def BuyBOCH():
   return GenericDynamicStrategy(
     '中国银行H',
     'DR',
-    [0.07, 0.85],
+    [0.065, 0.85],
     [0.4, 0.6],
     [.05, .03],
     0.2,
-    buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < .09 and GetMarketPriceChange(
-                                 code) < 0.0 and GetAHDiscount(code) >= -1.0,
-    sell_condition = lambda code: GetPB(code, GetMarketPrice(code)) > 1.2);
+    buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < 0.9 and GetMarketPriceChange(
+                                 code) < 0.0 and GetAHDiscount(code) >= -2.0,
+    sell_condition = lambda code: GetPB(code, GetMarketPrice(code)) > 1.5);
  
 def CIBtoCMB():
   cib = NAME_TO_CODE['兴业银行']
@@ -846,7 +846,7 @@ def CMBtoCIB():
     cib_mp = GetMarketPrice(cib);
     cmb_mp = GetMarketPrice(cmb);
     value = (cmb_percent - cib_percent) / 2 * NET_ASSET
-    if GetPB0(cmb, cmb_mp) / GetPB0(cib, cib_mp) > 1.1:
+    if GetPB0(cmb, cmb_mp) / GetPB0(cib, cib_mp) > 1.15:
       return '招商银行@%.2f %.0f Units-> 兴业银行@%.2f'%(cmb_mp, value / cmb_mp, cib_mp)
   return ''
 

@@ -43,6 +43,8 @@ SHARES = {
   '民生银行': 28366192773,
 
   '建设银行': 250010977486,
+
+  'Weibo': 2 * 10**8,
 }
 
 # (总面值，目前转股价)
@@ -53,6 +55,8 @@ CB = {
 
 # 最大市值估计
 CAP = {
+  # 阿里入股5.86亿美元，占比18%
+  'Weibo': 5.86 * 10**8 / 0.18,
 }
 
 BVPS0 = {
@@ -173,6 +177,8 @@ BVPS = {
                 )
                 - 147161 * 4 * 0.7 / 100 # 买入返售－信托受益权损失率按GDP下行4个点带来的不良率计算
               ) * 10**6 / SHARES['中国银行'],
+
+  'Weibo': CAP['Weibo'] / SHARES['Weibo'],
 }
 
 # Sales per share.
@@ -295,6 +301,7 @@ WATCH_LIST_INTERNET = {
   'FB': 'Facebook',
   'GOOG': 'Google',
   'AAPL': 'Apple',
+  'WB': 'Weibo',
 }
 
 WATCH_LIST_CB = {
@@ -821,7 +828,7 @@ def JingWeiAQ():
     'MP',
     [7.0, 6.8],
     [0.8, 0.1],
-    [7.5, 7.8],
+    [7.3, 8.0],
     0.0)
 
 def CIBtoCMB():
@@ -850,6 +857,15 @@ def CMBtoCIB():
       return '招商银行@%.2f %.0f Units-> 兴业银行@%.2f'%(cmb_mp, value / cmb_mp, cib_mp)
   return ''
 
+def BuyWeibo():
+  return GenericDynamicStrategy(
+    'Weibo',
+    'P/B',
+    [1.0, 0.8],
+    [0.1, 0.2],
+    [1.5, 2.0],
+    0.05)
+
 STRATEGY_FUNCS = {
   BuyApple: 'Buy Apple',
   BuyBig4BanksH: 'Buy 四大行H股 ',
@@ -863,7 +879,8 @@ STRATEGY_FUNCS = {
   BuyBOCH: 'Buy BOCH',
   CIBtoCMB: 'CIB->CMB',
   CMBtoCIB: 'CMB->CIB',
-  JingWeiAQ: 'Buy Jingwei for AQ'
+  JingWeiAQ: 'Buy Jingwei for AQ',
+  BuyWeibo: 'Buy Weibo',
   #SellCIB: 'Sell CIB',
   #SellMSH: 'Sell MSH',
 }

@@ -846,6 +846,19 @@ def BuyWeibo():
     [1.5, 2.0],
     0.05)
 
+def KeepDaLanChou():
+  holding = 0
+  for bank in WATCH_LIST_BANK.keys():
+    holding += holding_percent[bank]
+    if bank in AH_PAIR:
+      holding += holding_percent[AH_PAIR[bank]]
+  for etf in WATCH_LIST_ETF.keys():
+    holding += holding_percent[etf]
+  if holding < 1.0:
+    return 'Buy %.1fK RMB DaLanChou'%((1.0 - holding) * NET_ASSET / 1000)
+  return ''
+    
+
 STRATEGY_FUNCS = {
   BuyApple: 'Buy Apple',
   BuyBig4BanksH: 'Buy 四大行H股 ',
@@ -862,6 +875,7 @@ STRATEGY_FUNCS = {
   JingWeiAQ: 'Buy Jingwei for AQ',
   BuyWeibo: 'Buy Weibo',
   BuyMSBH: 'Buy 民生银行H',
+  KeepDaLanChou: 'Buy 大蓝筹',
 }
 
 #--------------End of strategy functions-----

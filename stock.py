@@ -725,7 +725,7 @@ def SellCMBH():
   if holding_percent[code] > 0.0 and GetAHDiscount(code) <= -0.1 and GetMarketPriceChange(code) > 0:
     mp = GetMarketPrice(code)
     mp_rmb = GetMarketPriceInRMB(code)
-    return 'Sell 招商银行H(%s) @%.1f %.0f Units'%(code, mp, holding_percent / 2 * NET_ASSET / mp_rmb)
+    return 'Sell 招商银行H(%s) @%.1f %.0f Units'%(code, mp, holding_percent[code] / 2 * NET_ASSET / mp_rmb)
   return ''
 
 def BuyCMB():
@@ -752,12 +752,12 @@ def BuyDeNA():
 def BuyMSBH():
   return GenericDynamicStrategy(
     '民生银行H',
-    'AHD',
-    [0.30, 0.50],
-    [0.1, 0.2],
-    [0.2, 0.1],
-    0.1,
-    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
+    'P/B0',
+    [0.8, 0.70],
+    [0.05, 0.15],
+    [1, 1.5],
+    0.05,
+    buy_condition = lambda code: GetMarketPriceChange(code) < 0.0 and GetAHDiscount(code) > 0.0);
 
 def BuyA50():
   return GenericDynamicStrategy(
@@ -778,26 +778,6 @@ def BuyCIB():
     [1.5, 2.5],
     0.2,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
-
-def SellCIB():
-  return GenericDynamicStrategy(
-    '兴业银行',
-    'MP',
-    [8, 7],
-    [0.2, 0.3],
-    [9, 9.4],
-    sell_condition = lambda code: GetMarketPriceChange(code) > 0.0);
-
-def SellMSH():
-  code = NAME_TO_CODE['民生银行H']
-  if holding_percent[code] == 0:
-    return ''
-  mp = GetMarketPriceInRMB(code)
-  if GetMarketPriceChange(code) > 0.0:
-    sell_percent = min(holding_percent[code], 0.02)
-    sell_units = int(NET_ASSET * sell_percent / mp)
-    return 'Sell %d units 民生银行H(%s) @%f'%(sell_units, code, GetMarketPrice(code))
-  return ''
 
 def BuyBOCH():
   return GenericDynamicStrategy(
@@ -827,7 +807,7 @@ def JingWeiAQ():
     '经纬纺机H',
     'MP',
     [7.0, 6.8],
-    [0.8, 0.1],
+    [0.6, 0.7],
     [7.3, 8.0],
     0.0)
 
@@ -881,8 +861,7 @@ STRATEGY_FUNCS = {
   CMBtoCIB: 'CMB->CIB',
   JingWeiAQ: 'Buy Jingwei for AQ',
   BuyWeibo: 'Buy Weibo',
-  #SellCIB: 'Sell CIB',
-  #SellMSH: 'Sell MSH',
+  BuyMSBH: 'Buy 民生银行H',
 }
 
 #--------------End of strategy functions-----

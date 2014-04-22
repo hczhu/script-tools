@@ -749,7 +749,7 @@ def BuyA50():
     '南方A50',
     'P/E',
     [8.5, 7],
-    [0.50, 0.80],
+    [0.50, 0.70],
     [12, 15],
     0.3,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
@@ -769,7 +769,7 @@ def BuyBOCH():
     '中国银行H',
     'DR',
     [0.065, 0.85],
-    [0.4, 0.6],
+    [0.4, 0.5],
     [.05, .03],
     0.2,
     buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < 0.9 and GetMarketPriceChange(

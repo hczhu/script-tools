@@ -115,14 +115,6 @@ EPS = {
               ) * (1.0 - 0.225)  # 扣税
               / SHARES['中国银行'],
 
-  '兴业银行': 10**6 * (
-              29184 * 1.3 # 手续费和佣金净收入，按过去两年的平均增长估计
-              + 4507 # 其非利息他净收入不变
-              + (3507220 * 1.08) * 2.55 / 100 # 利息净收入 = 生息资产估计 * 净息差估计，生息资产增长受限于核心资本充足率，贷存比和M1增长
-              - 45565 * 1.12 # 减去业务管理费估计
-              - 10218 * 1.5 # 减去资产减值损失
-              ) * (1.0 - 0.24)  # 扣税
-              / SHARES['兴业银行'],
 }
 
 # 银行重点考虑一下三方面的资产减值风险
@@ -131,13 +123,6 @@ EPS = {
 # 3. 地方融资平台，把不可偿付比例16%作为坏账比例的近似
 BVPS = {
   # 兴业银行，2013年3季度财报
-  '兴业银行': (
-              194477 * 10**6
-              * (1.0 + 18.0 / 100 / 4) #加上4季度估计利润
-              - (532 + 446) * 10**6 #减去商誉和无形资产
-              - 1309940 * 10**6 * 1.03# 资产估计，三季度末乘以股份行四季度环比
-              * (2.1 / 100 + 0.86 / 100) # 贷款总额乘以不良率, GDP下行3个点，再加上股份行平均值
-              ) / SHARES['兴业银行'],
 
   # 招商银行, 2013年年报
   '招商银行': BVPS0['招商银行']  + EPS['招商银行'] + # 末期净资产加上估计的EPS
@@ -791,24 +776,13 @@ def BuyBOCH():
                                  code) < 0.0 and GetAHDiscount(code) >= -2.0,
     sell_condition = lambda code: GetPB(code, GetMarketPrice(code)) > 1.5);
  
-def CIBtoCMB():
-  cib = NAME_TO_CODE['兴业银行']
-  cmb = NAME_TO_CODE['招商银行']
-  cib_percent = holding_percent[cib]
-  if cib_percent > 0.2:
-    cib_mp = GetMarketPrice(cib);
-    cmb_mp = GetMarketPrice(cmb);
-    if GetPB0(cmb, cmb_mp) / GetPB0(cib, cib_mp) < 1.05:
-      return '兴业银行@%.2f --> 招商银行@%.2f'%(cib_mp, cmb_mp)
-  return ''
-
 def JingWeiAQ():
   return GenericDynamicStrategy(
     '经纬纺机H',
     'MP',
     [7.0, 6.8],
-    [0.6, 0.7],
-    [7.3, 8.0],
+    [0.06, 0.07],
+    [7.7, 7.73],
     0.0)
 
 def CIBtoCMB():
@@ -816,12 +790,13 @@ def CIBtoCMB():
   cmb = NAME_TO_CODE['招商银行']
   cib_percent = holding_percent[cib]
   cmb_percent = holding_percent[cmb]
-  if cib_percent > 0.2 and cib_percent > cmb_percent:
+  if cib_percent > 0:
     cib_mp = GetMarketPrice(cib);
     cmb_mp = GetMarketPrice(cmb);
-    value = (cib_percent - cmb_percent) / 2 * NET_ASSET
-    if GetPB0(cmb, cmb_mp) / GetPB0(cib, cib_mp) < 1.05:
-      return '兴业银行@%.2f --> 招商银行@%.2f'%(cib_mp, value / cib_mp, cmb_mp)
+    if GetPB0(cib, cib_mp) / GetPB0(cmb, cmb_mp) > 1.05:
+      return '兴业银行@%.2f (P/B0:%.2f) --> 招商银行@%.2f (P/B0:%.2f)'%(
+        cib_mp, GetPB0(cib, cib_mp),
+        cmb_mp, GetPB0(cmb, cmb_mp))
   return ''
 
 def CMBtoCIB():
@@ -829,11 +804,11 @@ def CMBtoCIB():
   cmb = NAME_TO_CODE['招商银行']
   cib_percent = holding_percent[cib]
   cmb_percent = holding_percent[cmb]
-  if cmb_percent > 0.2 and cmb_percent > cib_percent:
+  if cmb_percent > 0.2:
     cib_mp = GetMarketPrice(cib);
     cmb_mp = GetMarketPrice(cmb);
-    value = (cmb_percent - cib_percent) / 2 * NET_ASSET
-    if GetPB0(cmb, cmb_mp) / GetPB0(cib, cib_mp) > 1.15:
+    value = (cmb_percent - 0.2) * NET_ASSET
+    if GetPB0(cmb, cmb_mp) / GetPB0(cib, cib_mp) > 1.1:
       return '招商银行@%.2f %.0f Units-> 兴业银行@%.2f'%(cmb_mp, value / cmb_mp, cib_mp)
   return ''
 
@@ -857,7 +832,6 @@ def KeepDaLanChou():
   if holding < 1.0:
     return 'Buy %.1fK RMB DaLanChou'%((1.0 - holding) * NET_ASSET / 1000)
   return ''
-    
 
 STRATEGY_FUNCS = {
   BuyApple: 'Buy Apple',

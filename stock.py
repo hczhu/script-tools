@@ -89,7 +89,7 @@ EPS0 = {
 EPS = {
   #南方A50ETF，数据来自sse 50ETF统计页面
   # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
-  '南方A50': 8.6319 / 8.37,
+  '南方A50': 8.5066 / 8.26,
   # 来自DeNA 2013H1财报估计
   # '2432': 199.51 * 4 / 3,
   # 来自DeNA 2013Q3财报估计，打八折
@@ -123,6 +123,7 @@ EPS = {
 # 3. 地方融资平台，把不可偿付比例16%作为坏账比例的近似
 BVPS = {
   # 兴业银行，2013年3季度财报
+  '兴业银行': BVPS0['兴业银行'],
 
   # 招商银行, 2013年年报
   '招商银行': BVPS0['招商银行']  + EPS['招商银行'] + # 末期净资产加上估计的EPS
@@ -177,8 +178,8 @@ SPS = {
 
 DV_TAX = 0.1
 
-# The portion of EPS used for dividend.
-DVPS = {
+# 已公布分红
+DVPS0 = {
   # Apple once a quarter.
   # 20140206 - 3.05
   # Tax rate 0.1
@@ -188,6 +189,15 @@ DVPS = {
   # For FY2013
   ':DeNA': 37.0,
 
+  # 已公布
+  '中国银行': 0.19,
+
+  # 已公布
+  '招商银行': 0.62,
+}
+
+# The portion of EPS used for dividend.
+DVPS = {
   # 假定30%分红率，税率10%.
   '招商银行': EPS['招商银行'] * 0.3,
 
@@ -412,6 +422,11 @@ def GetDR(code, mp):
   if code in DVPS:
     return round(DVPS[code] / mp * (1.0 - DV_TAX), 3)
   return 0.0
+
+def GetDR0(code, mp):
+  if code in DVPS0:
+    return round(DVPS0[code] / mp * (1.0 - DV_TAX), 3)
+  return 0.0
   
 def GetPB1(code, mp):
   if code in BVPS1:
@@ -572,6 +587,7 @@ FINANCIAL_FUNC = {
   'CAP': GetCAP,
   'AHD': GetAHDiscount,
   'DR': GetDR,
+  'DR0': GetDR0,
   'MP': lambda code, mp: GetMarketPrice(code),
 }
 
@@ -671,7 +687,7 @@ def GenericDynamicStrategy(name,
 def BuyApple():
   return GenericDynamicStrategy(
     'Apple',
-    'DR',
+    'DR0',
     [0.025, 0.04],
     [0.05, 0.3],
     [0.15, 0],
@@ -748,8 +764,8 @@ def BuyA50():
   return GenericDynamicStrategy(
     '南方A50',
     'P/E',
-    [8.5, 7],
-    [0.50, 0.70],
+    [8.0, 7],
+    [0.40, 0.60],
     [12, 15],
     0.3,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
@@ -767,13 +783,13 @@ def BuyCIB():
 def BuyBOCH():
   return GenericDynamicStrategy(
     '中国银行H',
-    'DR',
-    [0.065, 0.085],
-    [0.4, 0.6],
-    [.05, .03],
+    'DR0',
+    [0.06, 0.08],
+    [0.5, 0.7],
+    [.04, .03],
     0.2,
     buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < 0.9 and GetMarketPriceChange(
-                                 code) < 0.0 and GetAHDiscount(code) >= -2.0,
+                                 code) < 0.0 and GetAHDiscount(code) >= -2.5,
     sell_condition = lambda code: GetPB(code, GetMarketPrice(code)) > 1.5);
  
 def JingWeiAQ():
@@ -879,7 +895,7 @@ def InitAll():
       if code in AH_PAIR:
         dt[AH_PAIR[code]] = dt[code] + 'H'.encode('utf-8')
 
-  for dt in [SHARES, CB, EPS0, EPS, DVPS, SPS, BVPS0, BVPS, ETF_BOOK_VALUE_FUNC]:
+  for dt in [SHARES, CB, EPS0, EPS, DVPS, DVPS0, SPS, BVPS0, BVPS, ETF_BOOK_VALUE_FUNC]:
     keys = dt.keys()
     for key in keys:
       dt[NAME_TO_CODE[key]] = dt[key]
@@ -889,7 +905,7 @@ def InitAll():
       if key in AH_PAIR:
         dt[AH_PAIR[key]] = dt[key]
 
-  for dt in [EPS0, EPS, DVPS, SPS, BVPS0, BVPS]:
+  for dt in [EPS0, EPS, DVPS, DVPS0, SPS, BVPS0, BVPS]:
     for key in dt.keys():
       if key in AH_PAIR:
         dt[AH_PAIR[key]] = dt[key] * EX_RATE[GetCurrency(key) + '-' + GetCurrency(AH_PAIR[key])]
@@ -987,6 +1003,7 @@ def PrintHoldingSecurities(all_records):
                   'P/S',
                   'P/B0',
                   'P/B',
+                  'DR0',
                   'DR',
                   'AHD',
                   'RZ',
@@ -1051,6 +1068,7 @@ def PrintHoldingSecurities(all_records):
         'P/S': myround(GetPS(key, mp), 2),
         'P/B0': myround(GetPB0(key, mp), 2),
         'P/B': myround(GetPB(key, mp), 2),
+        'DR0':  myround(GetDR0(key, mp) * 100 , 2),
         'DR':  myround(GetDR(key, mp) * 100 , 2),
         'AHD': str(myround(100.0 * (mp_pair_rmb - mp * ex_rate ) / mp / ex_rate, 1)) + '%',
         'RZ': round(GetRZ(key), 3) if remain_stock > 0 else 0.0,
@@ -1107,15 +1125,15 @@ def PrintHoldingSecurities(all_records):
   
   PrintTableMap(capital_header, capital_table_map, set())
   NET_ASSET = total_market_value['ALL'] + total_capital['ALL'] - total_investment['ALL']
-  for col in ['Chg', 'DR', 'Percent']:
+  for col in ['Chg', 'DR', 'DR0', 'Percent']:
     summation[col] = 0.0
   for record in stat_records_map:
     holding_percent[record['Code']] = 1.0 * record['MV'] / NET_ASSET
     summation['Percent'] += holding_percent[record['Code']]
     record['Percent'] = str(myround(holding_percent[record['Code']] * 100, 1)) + '%'
-    for col in ['Chg', 'DR']:
+    for col in ['Chg', 'DR', 'DR0']:
       summation[col] += holding_percent[record['Code']] * record[col]
-  for col in ['Chg', 'DR']:
+  for col in ['Chg', 'DR', 'DR0']:
     summation[col] = round(summation[col], 2)
   summation['Percent'] = str(round(summation['Percent'] * 100, 0)) + '%'
   if 'hold' in set(sys.argv):
@@ -1160,7 +1178,7 @@ def PrintWatchedStocks(watch_list, table_header, sort_key, rev = False):
       if col == 'Change':
         record[col] = str(GetMarketPriceChange(code)) + '%'
       elif col in FINANCIAL_FUNC:
-        record[col] = round(FINANCIAL_FUNC[col](code, mp), 2)
+        record[col] = round(FINANCIAL_FUNC[col](code, mp), 3)
     table.append(record)
   table.sort(reverse = rev, key = lambda record: record.get(sort_key, 0))
   PrintTableMap(table_header, table, silent)
@@ -1173,6 +1191,7 @@ def PrintWatchedBank():
                   'P/B0',
                   'P/B',
                   'DR',
+                  'DR0',
                   'AHD',
                   'Stock name'
                   ]
@@ -1196,7 +1215,7 @@ def PrintWatchedInternet():
                   'P/E',
                   'P/S',
                   'CAP',
-                  'DR',
+                  'DR0',
                   'Stock name'
                   ]
   PrintWatchedStocks(WATCH_LIST_INTERNET, table_header, 'CAP')

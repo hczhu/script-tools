@@ -749,7 +749,7 @@ def BuyA50():
     '南方A50',
     'P/E',
     [8.5, 7],
-    [0.50, 0.80],
+    [0.50, 0.70],
     [12, 15],
     0.3,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);

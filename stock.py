@@ -768,7 +768,7 @@ def BuyBOCH():
   return GenericDynamicStrategy(
     '中国银行H',
     'DR',
-    [0.065, 0.85],
+    [0.065, 0.085],
     [0.4, 0.6],
     [.05, .03],
     0.2,

@@ -716,7 +716,7 @@ def BuyCMBH():
     '招商银行H',
     'P/B',
     [0.9, 0.7],
-    [0.2, 0.3],
+    [0.3, 0.5],
     [1.5, 2.5],
     0.2,
     buy_condition = lambda code: GetAHDiscount(code) >= -0.02 and GetMarketPriceChange(code) < 0)
@@ -734,7 +734,7 @@ def BuyCMB():
     '招商银行',
     'P/B',
     [0.9, 0.7],
-    [0.2, 0.3],
+    [0.3, 0.5],
     [1.5, 2.5],
     0.2,
     buy_condition = lambda code: GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0)
@@ -765,7 +765,7 @@ def BuyA50():
     '南方A50',
     'P/E',
     [8.0, 7],
-    [0.40, 0.60],
+    [0.50, 0.60],
     [12, 15],
     0.3,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
@@ -785,7 +785,7 @@ def BuyBOCH():
     '中国银行H',
     'DR0',
     [0.06, 0.08],
-    [0.5, 0.7],
+    [0.5, 0.6],
     [.04, .03],
     0.2,
     buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < 0.9 and GetMarketPriceChange(
@@ -824,7 +824,7 @@ def CMBtoCIB():
     cib_mp = GetMarketPrice(cib);
     cmb_mp = GetMarketPrice(cmb);
     value = (cmb_percent - 0.2) * NET_ASSET
-    if GetPB0(cmb, cmb_mp) / GetPB0(cib, cib_mp) > 1.1:
+    if GetPB0(cmb, cmb_mp) / GetPB0(cib, cib_mp) > 1.15:
       return '招商银行@%.2f %.0f Units-> 兴业银行@%.2f'%(cmb_mp, value / cmb_mp, cib_mp)
   return ''
 

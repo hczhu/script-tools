@@ -75,7 +75,7 @@ BVPS0 = {
 
   '建设银行': 1074329.0 * 10**6 / SHARES['建设银行'],
 
-  'Weibo': CAP['Weibo'] / SHARES['Weibo'],
+  'Weibo': CAP['Weibo'],
 }
 
 # TTM

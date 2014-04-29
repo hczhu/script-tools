@@ -56,13 +56,13 @@ CB = {
 # 最大市值估计
 CAP = {
   # 阿里入股5.86亿美元，占比18%
-  'Weibo': 5.86 * 10**8 / 0.18,
+  'Weibo': 5.86 * 10**8 / 0.18 / SHARES['Weibo'],
 }
 
 BVPS0 = {
-  # 最近一次报告期的净资产加上资产减值准备
-  # 招商银行, 2013年年报
-  '招商银行': 10**6 * 265465.0 / SHARES['招商银行'],
+  # 最近一次报告期的净资产
+  # 招商银行, 2014年 Q1
+  '招商银行': 10**6 * 283335 / SHARES['招商银行'],
   
   # 2014 Q1
   '中国银行': 10**6 * 972542.0 / SHARES['中国银行'],
@@ -74,12 +74,15 @@ BVPS0 = {
   '民生银行': 204287.0 * 10**6 / SHARES['民生银行'],
 
   '建设银行': 1074329.0 * 10**6 / SHARES['建设银行'],
+
+  'Weibo': CAP['Weibo'] / SHARES['Weibo'],
 }
 
 # TTM
 EPS0 = {
   '兴业银行': 41211.0 * 10**6 / SHARES['兴业银行'],
   '中国银行': 1.0 * (163741 - 41619 + 47199) * 10**6 / SHARES['中国银行'],
+  '招商银行': 1.* (51742 - 13021 + 14945) * 10**6 / SHARES['招商银行'],
 }
 
 """
@@ -103,7 +106,7 @@ EPS = {
   # '2432': 199.51 * 4 / 3,
   # 来自DeNA 2013Q3财报估计，打八折
   ':DeNA': 241.34 * 0.8,
-  # 招商银行, 2013年年报
+  # 2014 Q1
   '招商银行': 10**6 * (
               29184 * 1.3 # 手续费和佣金净收入，按过去两年的平均增长估计
               + 4507 # 其非利息他净收入不变
@@ -172,8 +175,6 @@ BVPS = {
                 ) * 1.02 # 乘以增长率
                 - 248945 * 6 * 0.7 / 100 # 买入返售－信托受益权损失率按GDP下行6个点带来的不良率计算
               ) * 10**6 / SHARES['中国银行'],
-
-  'Weibo': CAP['Weibo'] / SHARES['Weibo'],
 }
 
 # Sales per share.
@@ -436,7 +437,7 @@ def GetDR0(code, mp):
   if code in DVPS0:
     return round(DVPS0[code] / mp * (1.0 - DV_TAX), 3)
   return 0.0
-  
+
 def GetPB1(code, mp):
   if code in BVPS1:
     return mp / BVPS1[code]
@@ -801,15 +802,6 @@ def BuyBOCH():
                                  code) < 0.0 and GetAHDiscount(code) >= -2.5,
     sell_condition = lambda code: GetPB(code, GetMarketPrice(code)) > 1.5);
  
-def JingWeiAQ():
-  return GenericDynamicStrategy(
-    '经纬纺机H',
-    'MP',
-    [7.0, 6.8],
-    [0.06, 0.07],
-    [7.7, 7.73],
-    0.0)
-
 def CIBtoCMB():
   cib = NAME_TO_CODE['兴业银行']
   cmb = NAME_TO_CODE['招商银行']
@@ -842,7 +834,7 @@ def BuyWeibo():
     'Weibo',
     'P/B',
     [1.0, 0.8],
-    [0.1, 0.2],
+    [0.1, 0.15],
     [1.5, 2.0],
     0.05)
 
@@ -871,7 +863,6 @@ STRATEGY_FUNCS = {
   BuyBOCH: 'Buy BOCH',
   CIBtoCMB: 'CIB->CMB',
   CMBtoCIB: 'CMB->CIB',
-  JingWeiAQ: 'Buy Jingwei for AQ',
   BuyWeibo: 'Buy Weibo',
   BuyMSBH: 'Buy 民生银行H',
   KeepDaLanChou: 'Buy 大蓝筹',
@@ -904,7 +895,7 @@ def InitAll():
       if code in AH_PAIR:
         dt[AH_PAIR[code]] = dt[code] + 'H'.encode('utf-8')
 
-  for dt in [SHARES, CB, EPS0, EPS, DVPS, DVPS0, SPS, BVPS0, BVPS, ETF_BOOK_VALUE_FUNC]:
+  for dt in [SHARES, CAP, CB, EPS0, EPS, DVPS, DVPS0, SPS, BVPS0, BVPS, ETF_BOOK_VALUE_FUNC]:
     keys = dt.keys()
     for key in keys:
       dt[NAME_TO_CODE[key]] = dt[key]
@@ -914,7 +905,7 @@ def InitAll():
       if key in AH_PAIR:
         dt[AH_PAIR[key]] = dt[key]
 
-  for dt in [EPS0, EPS, DVPS, DVPS0, SPS, BVPS0, BVPS]:
+  for dt in [CAP, EPS0, EPS, DVPS, DVPS0, SPS, BVPS0, BVPS]:
     for key in dt.keys():
       if key in AH_PAIR:
         dt[AH_PAIR[key]] = dt[key] * EX_RATE[GetCurrency(key) + '-' + GetCurrency(AH_PAIR[key])]
@@ -1224,6 +1215,7 @@ def PrintWatchedInternet():
                   'P/E',
                   'P/S',
                   'CAP',
+                  'P/B0',
                   'DR0',
                   'Stock name'
                   ]

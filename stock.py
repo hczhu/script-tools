@@ -10,27 +10,29 @@ import traceback
 
 #----------Beginning of manually upated financial data-------
 
-# 银监会数据
-# http://www.cbrc.gov.cn/chinese/home/docViewPage/110009.html
-# 2013年
-#  不良贷款率 1%
-#  拨备覆盖率 300%
-#  存贷比 66%
-#  年均ROA 1.345%
-#  年均ROE 20.5%
-#  季度平均杠杆率 15
-#  季度净息差 2.57% 2.59% 2.63% 2.68%
-#  季度非利息收入占比 23.84% 23.73% 22.46% 21.15%
-#  季度成本收入比 29.18% 29.44% 30.21% 32.90%
-#  季度大型商业银行不良贷款率 0.98% 0.97% 0.98% 1.00%
-#  季度股份制银行不良贷款率 0.77% 0.80% 0.83% 0.86%
+"""
+银监会数据
+http://www.cbrc.gov.cn/chinese/home/docViewPage/110009.html
+2013年
+ 不良贷款率 1%
+ 拨备覆盖率 300%
+ 存贷比 66%
+ 年均ROA 1.345%
+ 年均ROE 20.5%
+ 季度平均杠杆率 15
+ 季度净息差 2.57% 2.59% 2.63% 2.68%
+ 季度非利息收入占比 23.84% 23.73% 22.46% 21.15%
+ 季度成本收入比 29.18% 29.44% 30.21% 32.90%
+ 季度大型商业银行不良贷款率 0.98% 0.97% 0.98% 1.00%
+ 季度股份制银行不良贷款率 0.77% 0.80% 0.83% 0.86%
 
-# 加权风险资产收益率=净利润/加权风险资产
-# 加权风险资产：银行业各类资产风险系数--（现金 证券 贷款 固定资产 无形资产)0% 10% 20% 50% 100%
-# GDP每下行1个点，不良率上升0.7个点。
-# GDP数据 2013 - 7.7, 2012 - 7.65, 2011 - 9.30, 2010 - 10.45, 2009 - 9.21
+加权风险资产收益率=净利润/加权风险资产
+加权风险资产：银行业各类资产风险系数--（现金 证券 贷款 固定资产 无形资产)0% 10% 20% 50% 100%
+GDP每下行1个点，不良率上升0.7个点。
+GDP数据 2013 - 7.7, 2012 - 7.65, 2011 - 9.30, 2010 - 10.45, 2009 - 9.21
 
-# 带0后缀的财务数据是最近4个季度的数据，未带0后缀的是未来四个季度后的数据估计
+带0后缀的财务数据是最近4个季度的数据，未带0后缀的是未来四个季度后的数据估计
+"""
 
 # Number of total shares
 SHARES = {
@@ -101,7 +103,7 @@ EPS0 = {
 EPS = {
   #南方A50ETF，数据来自sse 50ETF统计页面
   # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
-  '南方A50': 8.5066 / 8.26,
+  '南方A50': 8.3353 / 7.14,
   # 来自DeNA 2013H1财报估计
   # '2432': 199.51 * 4 / 3,
   # 来自DeNA 2013Q3财报估计，打八折
@@ -645,6 +647,10 @@ def PrintTableMap(table_header, records_map, silent_column):
 #--------------End of print functions-------------
 
 #--------------Beginning of strategy functions-----
+"""
+个股占比不超过40%
+ETF占比不超过60%
+"""
 
 def GenericDynamicStrategy(name,
                            indicator,
@@ -754,11 +760,11 @@ def BuyDeNA():
     ':DeNA',
     'P/S',
     [1.5, 1.0],
-    [0.06, 0.15],
+    [0.1, 0.2],
     [2.0, 3.0],
-    0.08,
+    0.1,
     buy_condition = lambda code: GetMarketPriceChange(code) < min(0.0,
-      1.5 * GetBeta(code) * GetMarketPriceChange('ni225')));
+      1.1 * GetBeta(code) * GetMarketPriceChange('ni225')));
 
 def BuyMSBH():
   return GenericDynamicStrategy(
@@ -774,8 +780,8 @@ def BuyA50():
   return GenericDynamicStrategy(
     '南方A50',
     'P/E',
-    [8.0, 7],
-    [0.50, 0.60],
+    [7, 6],
+    [0.40, 0.60],
     [12, 15],
     0.3,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
@@ -795,8 +801,8 @@ def BuyBOCH():
     '中国银行H',
     'DR0',
     [0.06, 0.08],
-    [0.5, 0.6],
-    [.04, .03],
+    [0.3, 0.4],
+    [.05, .04],
     0.2,
     buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < 0.9 and GetMarketPriceChange(
                                  code) < 0.0 and GetAHDiscount(code) >= -2.5,

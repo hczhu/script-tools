@@ -759,7 +759,7 @@ def BuyDeNA():
   return GenericDynamicStrategy(
     ':DeNA',
     'P/S',
-    [1.5, 1.0],
+    [1.6, 1.0],
     [0.1, 0.2],
     [2.0, 3.0],
     0.1,

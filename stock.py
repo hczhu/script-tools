@@ -107,7 +107,7 @@ EPS = {
   # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
   '南方A50': 8.3353 / 7.14,
   # Fy2013 Q4 TTM.
-  ':DeNA': (6.5 + 0.6 * (18.2 + 11.4 + 15.1)) / SHARES[':DeNA'],
+  ':DeNA': (6.5 + 0.6 * (18.2 + 11.4 + 15.1)) * 10**9 / SHARES[':DeNA'],
   # 2014 Q1
   '招商银行': 10**6 * (
               29184 * 1.3 # 手续费和佣金净收入，按过去两年的平均增长估计

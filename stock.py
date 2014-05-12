@@ -47,6 +47,8 @@ SHARES = {
   '建设银行': 250010977486,
 
   'Weibo': 2 * 10**8,
+
+  ':DeNA': 135577320,
 }
 
 # (总面值，目前转股价)
@@ -104,10 +106,8 @@ EPS = {
   #南方A50ETF，数据来自sse 50ETF统计页面
   # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
   '南方A50': 8.3353 / 7.14,
-  # 来自DeNA 2013H1财报估计
-  # '2432': 199.51 * 4 / 3,
-  # 来自DeNA 2013Q3财报估计，打八折
-  ':DeNA': 241.34 * 0.8,
+  # Fy2013 Q4 TTM.
+  ':DeNA': (6.5 + 0.6 * (18.2 + 11.4 + 15.1)) / SHARES[':DeNA'],
   # 2014 Q1
   '招商银行': 10**6 * (
               29184 * 1.3 # 手续费和佣金净收入，按过去两年的平均增长估计
@@ -181,11 +181,10 @@ BVPS = {
 
 # Sales per share.
 SPS = {
-  # 来自DeNA 2013H1财报估计
-  # '2432': 143100 * 10**6 * 4 / 3 / 131402874,
-  # Guidance for Full Year Ending March 31, 2014 (2013Q3 report)
-  # 打八折
-  ':DeNA': 182.6 * 10 ** 9 / 130828462 * 0.8,
+  # FY2013 Q4
+  # TTM = latest Q + ...
+  # 36.6 is the guidance for FY2014 Q1.
+  ':DeNA': (36.6 + 0.8 * (52.3+ 41.7 + 47.6)) * 10**9 / SHARES[':DeNA'],
 }
 
 DV_TAX = 0.1
@@ -759,7 +758,7 @@ def BuyDeNA():
   return GenericDynamicStrategy(
     ':DeNA',
     'P/S',
-    [1.6, 1.0],
+    [1.1, 0.8],
     [0.1, 0.2],
     [2.0, 3.0],
     0.1,

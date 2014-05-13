@@ -756,10 +756,14 @@ def BuyCMB():
     buy_condition = lambda code: GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0)
 
 def BuyDeNA():
+  # 同类公司P/S
+  # KONAMI: 1.5
+  # SEGA: 1.3
+  # Zynga: 1.2
   return GenericDynamicStrategy(
     ':DeNA',
     'P/S',
-    [1.6, 1.0],
+    [1.3, 1.0],
     [0.1, 0.2],
     [2.0, 3.0],
     0.1,

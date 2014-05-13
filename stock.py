@@ -262,7 +262,7 @@ def GetJapanStockBeta(code):
 #----------Begining of global variables------------------
 
 MAX_PERCENT_PER_STOCK = 0.3
-CURRENCY = 'RMB'
+CURRENCY = 'USD'
 NO_RISK_RATE = 0.05
 LOAN_RATE = 0.016
 
@@ -341,10 +341,11 @@ CB_INFO = {
 }
 
 EX_RATE = {
-  'RMB-RMB': 1.0,
-  'HKD-RMB': 0.79,
-  'USD-RMB': 6.15,
-  'YEN-RMB': 0.06,
+  'USD-USD': 1.0,
+  'RMB-USD': 0.1605,
+  'HKD-USD': 0.129,
+  'YEN-USD': 0.06,
+  'RMB-HKD': 1.2424,
 }
 
 ETF_BOOK_VALUE_FUNC = {
@@ -519,14 +520,14 @@ def GetMarketPriceChange(code):
     return market_price_cache[code][1]
   return 0.0
 
-def GetMarketPriceInRMB(code):
+def GetMarketPriceInBase(code):
   mp = GetMarketPrice(code)
   if code in CODE_TO_NAME and CODE_TO_NAME[code] in STOCK_CURRENCY:
-    return mp * EX_RATE[STOCK_CURRENCY[CODE_TO_NAME[code]] + '-RMB']
+    return mp * EX_RATE[STOCK_CURRENCY[CODE_TO_NAME[code]] + '-' + CURRENCY]
   if code.isdigit() and code[0] == '0':
-    return mp * EX_RATE['HKD-RMB']
+    return mp * EX_RATE['HKD-' + CURRENCY]
   elif not code.isdigit():
-    mp *= EX_RATE['USD-RMB']
+    mp *= EX_RATE['USD-' + CURRENCY]
   return mp
 
 def GetIRR(market_value, cash_flow_records):
@@ -563,8 +564,8 @@ def GetIRR(market_value, cash_flow_records):
 def GetAHDiscount(code, mp = 0):
   if code not in AH_PAIR:
      return 0
-  mp_rmb, mp_pair_rmb = GetMarketPriceInRMB(code), GetMarketPriceInRMB(AH_PAIR[code])
-  return (mp_pair_rmb - mp_rmb) / mp_rmb
+  mp_base, mp_pair_rmb = GetMarketPriceInBase(code), GetMarketPriceInBase(AH_PAIR[code])
+  return (mp_pair_rmb - mp_base) / mp_base
 
 def GetRZ(code, mp = 0):
   if GetCurrency(code) != 'RMB': return 0.0
@@ -662,7 +663,7 @@ def GenericDynamicStrategy(name,
                            sell_condition = lambda code: True):
   code = NAME_TO_CODE[name]
   mp = GetMarketPrice(code)
-  mp_rmb = GetMarketPriceInRMB(code)
+  mp_base = GetMarketPriceInBase(code)
   indicator_value = FINANCIAL_FUNC[indicator](code, mp)
   if (indicator_value - buy_range[0]) * (buy_range[1] - buy_range[0]) > 0.0:
     target_percent = (hold_percent_range[1] - hold_percent_range[0]) * (indicator_value - buy_range[0]) / (
@@ -677,7 +678,7 @@ def GenericDynamicStrategy(name,
       percent = percent_delta
       return 'Buy %s(%s) %d units @%.2f change: %.1f%% due to %s = %.3f. Target: %.1f%% current: %.1f%%'%(
           CODE_TO_NAME[code], code,
-          int(NET_ASSET * percent / mp_rmb),
+          int(NET_ASSET * percent / mp_base),
           mp,
           GetMarketPriceChange(code), indicator, indicator_value,
           target_percent * 100, current_percent * 100)
@@ -693,7 +694,7 @@ def GenericDynamicStrategy(name,
       percent = percent_delta
       return 'Sell %s(%s) %d units @%.2f change: %.1f%% due to %s = %.3f. Target: %.1f%% current: %.1f%%'%(
           CODE_TO_NAME[code], code,
-          int(NET_ASSET * percent / mp_rmb),
+          int(NET_ASSET * percent / mp_base),
           mp,
           GetMarketPriceChange(code), indicator, indicator_value,
           target_percent * 100, current_percent * 100)
@@ -722,7 +723,7 @@ def BuyBig4BanksH():
     change = GetMarketPriceChange(AH_PAIR[code])
     if dis >= 0.01 and changeH < 0:
       return 'Buy %s(%s) %d units @%.2f AH discount=%.1f%%'%(
-        CODE_TO_NAME[code], code, int(NET_ASSET * 0.02 / GetMarketPriceInRMB(code)),
+        CODE_TO_NAME[code], code, int(NET_ASSET * 0.02 / GetMarketPriceInBase(code)),
         GetMarketPrice(code), dis * 100.0)
   return ''
 
@@ -740,8 +741,8 @@ def SellCMBH():
   code = NAME_TO_CODE['招商银行H']
   if holding_percent[code] > 0.0 and GetAHDiscount(code) <= -0.1 and GetMarketPriceChange(code) > 0:
     mp = GetMarketPrice(code)
-    mp_rmb = GetMarketPriceInRMB(code)
-    return 'Sell 招商银行H(%s) @%.1f %.0f Units'%(code, mp, holding_percent[code] / 2 * NET_ASSET / mp_rmb)
+    mp_base = GetMarketPriceInBase(code)
+    return 'Sell 招商银行H(%s) @%.1f %.0f Units'%(code, mp, holding_percent[code] / 2 * NET_ASSET / mp_base)
   return ''
 
 def BuyCMB():
@@ -1058,7 +1059,7 @@ def PrintHoldingSecurities(all_records):
       mp_pair_rmb = mp * ex_rate
       mv = mp * remain_stock * ex_rate
       if key in AH_PAIR:
-        mp_pair_rmb = GetMarketPriceInRMB(AH_PAIR[key])
+        mp_pair_rmb = GetMarketPriceInBase(AH_PAIR[key])
     total_market_value[currency] += mv
     record = {
         'Code': key,

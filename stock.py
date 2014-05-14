@@ -344,8 +344,7 @@ EX_RATE = {
   'USD-USD': 1.0,
   'RMB-USD': 0.1605,
   'HKD-USD': 0.129,
-  'YEN-USD': 0.06,
-  'RMB-HKD': 1.2424,
+  'YEN-USD': 0.009782,
 }
 
 ETF_BOOK_VALUE_FUNC = {
@@ -399,7 +398,9 @@ NET_ASSET = 0.0
 
 #--------------Beginning of logic util functions---------------
 def GetCurrency(code):
-  if code.isdigit() and code[0] == '0' and len(code) == 5:
+  if code in STOCK_CURRENCY:
+    return STOCK_CURRENCY[code]
+  elif code.isdigit() and code[0] == '0' and len(code) == 5:
     return 'HKD'
   elif code.isalpha():
     return 'USD'
@@ -522,12 +523,8 @@ def GetMarketPriceChange(code):
 
 def GetMarketPriceInBase(code):
   mp = GetMarketPrice(code)
-  if code in CODE_TO_NAME and CODE_TO_NAME[code] in STOCK_CURRENCY:
-    return mp * EX_RATE[STOCK_CURRENCY[CODE_TO_NAME[code]] + '-' + CURRENCY]
-  if code.isdigit() and code[0] == '0':
-    return mp * EX_RATE['HKD-' + CURRENCY]
-  elif not code.isdigit():
-    mp *= EX_RATE['USD-' + CURRENCY]
+  currency = GetCurrency(code);
+  mp *= EX_RATE[currency + '-' + CURRENCY]
   return mp
 
 def GetIRR(market_value, cash_flow_records):
@@ -564,8 +561,8 @@ def GetIRR(market_value, cash_flow_records):
 def GetAHDiscount(code, mp = 0):
   if code not in AH_PAIR:
      return 0
-  mp_base, mp_pair_rmb = GetMarketPriceInBase(code), GetMarketPriceInBase(AH_PAIR[code])
-  return (mp_pair_rmb - mp_base) / mp_base
+  mp_base, mp_pair_base = GetMarketPriceInBase(code), GetMarketPriceInBase(AH_PAIR[code])
+  return (mp_pair_base - mp_base) / mp_base
 
 def GetRZ(code, mp = 0):
   if GetCurrency(code) != 'RMB': return 0.0
@@ -818,8 +815,8 @@ def CIBtoCMB():
   cib_percent = holding_percent[cib]
   cmb_percent = holding_percent[cmb]
   if cib_percent > 0:
-    cib_mp = GetMarketPrice(cib);
-    cmb_mp = GetMarketPrice(cmb);
+    cib_mp = GetMarketPrice(cib)
+    cmb_mp = GetMarketPrice(cmb)
     if GetPB0(cib, cib_mp) / GetPB0(cmb, cmb_mp) > 1.05:
       return '兴业银行@%.2f (P/B0:%.2f) --> 招商银行@%.2f (P/B0:%.2f)'%(
         cib_mp, GetPB0(cib, cib_mp),
@@ -881,6 +878,10 @@ STRATEGY_FUNCS = {
 #--------------End of strategy functions-----
 
 def InitAll():
+  currencies = [pr.split('-')[0] for pr in EX_RATE.keys()]
+  for a in currencies:
+    for b in currencies:
+      EX_RATE[a + '-' + b] = EX_RATE[a + '-' + CURRENCY] / EX_RATE[b + '-' + CURRENCY]
   for pr in EX_RATE.keys():
     currencies = pr.split('-')
     assert(len(currencies) == 2)
@@ -905,7 +906,7 @@ def InitAll():
       if code in AH_PAIR:
         dt[AH_PAIR[code]] = dt[code] + 'H'.encode('utf-8')
 
-  for dt in [SHARES, CAP, CB, EPS0, EPS, DVPS, DVPS0, SPS, BVPS0, BVPS, ETF_BOOK_VALUE_FUNC]:
+  for dt in [STOCK_CURRENCY, SHARES, CAP, CB, EPS0, EPS, DVPS, DVPS0, SPS, BVPS0, BVPS, ETF_BOOK_VALUE_FUNC]:
     keys = dt.keys()
     for key in keys:
       dt[NAME_TO_CODE[key]] = dt[key]

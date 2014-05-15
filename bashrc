@@ -26,6 +26,13 @@ shopt -s histappend
 # command.
 PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
 
+# for tmux window titles.
+settitle() {
+  title=$(basename $PWD)
+  printf "\033k$title\033\\"
+}
+PROMPT_COMMAND="settitle; $PROMPT_COMMAND"
+
 # Input method
 #export XIM="SCIM"
 #export XMODIFIERS=@im=SCIM  #设置scim为xim默认输入法
@@ -41,7 +48,7 @@ alias weka-lg='java -Xmx2028m weka.classifiers.functions.Logistic'
 alias weka='java -Xmx2024m -jar /home/build/static/projects/experimental/mledu/weka/weka.jar'
 
 #Start a single workrave
-if [ $(pgrep workrave | wc -l) = "0" ]
+if [[ -e workrave && $(pgrep workrave | wc -l) = "0" ]]
 then
   workrave &
 fi

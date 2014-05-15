@@ -10,27 +10,29 @@ import traceback
 
 #----------Beginning of manually upated financial data-------
 
-# 银监会数据
-# http://www.cbrc.gov.cn/chinese/home/docViewPage/110009.html
-# 2013年
-#  不良贷款率 1%
-#  拨备覆盖率 300%
-#  存贷比 66%
-#  年均ROA 1.345%
-#  年均ROE 20.5%
-#  季度平均杠杆率 15
-#  季度净息差 2.57% 2.59% 2.63% 2.68%
-#  季度非利息收入占比 23.84% 23.73% 22.46% 21.15%
-#  季度成本收入比 29.18% 29.44% 30.21% 32.90%
-#  季度大型商业银行不良贷款率 0.98% 0.97% 0.98% 1.00%
-#  季度股份制银行不良贷款率 0.77% 0.80% 0.83% 0.86%
+"""
+银监会数据
+http://www.cbrc.gov.cn/chinese/home/docViewPage/110009.html
+2013年
+ 不良贷款率 1%
+ 拨备覆盖率 300%
+ 存贷比 66%
+ 年均ROA 1.345%
+ 年均ROE 20.5%
+ 季度平均杠杆率 15
+ 季度净息差 2.57% 2.59% 2.63% 2.68%
+ 季度非利息收入占比 23.84% 23.73% 22.46% 21.15%
+ 季度成本收入比 29.18% 29.44% 30.21% 32.90%
+ 季度大型商业银行不良贷款率 0.98% 0.97% 0.98% 1.00%
+ 季度股份制银行不良贷款率 0.77% 0.80% 0.83% 0.86%
 
-# 加权风险资产收益率=净利润/加权风险资产
-# 加权风险资产：银行业各类资产风险系数--（现金 证券 贷款 固定资产 无形资产)0% 10% 20% 50% 100%
-# GDP每下行1个点，不良率上升0.7个点。
-# GDP数据 2013 - 7.7, 2012 - 7.65, 2011 - 9.30, 2010 - 10.45, 2009 - 9.21
+加权风险资产收益率=净利润/加权风险资产
+加权风险资产：银行业各类资产风险系数--（现金 证券 贷款 固定资产 无形资产)0% 10% 20% 50% 100%
+GDP每下行1个点，不良率上升0.7个点。
+GDP数据 2013 - 7.7, 2012 - 7.65, 2011 - 9.30, 2010 - 10.45, 2009 - 9.21
 
-# 带0后缀的财务数据是最近4个季度的数据，未带0后缀的是未来四个季度后的数据估计
+带0后缀的财务数据是最近4个季度的数据，未带0后缀的是未来四个季度后的数据估计
+"""
 
 # Number of total shares
 SHARES = {
@@ -45,6 +47,8 @@ SHARES = {
   '建设银行': 250010977486,
 
   'Weibo': 2 * 10**8,
+
+  ':DeNA': 135577320,
 }
 
 # (总面值，目前转股价)
@@ -101,11 +105,9 @@ EPS0 = {
 EPS = {
   #南方A50ETF，数据来自sse 50ETF统计页面
   # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
-  '南方A50': 8.5066 / 8.26,
-  # 来自DeNA 2013H1财报估计
-  # '2432': 199.51 * 4 / 3,
-  # 来自DeNA 2013Q3财报估计，打八折
-  ':DeNA': 241.34 * 0.8,
+  '南方A50': 8.3353 / 7.14,
+  # Fy2013 Q4 TTM.
+  ':DeNA': (6.5 + 0.6 * (9.7 + 11.4 + 15.1)) * 10**9 / SHARES[':DeNA'],
   # 2014 Q1
   '招商银行': 10**6 * (
               29184 * 1.3 # 手续费和佣金净收入，按过去两年的平均增长估计
@@ -179,11 +181,10 @@ BVPS = {
 
 # Sales per share.
 SPS = {
-  # 来自DeNA 2013H1财报估计
-  # '2432': 143100 * 10**6 * 4 / 3 / 131402874,
-  # Guidance for Full Year Ending March 31, 2014 (2013Q3 report)
-  # 打八折
-  ':DeNA': 182.6 * 10 ** 9 / 130828462 * 0.8,
+  # FY2013 Q4
+  # TTM = latest Q + ...
+  # 36.6 is the guidance for FY2014 Q1.
+  ':DeNA': (36.6 + 0.8 * (39.8 + 41.7 + 47.6)) * 10**9 / SHARES[':DeNA'],
 }
 
 DV_TAX = 0.1
@@ -340,10 +341,10 @@ CB_INFO = {
 }
 
 EX_RATE = {
-  'RMB-RMB': 1.0,
-  'HKD-RMB': 0.79,
-  'USD-RMB': 6.15,
-  'YEN-RMB': 0.06,
+  'USD-USD': 1.0,
+  'RMB-USD': 0.1605,
+  'HKD-USD': 0.129,
+  'YEN-USD': 0.009782,
 }
 
 ETF_BOOK_VALUE_FUNC = {
@@ -397,7 +398,9 @@ NET_ASSET = 0.0
 
 #--------------Beginning of logic util functions---------------
 def GetCurrency(code):
-  if code.isdigit() and code[0] == '0' and len(code) == 5:
+  if code in STOCK_CURRENCY:
+    return STOCK_CURRENCY[code]
+  elif code.isdigit() and code[0] == '0' and len(code) == 5:
     return 'HKD'
   elif code.isalpha():
     return 'USD'
@@ -518,14 +521,10 @@ def GetMarketPriceChange(code):
     return market_price_cache[code][1]
   return 0.0
 
-def GetMarketPriceInRMB(code):
+def GetMarketPriceInBase(code):
   mp = GetMarketPrice(code)
-  if code in CODE_TO_NAME and CODE_TO_NAME[code] in STOCK_CURRENCY:
-    return mp * EX_RATE[STOCK_CURRENCY[CODE_TO_NAME[code]] + '-RMB']
-  if code.isdigit() and code[0] == '0':
-    return mp * EX_RATE['HKD-RMB']
-  elif not code.isdigit():
-    mp *= EX_RATE['USD-RMB']
+  currency = GetCurrency(code);
+  mp *= EX_RATE[currency + '-' + CURRENCY]
   return mp
 
 def GetIRR(market_value, cash_flow_records):
@@ -562,8 +561,8 @@ def GetIRR(market_value, cash_flow_records):
 def GetAHDiscount(code, mp = 0):
   if code not in AH_PAIR:
      return 0
-  mp_rmb, mp_pair_rmb = GetMarketPriceInRMB(code), GetMarketPriceInRMB(AH_PAIR[code])
-  return (mp_pair_rmb - mp_rmb) / mp_rmb
+  mp_base, mp_pair_base = GetMarketPriceInBase(code), GetMarketPriceInBase(AH_PAIR[code])
+  return (mp_pair_base - mp_base) / mp_base
 
 def GetRZ(code, mp = 0):
   if GetCurrency(code) != 'RMB': return 0.0
@@ -645,6 +644,10 @@ def PrintTableMap(table_header, records_map, silent_column):
 #--------------End of print functions-------------
 
 #--------------Beginning of strategy functions-----
+"""
+个股占比不超过40%
+ETF占比不超过60%
+"""
 
 def GenericDynamicStrategy(name,
                            indicator,
@@ -657,7 +660,7 @@ def GenericDynamicStrategy(name,
                            sell_condition = lambda code: True):
   code = NAME_TO_CODE[name]
   mp = GetMarketPrice(code)
-  mp_rmb = GetMarketPriceInRMB(code)
+  mp_base = GetMarketPriceInBase(code)
   indicator_value = FINANCIAL_FUNC[indicator](code, mp)
   if (indicator_value - buy_range[0]) * (buy_range[1] - buy_range[0]) > 0.0:
     target_percent = (hold_percent_range[1] - hold_percent_range[0]) * (indicator_value - buy_range[0]) / (
@@ -672,7 +675,7 @@ def GenericDynamicStrategy(name,
       percent = percent_delta
       return 'Buy %s(%s) %d units @%.2f change: %.1f%% due to %s = %.3f. Target: %.1f%% current: %.1f%%'%(
           CODE_TO_NAME[code], code,
-          int(NET_ASSET * percent / mp_rmb),
+          int(NET_ASSET * percent / mp_base),
           mp,
           GetMarketPriceChange(code), indicator, indicator_value,
           target_percent * 100, current_percent * 100)
@@ -688,7 +691,7 @@ def GenericDynamicStrategy(name,
       percent = percent_delta
       return 'Sell %s(%s) %d units @%.2f change: %.1f%% due to %s = %.3f. Target: %.1f%% current: %.1f%%'%(
           CODE_TO_NAME[code], code,
-          int(NET_ASSET * percent / mp_rmb),
+          int(NET_ASSET * percent / mp_base),
           mp,
           GetMarketPriceChange(code), indicator, indicator_value,
           target_percent * 100, current_percent * 100)
@@ -717,7 +720,7 @@ def BuyBig4BanksH():
     change = GetMarketPriceChange(AH_PAIR[code])
     if dis >= 0.01 and changeH < 0:
       return 'Buy %s(%s) %d units @%.2f AH discount=%.1f%%'%(
-        CODE_TO_NAME[code], code, int(NET_ASSET * 0.02 / GetMarketPriceInRMB(code)),
+        CODE_TO_NAME[code], code, int(NET_ASSET * 0.02 / GetMarketPriceInBase(code)),
         GetMarketPrice(code), dis * 100.0)
   return ''
 
@@ -735,8 +738,8 @@ def SellCMBH():
   code = NAME_TO_CODE['招商银行H']
   if holding_percent[code] > 0.0 and GetAHDiscount(code) <= -0.1 and GetMarketPriceChange(code) > 0:
     mp = GetMarketPrice(code)
-    mp_rmb = GetMarketPriceInRMB(code)
-    return 'Sell 招商银行H(%s) @%.1f %.0f Units'%(code, mp, holding_percent[code] / 2 * NET_ASSET / mp_rmb)
+    mp_base = GetMarketPriceInBase(code)
+    return 'Sell 招商银行H(%s) @%.1f %.0f Units'%(code, mp, holding_percent[code] / 2 * NET_ASSET / mp_base)
   return ''
 
 def BuyCMB():
@@ -750,15 +753,19 @@ def BuyCMB():
     buy_condition = lambda code: GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0)
 
 def BuyDeNA():
+  # 同类公司P/S
+  # KONAMI: 1.5
+  # SEGA: 1.3
+  # Zynga: 1.2
   return GenericDynamicStrategy(
     ':DeNA',
     'P/S',
-    [1.5, 1.0],
-    [0.06, 0.15],
-    [2.0, 3.0],
-    0.08,
+    [1.1, 0.8],
+    [0.12, 0.2],
+    [1.5, 2.0],
+    0.1,
     buy_condition = lambda code: GetMarketPriceChange(code) < min(0.0,
-      1.5 * GetBeta(code) * GetMarketPriceChange('ni225')));
+      1.1 * GetBeta(code) * GetMarketPriceChange('ni225')));
 
 def BuyMSBH():
   return GenericDynamicStrategy(
@@ -774,8 +781,8 @@ def BuyA50():
   return GenericDynamicStrategy(
     '南方A50',
     'P/E',
-    [8.0, 7],
-    [0.50, 0.60],
+    [7, 6],
+    [0.40, 0.60],
     [12, 15],
     0.3,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
@@ -795,8 +802,8 @@ def BuyBOCH():
     '中国银行H',
     'DR0',
     [0.06, 0.08],
-    [0.5, 0.6],
-    [.04, .03],
+    [0.3, 0.4],
+    [.05, .04],
     0.2,
     buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < 0.9 and GetMarketPriceChange(
                                  code) < 0.0 and GetAHDiscount(code) >= -2.5,
@@ -808,8 +815,8 @@ def CIBtoCMB():
   cib_percent = holding_percent[cib]
   cmb_percent = holding_percent[cmb]
   if cib_percent > 0:
-    cib_mp = GetMarketPrice(cib);
-    cmb_mp = GetMarketPrice(cmb);
+    cib_mp = GetMarketPrice(cib)
+    cmb_mp = GetMarketPrice(cmb)
     if GetPB0(cib, cib_mp) / GetPB0(cmb, cmb_mp) > 1.05:
       return '兴业银行@%.2f (P/B0:%.2f) --> 招商银行@%.2f (P/B0:%.2f)'%(
         cib_mp, GetPB0(cib, cib_mp),
@@ -871,6 +878,11 @@ STRATEGY_FUNCS = {
 #--------------End of strategy functions-----
 
 def InitAll():
+  currencies = [pr.split('-')[0] for pr in EX_RATE.keys()]
+  base = EX_RATE.keys()[0].split('-')[1];
+  for a in currencies:
+    for b in currencies:
+      EX_RATE[a + '-' + b] = EX_RATE[a + '-' + base] / EX_RATE[b + '-' + base]
   for pr in EX_RATE.keys():
     currencies = pr.split('-')
     assert(len(currencies) == 2)
@@ -895,7 +907,7 @@ def InitAll():
       if code in AH_PAIR:
         dt[AH_PAIR[code]] = dt[code] + 'H'.encode('utf-8')
 
-  for dt in [SHARES, CAP, CB, EPS0, EPS, DVPS, DVPS0, SPS, BVPS0, BVPS, ETF_BOOK_VALUE_FUNC]:
+  for dt in [STOCK_CURRENCY, SHARES, CAP, CB, EPS0, EPS, DVPS, DVPS0, SPS, BVPS0, BVPS, ETF_BOOK_VALUE_FUNC]:
     keys = dt.keys()
     for key in keys:
       dt[NAME_TO_CODE[key]] = dt[key]
@@ -1049,7 +1061,7 @@ def PrintHoldingSecurities(all_records):
       mp_pair_rmb = mp * ex_rate
       mv = mp * remain_stock * ex_rate
       if key in AH_PAIR:
-        mp_pair_rmb = GetMarketPriceInRMB(AH_PAIR[key])
+        mp_pair_rmb = GetMarketPriceInBase(AH_PAIR[key])
     total_market_value[currency] += mv
     record = {
         'Code': key,

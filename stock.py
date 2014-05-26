@@ -265,7 +265,7 @@ def GetJapanStockBeta(code):
 #----------Begining of global variables------------------
 
 MAX_PERCENT_PER_STOCK = 0.3
-CURRENCY = 'USD'
+CURRENCY = 'RMB'
 NO_RISK_RATE = 0.05
 LOAN_RATE = 0.016
 
@@ -882,9 +882,10 @@ STRATEGY_FUNCS = {
 
 def InitAll():
   currencies = [pr.split('-')[0] for pr in EX_RATE.keys()]
+  base = EX_RATE.keys()[0].split('-')[1];
   for a in currencies:
     for b in currencies:
-      EX_RATE[a + '-' + b] = EX_RATE[a + '-' + CURRENCY] / EX_RATE[b + '-' + CURRENCY]
+      EX_RATE[a + '-' + b] = EX_RATE[a + '-' + base] / EX_RATE[b + '-' + base]
   for pr in EX_RATE.keys():
     currencies = pr.split('-')
     assert(len(currencies) == 2)

@@ -106,7 +106,7 @@ EPS0 = {
 EPS = {
   #南方A50ETF，数据来自sse 50ETF统计页面
   # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
-  '南方A50': 8.3353 / 7.14,
+  '南方A50': 8.4279 / 7.27,
   # Fy2013 Q4 TTM.
   ':DeNA': (6.5 + 0.6 * (9.7 + 11.4 + 15.1)) * 10**9 / SHARES[':DeNA'],
   # 2014 Q1

@@ -864,6 +864,26 @@ def KeepDaLanChou():
     return 'Buy %.1fK RMB DaLanChou'%((1.0 - holding) * NET_ASSET / 1000)
   return ''
 
+def GenericChangeAH(name, adh_lower, adh_upper):
+  code = NAME_TO_CODE[name]
+  codeh = AH_PAIR[code]
+  adh = GetAHDiscount(code)
+  if adh >= adh_upper and hold_percent_range[codeh] > 0.0:
+    return '%s(%s) @%.3f --> %s(%s) @%.3f due to AHD = %.4f'%(
+      CODE_TO_NAME[codeh], codeh, GetMarketPrice(codeh),
+      CODE_TO_NAME[code], code, GetMarketPrice(code), adh)
+  if adh <= adh_lower and hold_percent_range[code] > 0.0:
+    return '%s(%s) @%.3f --> %s(%s) @%.3f due to AHD = %.4f'%(
+      CODE_TO_NAME[code], code, GetMarketPrice(code),
+      CODE_TO_NAME[codeh], codeh, GetMarketPrice(codeh), adh)
+  return ''
+
+def CMBHandCMB():
+  return GenericChangeAH('招商银行', 0.05, 0.15)
+
+def BOCHandBOC():
+  return GenericChangeAH('中国银行', 0.02, 0.10)
+
 STRATEGY_FUNCS = {
   BuyApple: 'Buy Apple',
   BuyBig4BanksH: 'Buy 四大行H股 ',
@@ -880,6 +900,8 @@ STRATEGY_FUNCS = {
   BuyWeibo: 'Buy Weibo',
   BuyMSBH: 'Buy 民生银行H',
   KeepDaLanChou: 'Buy 大蓝筹',
+  BOCHandBOC: 'BOCH and BOC',
+  CMBHandCMB: 'CMBH and CMB',
 }
 
 #--------------End of strategy functions-----

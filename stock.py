@@ -195,7 +195,7 @@ DVPS0 = {
   # Apple once a quarter.
   # 20140206 - 3.05
   # Tax rate 0.1
-  'Apple': 3.05 * 4,
+  'Apple': 3.29 * 4,
 
   # :DeNA once a year.
   # For FY2013

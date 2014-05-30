@@ -708,8 +708,8 @@ def BuyApple():
   return GenericDynamicStrategy(
     'Apple',
     'DR0',
-    [0.025, 0.04],
-    [0.05, 0.3],
+    [0.03, 0.04],
+    [0.1, 0.3],
     [0.15, 0],
     0.1,
     buy_condition = lambda code: GetMarketPriceChange(code) <= 0);
@@ -768,7 +768,7 @@ def BuyDeNA():
     ':DeNA',
     'P/S',
     [1.1, 0.8],
-    [0.12, 0.2],
+    [0.5, 0.10],
     [1.5, 2.0],
     0.1,
     buy_condition = lambda code: GetMarketPriceChange(code) < min(0.0,
@@ -848,7 +848,7 @@ def BuyWeibo():
     'Weibo',
     'P/B',
     [1.0, 0.8],
-    [0.1, 0.15],
+    [0.1, 0.2],
     [1.5, 2.0],
     0.05)
 

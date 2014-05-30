@@ -868,11 +868,11 @@ def GenericChangeAH(name, adh_lower, adh_upper):
   code = NAME_TO_CODE[name]
   codeh = AH_PAIR[code]
   adh = GetAHDiscount(code)
-  if adh >= adh_upper and hold_percent_range[codeh] > 0.0:
+  if adh >= adh_upper and holding_percent[codeh] > 0.0:
     return '%s(%s) @%.3f --> %s(%s) @%.3f due to AHD = %.4f'%(
       CODE_TO_NAME[codeh], codeh, GetMarketPrice(codeh),
       CODE_TO_NAME[code], code, GetMarketPrice(code), adh)
-  if adh <= adh_lower and hold_percent_range[code] > 0.0:
+  if adh <= adh_lower and holding_percent[code] > 0.0:
     return '%s(%s) @%.3f --> %s(%s) @%.3f due to AHD = %.4f'%(
       CODE_TO_NAME[code], code, GetMarketPrice(code),
       CODE_TO_NAME[codeh], codeh, GetMarketPrice(codeh), adh)

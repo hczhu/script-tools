@@ -788,7 +788,7 @@ def BuyA50():
   return GenericDynamicStrategy(
     '南方A50',
     'P/E',
-    [7, 6],
+    [7.1, 6],
     [0.3, 0.5],
     [12, 15],
     0.3,
@@ -1053,7 +1053,6 @@ def PrintHoldingSecurities(all_records):
     'MV',
     'MP',
     'HS',
-    #'HS',
     '#TxN',
     'TNF',
     'DTP',

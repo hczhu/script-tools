@@ -216,7 +216,8 @@ DVPS = {
   '招商银行': EPS['招商银行'] * 0.3,
 
   # 过去四年年分红率 [0.35, 0.34, 0.36, 0.35]
-  '中国银行': EPS['中国银行'] * 0.35,
+  # 13年年报称以后不少于10%现金分红
+  '中国银行': EPS['中国银行'] * 0.3,
 }
 
 URL_CONTENT_CACHE = {
@@ -291,6 +292,9 @@ WATCH_LIST_BANK = {
   '601988': '中国银行',
   '601939': '建设银行',
   '600036': '招商银行',
+}
+
+WATCH_LIST_BANK_1 = {
   '600016': '民生银行',
   '601166': '兴业银行',
   '600000': '浦发银行',
@@ -785,7 +789,7 @@ def BuyA50():
     '南方A50',
     'P/E',
     [7, 6],
-    [0.40, 0.60],
+    [0.3, 0.5],
     [12, 15],
     0.3,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
@@ -805,7 +809,7 @@ def BuyBOCH():
     '中国银行H',
     'DR0',
     [0.06, 0.08],
-    [0.3, 0.4],
+    [0.4, 0.5],
     [.05, .04],
     0.2,
     buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < 0.9 and GetMarketPriceChange(
@@ -894,7 +898,7 @@ def InitAll():
   for key in AH_PAIR.keys():
     AH_PAIR[AH_PAIR[key]] = key
 
-  for dt in [WATCH_LIST_BANK, WATCH_LIST_INSURANCE, WATCH_LIST_INTERNET,
+  for dt in [WATCH_LIST_BANK, WATCH_LIST_BANK_1,  WATCH_LIST_INSURANCE, WATCH_LIST_INTERNET,
              WATCH_LIST_ETF, WATCH_LIST_CB, WATCH_LIST_OTHER]:
     for code in dt.keys():
       CODE_TO_NAME[code] = dt[code]
@@ -904,7 +908,7 @@ def InitAll():
   for code in CODE_TO_NAME.keys():
     NAME_TO_CODE[CODE_TO_NAME[code]] = code
 
-  for dt in [WATCH_LIST_BANK, WATCH_LIST_INSURANCE]:
+  for dt in [WATCH_LIST_BANK, WATCH_LIST_BANK_1, WATCH_LIST_INSURANCE]:
     keys = dt.keys()
     for code in keys:
       if code in AH_PAIR:
@@ -1210,6 +1214,7 @@ def PrintWatchedBank():
                   'AHD',
                   'Stock name'
                   ]
+  PrintWatchedStocks(WATCH_LIST_BANK_1, table_header, 'P/B')
   PrintWatchedStocks(WATCH_LIST_BANK, table_header, 'P/B')
 
 def PrintWatchedInsurance():

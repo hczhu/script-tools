@@ -26,6 +26,8 @@ http://www.cbrc.gov.cn/chinese/home/docViewPage/110009.html
  季度大型商业银行不良贷款率 0.98% 0.97% 0.98% 1.00%
  季度股份制银行不良贷款率 0.77% 0.80% 0.83% 0.86%
 
+2014年一季度大行平均不良率为1.03，股份行平均不良率为0.92。
+
 加权风险资产收益率=净利润/加权风险资产
 加权风险资产：银行业各类资产风险系数--（现金 证券 贷款 固定资产 无形资产)0% 10% 20% 50% 100%
 GDP每下行1个点，不良率上升0.7个点。
@@ -137,9 +139,6 @@ EPS = {
 3. 地方融资平台，把不可偿付比例16%作为坏账比例的近似
 """
 BVPS = {
-  # 兴业银行，2013年3季度财报
-  '兴业银行': BVPS0['兴业银行'],
-
   # 招商银行, 2013年年报
   '招商银行': BVPS0['招商银行']  + EPS['招商银行'] + # 末期净资产加上估计的EPS
               (
@@ -151,7 +150,7 @@ BVPS = {
                   + 24603 * 20.0 / 100 # 从关注迁移到可疑的估计
                   + 2154159 * 2.5 / 100 * 20.0 / 100   # 正常类->关注类->可疑类
                   + 126201 * 1.08 * ( # 内地公司贷款(加上增长估计)额外损失，包括以下三部分，贷款增长受限于核心资本充足率
-                    0.86 / 100 # 股份行平均不良率
+                    0.92 / 100 # 股份行平均不良率
                     + 2 * 0.7 / 100 # 由GDP下行2个点带来
                   )
                   + 131061 * 1.08 * 20.0 / 100 # 房地产业贷款损失
@@ -170,7 +169,7 @@ BVPS = {
                   + 189293 * 0.15 # 从关注迁移到可疑的估计
                   + 7345227 * 2 / 100 * 15.0 / 100   # 正常类->关注类->可疑类
                   + 4192155 * 1.06 * ( # 内地公司贷款(加上增长估计)额外损失，包括以下三部分
-                    1.0 / 100 # 大行平均不良率
+                    1.03 / 100 # 大行平均不良率
                     + 3 * 0.7 / 100 # 由GDP下行3个点带来
                   )
                   + 405075 * 20.0 / 100 # 房地产业贷款损失
@@ -741,14 +740,6 @@ def BuyCMBH():
     0.2,
     buy_condition = lambda code: GetAHDiscount(code) >= -0.02 and GetMarketPriceChange(code) < 0)
 
-def SellCMBH():
-  code = NAME_TO_CODE['招商银行H']
-  if holding_percent[code] > 0.0 and GetAHDiscount(code) <= -0.1 and GetMarketPriceChange(code) > 0:
-    mp = GetMarketPrice(code)
-    mp_base = GetMarketPriceInBase(code)
-    return 'Sell 招商银行H(%s) @%.1f %.0f Units'%(code, mp, holding_percent[code] / 2 * NET_ASSET / mp_base)
-  return ''
-
 def BuyCMB():
   return GenericDynamicStrategy(
     '招商银行',
@@ -889,7 +880,6 @@ STRATEGY_FUNCS = {
   BuyBig4BanksH: 'Buy 四大行H股 ',
   BuyDeNA:  'Buy :DeNA',
   BuyCMBH:  'Buy 招商银行H ',
-  SellCMBH:  'Sell 招商银行H ',
   BuyCMB:  'Buy CMB',
   BuyMSBH: 'Buy MSBH',
   #BuyCIB: 'Buy CIB',

@@ -205,6 +205,8 @@ DVPS0 = {
   '招商银行': 0.62,
 
   '建设银行': 0.3,
+  
+  '南方A50': (3.63 - 1.0) / 100 * 8.4,
 }
 
 # The portion of EPS used for dividend.

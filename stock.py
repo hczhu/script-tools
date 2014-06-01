@@ -63,6 +63,10 @@ CB = {
 CAP = {
   # 阿里入股5.86亿美元，占比18%
   'Weibo': 5.86 * 10**8 / 0.18 / SHARES['Weibo'],
+  # 俄罗斯GDP是中国的四分之一，估值按百度目前的58B的四分之一计算。
+  'Yandex': 34,
+  # 雅虎日本35％的股权 和 alibaba 23%的股权，阿里按150B估值。
+  'Yahoo': 35,
 }
 
 BVPS0 = {
@@ -82,6 +86,10 @@ BVPS0 = {
   '建设银行': 1139141.0 * 10**6 / SHARES['建设银行'],
 
   'Weibo': CAP['Weibo'],
+
+  'Yandex': CAP['Yandex'],
+
+  'Yahoo': CAP['Yahoo'],
 }
 
 # TTM
@@ -314,6 +322,8 @@ WATCH_LIST_INTERNET = {
   'GOOG': 'Google',
   'AAPL': 'Apple',
   'WB': 'Weibo',
+  'YNDX': 'Yandex',
+  'YHOO': 'Yahoo',
 }
 
 WATCH_LIST_CB = {
@@ -702,7 +712,27 @@ def GenericDynamicStrategy(name,
           GetMarketPriceChange(code), indicator, indicator_value,
           target_percent * 100, current_percent * 100)
   return '';
-  
+
+def BuyYandex():
+  return GenericDynamicStrategy(
+    'Yandex',
+    'P/B0',
+    [1.0, 0.8],
+    [0.01, 0.02],
+    [1.2, 1.5],
+    0.1,
+    buy_condition = lambda code: GetMarketPriceChange(code) <= 0);
+
+def BuyYahoo():
+  return GenericDynamicStrategy(
+    'Yahoo',
+    'P/B0',
+    [1.0, 0.9],
+    [0.03, 0.06],
+    [1.15, 1.3],
+    0.1,
+    buy_condition = lambda code: GetMarketPriceChange(code) <= 0);
+
 def BuyApple():
   return GenericDynamicStrategy(
     'Apple',
@@ -892,6 +922,8 @@ STRATEGY_FUNCS = {
   KeepDaLanChou: 'Buy 大蓝筹',
   BOCHandBOC: 'BOCH and BOC',
   CMBHandCMB: 'CMBH and CMB',
+  BuyYandex: 'Buy Yandex',
+  BuyYahoo: 'Buy Yahoo',
 }
 
 #--------------End of strategy functions-----

@@ -718,7 +718,7 @@ def BuyYandex():
     'Yandex',
     'P/B0',
     [1.0, 0.8],
-    [0.01, 0.02],
+    [0.015, 0.03],
     [1.2, 1.5],
     0.1,
     buy_condition = lambda code: GetMarketPriceChange(code) <= 0);

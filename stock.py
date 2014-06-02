@@ -100,6 +100,10 @@ EPS0 = {
   '建设银行': 1.* (214657 + 65780 - 59580) * 10**6 / SHARES['建设银行'],
 }
 
+FORGOTTEN = {
+  'Facebook': 0
+}
+
 """
 根据TTM预测一年以后
 
@@ -958,7 +962,8 @@ def InitAll():
       if code in AH_PAIR:
         dt[AH_PAIR[code]] = dt[code] + 'H'.encode('utf-8')
 
-  for dt in [STOCK_CURRENCY, SHARES, CAP, CB, EPS0, EPS, DVPS, DVPS0, SPS, BVPS0, BVPS, ETF_BOOK_VALUE_FUNC]:
+  for dt in [STOCK_CURRENCY, SHARES, CAP, CB, EPS0, EPS, DVPS, DVPS0, SPS,
+             BVPS0, BVPS, ETF_BOOK_VALUE_FUNC, FORGOTTEN]:
     keys = dt.keys()
     for key in keys:
       dt[NAME_TO_CODE[key]] = dt[key]
@@ -1034,11 +1039,11 @@ def CalOneStock(NO_RISK_RATE, records):
     holding_shares += buy_shares
     assert holding_shares >= 0.0
   if investment > 0.0:
-    capital_cost  += investment * NO_RISK_RATE / 365 *(date.today() - prev_date).days
+    capital_cost  += investment * NO_RISK_RATE / 365 * (date.today() - prev_date).days
   if day_trade_net_shares == 0:
     sum_day_trade_profit += day_trade_profit
     day_trade_time += 1
-  return (net_profit, capital_cost, holding_shares, sum_day_trade_profit, day_trade_time, sum_fee)
+  return (net_profit, capital_cost, holding_shares, sum_day_trade_profit, day_trade_time, sum_fee, currency)
 
 def ReadRecords(input):
   all_records = defaultdict(list)
@@ -1090,16 +1095,29 @@ def PrintHoldingSecurities(all_records):
   
   summation = {}
   summation['Stock name'] = 'Summary'
+  
+  for key in all_records.keys():
+    if key in FORGOTTEN:
+      # in CURRENCY
+      (net_profit, capital_cost, remain_stock, dtp, dt, txn_fee, currency) = CalOneStock(
+          NO_RISK_RATE, all_records[key])
+      net_profit *= EX_RATE[CURRENCY + '-' + currency]
+      cells = all_records[key][-1]
+      cells[2:7] = [currency, '', '1', str(int(net_profit)), '0']
+      all_records[currency].append(cells)
+      sys.stderr.write('Convert %s to cash %d in %s\n'%(CODE_TO_NAME[key], net_profit, currency))
+      assert net_profit >= 0
+      del all_records[key]
+       
   for key in all_records.keys():
     sys.stderr.write('Processing [' + key + ']\n')
     name = all_records[key][0][3]
-    currency = all_records[key][0][7]
     # All in CURRENCY
-    (net_profit, capital_cost, remain_stock, dtp, dt, txn_fee) = CalOneStock(NO_RISK_RATE, all_records[key])
+    (net_profit, capital_cost, remain_stock, dtp, dt, txn_fee, currency) = CalOneStock(NO_RISK_RATE, all_records[key])
     if key in total_investment:
       total_capital[currency] += -net_profit
       total_capital_cost[currency] += capital_cost
-      continue;
+      continue
     investment = -net_profit
     total_investment[currency] += investment
     total_transaction_fee[currency] += txn_fee

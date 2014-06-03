@@ -732,7 +732,7 @@ def BuyYahoo():
     'Yahoo',
     'P/B0',
     [0.9, 0.8],
-    [0.03, 0.05],
+    [0.03, 0.1],
     [1.1, 1.2],
     0.1,
     buy_condition = lambda code: GetMarketPriceChange(code) <= 0);
@@ -873,7 +873,7 @@ def BuyWeibo():
     'Weibo',
     'P/B',
     [1.05, 0.8],
-    [0.1, 0.2],
+    [0.1, 0.15],
     [1.5, 2.0],
     0.05)
 

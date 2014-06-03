@@ -392,6 +392,7 @@ market_price_func = {
 RZ_BASE = {
   '兴业银行': 6157420241,
   '招商银行': 3909913752,
+  '中国银行': 322251548,
 }
 
 STOCK_CURRENCY = {
@@ -1118,6 +1119,8 @@ def PrintHoldingSecurities(all_records):
       total_capital[currency] += -net_profit
       total_capital_cost[currency] += capital_cost
       continue
+    if remain_stock == 0:
+      sys.stderr.write('Profit %f from %s\n'%(net_profit, name))
     investment = -net_profit
     total_investment[currency] += investment
     total_transaction_fee[currency] += txn_fee

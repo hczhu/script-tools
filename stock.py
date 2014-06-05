@@ -66,7 +66,7 @@ CAP = {
   # 俄罗斯GDP是中国的四分之一，估值按百度目前的58B的四分之一计算。
   'Yandex': 34,
   # 雅虎日本35％的股权 和 alibaba 23%的股权，阿里按150B估值。
-  'Yahoo': 35,
+  'Yahoo': 31,
 }
 
 BVPS0 = {
@@ -732,7 +732,7 @@ def BuyYahoo():
   return GenericDynamicStrategy(
     'Yahoo',
     'P/B0',
-    [0.9, 0.8],
+    [1.0, 0.8],
     [0.03, 0.1],
     [1.1, 1.2],
     0.1,

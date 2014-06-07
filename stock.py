@@ -377,10 +377,11 @@ ETF_BOOK_VALUE_FUNC = {
                                       float,
                                       ),
 
-  '南方5年国债': lambda: GetValueFromUrl('http://stocks.etnet.com.cn/www/eng/etf/etf_detail.php?etfcode=03199',
-                                      ['Net Asset Value', '<td ', '>'],
-                                      'HKD',
-                                      float,
+  '南方5年国债': lambda: GetValueFromUrl('http://www.csopasset.com/tchi/products/china_bond.php',
+                                      ['<td>總資產淨值', '<td', '>'],
+                                      '<',
+                                      lambda x: round(float(
+                                        x.replace(',', '')) / (96 * 10**6) / EX_RATE['HKD-RMB'], 2),
                                       )
 }
 

@@ -336,6 +336,7 @@ WATCH_LIST_CB = {
 WATCH_LIST_ETF = {
   #南方A50 ETF
   '02822': '南方A50',
+  '03199': '南方5年国债',
 } 
 
 WATCH_LIST_OTHER = {
@@ -373,6 +374,12 @@ ETF_BOOK_VALUE_FUNC = {
   '南方A50': lambda: GetValueFromUrl('http://www.csop.mdgms.com/iopv/nav.html?l=tc',
                                       ['即日估計每基金單位資產淨值', '<td id="nIopvPriceHKD">'],
                                       '</td>',
+                                      float,
+                                      ),
+
+  '南方5年国债': lambda: GetValueFromUrl('http://stocks.etnet.com.cn/www/eng/etf/etf_detail.php?etfcode=03199',
+                                      ['Net Asset Value', '<td ', '>'],
+                                      'HKD',
                                       float,
                                       )
 }

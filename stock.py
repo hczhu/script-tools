@@ -65,8 +65,8 @@ CAP = {
   'Weibo': 5.86 * 10**8 / 0.18 / SHARES['Weibo'],
   # 俄罗斯GDP是中国的四分之一，估值按百度目前的58B的四分之一计算。
   'Yandex': 34,
-  # 雅虎日本35％的股权 和 alibaba 23%的股权，阿里按150B估值。
-  'Yahoo': 31,
+  # 雅虎日本(28B)35％的股权 和 alibaba 23%的股权，阿里按150B估值。
+  'Yahoo': 38,
 }
 
 BVPS0 = {
@@ -204,14 +204,14 @@ DVPS0 = {
   # Apple once a quarter.
   # 20140206 - 3.05
   # Tax rate 0.1
-  'Apple': 3.29 * 4,
+  'Apple': 3.29 * 4 / 6,
 
   # :DeNA once a year.
   # For FY2013
   ':DeNA': 37.0,
 
   # 已公布
-  '中国银行': 0.19,
+  '中国银行': 0.196,
 
   # 已公布
   '招商银行': 0.62,
@@ -741,7 +741,7 @@ def BuyYahoo():
     'Yahoo',
     'P/B0',
     [1.0, 0.8],
-    [0.03, 0.1],
+    [0.04, 0.08],
     [1.1, 1.2],
     0.1,
     buy_condition = lambda code: GetMarketPriceChange(code) <= 0);

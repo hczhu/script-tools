@@ -231,6 +231,13 @@ DVPS = {
   '中国银行': EPS['中国银行'] * 0.3,
 }
 
+DIVIDEND_DATE = {
+  '建设银行H': date(2014, 7, 2),
+  '招商银行H': date(2014, 7, 3),
+  '中国银行H': date(2014, 6, 26),
+  '中国银行': date(2014, 6, 26),
+}
+
 URL_CONTENT_CACHE = {
 }
 
@@ -1084,6 +1091,7 @@ def PrintHoldingSecurities(all_records):
                   'DR',
                   'AHD',
                   'RZ',
+                  'Days to DV',
                   'Stock name']
   silent_column = [
     'MV',
@@ -1163,6 +1171,7 @@ def PrintHoldingSecurities(all_records):
         'DR':  myround(GetDR(key, mp) * 100 , 2),
         'AHD': str(myround(100.0 * (mp_pair_rmb - mp * ex_rate ) / mp / ex_rate, 1)) + '%',
         'RZ': round(GetRZ(key), 3) if remain_stock > 0 else 0.0,
+        'Days to DV': ((DIVIDEND_DATE[name] if name in DIVIDEND_DATE else date(2016, 1, 1)) - date.today()).days,
         'Stock name': name + '(' + key + ')',
     }
     for col in ['MV', 'CC', '#TxN', 'TNF', 'DTP', '#DT']:

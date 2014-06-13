@@ -120,7 +120,7 @@ FORGOTTEN = {
 EPS = {
   #南方A50ETF，数据来自sse 50ETF统计页面
   # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
-  '南方A50': 8.4279 / 7.27,
+  '南方A50': 8.6197 / 7.4,
   # Fy2013 Q4 TTM.
   ':DeNA': (6.5 + 0.6 * (9.7 + 11.4 + 15.1)) * 10**9 / SHARES[':DeNA'],
   # 2014 Q1
@@ -285,7 +285,15 @@ def GetJapanStockBeta(code):
 
 #----------Begining of global variables------------------
 
-MAX_PERCENT_PER_STOCK = 0.3
+MAX_PERCENT_PER_STOCK = 0.2
+
+PERCENT_UPPER = {
+  '南方A50': 0.5,
+  '中国银行': 0.3,
+  '建设银行': 0.3,
+  '招商银行': 0.3,
+}
+
 CURRENCY = 'RMB'
 NO_RISK_RATE = 0.05
 LOAN_RATE = 0.016
@@ -927,6 +935,19 @@ def CMBHandCMB():
 def BOCHandBOC():
   return GenericChangeAH('中国银行', 0.02, 0.10)
 
+def ReduceOverflow():
+  for code in holding_percent.keys():
+    if holding_percent[code] == 0.0: continue
+    if GetAHDiscount(code) > 0.0: continue
+    upper = PERCENT_UPPER[code] if code in PERCENT_UPPER else MAX_PERCENT_PER_STOCK
+    hold = holding_percent[code] + (holding_percent[AH_PAIR[code]] if code in AH_PAIR else 0.0)
+    if hold > upper:
+      print 'Sell %s(%s) %d units @%.3f'%(
+        CODE_TO_NAME[code], code,
+        (hold - upper) * NET_ASSET / GetMarketPriceInBase(code),
+        GetMarketPrice(code))
+  return ''
+
 STRATEGY_FUNCS = {
   BuyApple: 'Buy Apple',
   BuyBig4BanksH: 'Buy 四大行H股 ',
@@ -946,6 +967,7 @@ STRATEGY_FUNCS = {
   CMBHandCMB: 'CMBH and CMB',
   BuyYandex: 'Buy Yandex',
   BuyYahoo: 'Buy Yahoo',
+  ReduceOverflow: 'Reduce overflow',
 }
 
 #--------------End of strategy functions-----
@@ -981,12 +1003,12 @@ def InitAll():
         dt[AH_PAIR[code]] = dt[code] + 'H'.encode('utf-8')
 
   for dt in [STOCK_CURRENCY, SHARES, CAP, CB, EPS0, EPS, DVPS, DVPS0, SPS,
-             BVPS0, BVPS, ETF_BOOK_VALUE_FUNC, FORGOTTEN]:
+             BVPS0, BVPS, ETF_BOOK_VALUE_FUNC, FORGOTTEN, PERCENT_UPPER]:
     keys = dt.keys()
     for key in keys:
       dt[NAME_TO_CODE[key]] = dt[key]
 
-  for dt in [SHARES]:
+  for dt in [SHARES, PERCENT_UPPER]:
     for key in dt.keys():
       if key in AH_PAIR:
         dt[AH_PAIR[key]] = dt[key]

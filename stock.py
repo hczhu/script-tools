@@ -7,6 +7,73 @@ from datetime import time
 from collections import defaultdict
 import urllib2
 import traceback
+#----------------------Template-----------------------------
+
+HTML_TEMPLATE = """
+<!--
+You are free to copy and use this sample in accordance with the terms of the
+Apache license (http://www.apache.org/licenses/LICENSE-2.0.html)
+-->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <title>
+      Google Visualization API Sample
+    </title>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+      google.load('visualization', '1', {packages: ['corechart']});
+    </script>
+    <script type="text/javascript">
+      function drawVisualization() {
+        %s
+      }
+      google.setOnLoadCallback(drawVisualization);
+    </script>
+  </head>
+  <body style="font-family: Arial;border: 0 none;">
+    %s
+  </body>
+</html>
+"""
+
+FUNCTION_TEMPLATE = """
+        {
+          // Create and populate the data table.
+          var data = new google.visualization.DataTable();
+          data.addColumn('date', 'Date'); // Implicit series 1 data col.
+          data.addColumn('number', '%s'); // Implicit domain label col.
+          data.addColumn({type:'string', role:'annotation'}); // annotation role col.
+          data.addColumn({type:'string', role:'annotationText'}); // annotationText col.
+          data.addRows([
+              %s
+              ]); 
+          // Create and draw the visualization.
+          new google.visualization.LineChart(document.getElementById('%s')).draw(
+              data,
+              {
+               curveType: "function",
+               lineWidth: 2,
+               pointSize: 4,
+               legend: { position: 'bottom' },
+               vAxis: {
+                        minValue: %f,
+                        maxValue: %f,
+                      },
+               explorer: {
+                           actions: 'dragToZoom',
+                           axis: 'horizontal',
+                         }
+              });
+      }
+"""
+
+DIV_TEMPLATE = """
+<div id="%s" style="width: 90%%, height: 600px;"></div>
+
+"""
 
 #----------Beginning of manually upated financial data-------
 
@@ -309,6 +376,9 @@ REALTIME_VALUE_FUNC = {
 }
 
 CODE_TO_NAME = {
+  'RMB': 'RMB',
+  'USD': 'USD',
+  'HKD': 'HKD',
 }
 
 NAME_TO_CODE = {
@@ -1034,7 +1104,7 @@ def InitAll():
       else:
         sys.stderr.write('Estimation for %s\n'%(msg))
 
-def CalOneStock(NO_RISK_RATE, records):
+def CalOneStock(NO_RISK_RATE, records, code, name):
   capital_cost = 0.0
   net_profit = 0.0
   investment = 0.0
@@ -1047,6 +1117,9 @@ def CalOneStock(NO_RISK_RATE, records):
   sum_day_trade_profit = 0
   day_trade_time = -1
   sum_fee = 0
+  vid = 'visualization_%s'%(code)
+  data = ''
+  prices = []
   for cell in records:
     currency = cell[7]
     ex_rate = EX_RATE[currency + '-' + CURRENCY]
@@ -1054,8 +1127,15 @@ def CalOneStock(NO_RISK_RATE, records):
     fee = sum(map(float, cell[6:7])) * ex_rate
     sum_fee += fee
     buy_shares = int(cell[5])
-    price = float(cell[4]) * ex_rate
+    origin_price = float(cell[4])
+    price = origin_price * ex_rate
     value = -price * buy_shares - fee
+    if -1 == cell[1].find('股息'):
+      data += '[new Date(%d, %d, %d), %.3f, \'%s%d\', \'%.0fK %s\'],\n'%(
+          trans_date.year, trans_date.month, trans_date.day,
+          origin_price, '+' if buy_shares > 0 else '',
+          buy_shares, (value + 500) / 1000, CURRENCY)
+      prices.append(origin_price)
     if investment > 0.0:
       diff_days = (trans_date - prev_date).days
       capital_cost  += investment * NO_RISK_RATE / 365 * diff_days
@@ -1083,7 +1163,15 @@ def CalOneStock(NO_RISK_RATE, records):
   if day_trade_net_shares == 0:
     sum_day_trade_profit += day_trade_profit
     day_trade_time += 1
-  return (net_profit, capital_cost, holding_shares, sum_day_trade_profit, day_trade_time, sum_fee, currency)
+  return (net_profit, capital_cost, holding_shares, sum_day_trade_profit, day_trade_time, sum_fee,
+          currency,
+          FUNCTION_TEMPLATE%(
+            name,
+            data,
+            vid,
+            min(prices),
+            max(prices)),
+          DIV_TEMPLATE%(vid))
 
 def ReadRecords(input):
   all_records = defaultdict(list)
@@ -1137,11 +1225,15 @@ def PrintHoldingSecurities(all_records):
   summation = {}
   summation['Stock name'] = 'Summary'
   
+  function_html = ''
+  div_html = ''
+  
   for key in all_records.keys():
     if key in FORGOTTEN:
       # in CURRENCY
-      (net_profit, capital_cost, remain_stock, dtp, dt, txn_fee, currency) = CalOneStock(
-          NO_RISK_RATE, all_records[key])
+      name = all_records[key][0][3]
+      (net_profit, capital_cost, remain_stock, dtp, dt, txn_fee, currency, function,division) = CalOneStock(
+          NO_RISK_RATE, all_records[key], key, name)
       net_profit *= EX_RATE[CURRENCY + '-' + currency]
       cells = all_records[key][-1]
       cells[2:7] = [currency, '', '1', str(int(net_profit)), '0']
@@ -1149,16 +1241,21 @@ def PrintHoldingSecurities(all_records):
       sys.stderr.write('Convert %s to cash %d in %s\n'%(CODE_TO_NAME[key], net_profit, currency))
       assert net_profit >= 0
       del all_records[key]
+      function_html += function
+      div_html += division
        
   for key in all_records.keys():
     sys.stderr.write('Processing [' + key + ']\n')
     name = all_records[key][0][3]
     # All in CURRENCY
-    (net_profit, capital_cost, remain_stock, dtp, dt, txn_fee, currency) = CalOneStock(NO_RISK_RATE, all_records[key])
+    (net_profit, capital_cost, remain_stock, dtp, dt, txn_fee, currency, function, division) = CalOneStock(
+      NO_RISK_RATE, all_records[key], key, name)
     if key in total_investment:
       total_capital[currency] += -net_profit
       total_capital_cost[currency] += capital_cost
       continue
+    function_html += function
+    div_html += division
     if remain_stock == 0:
       sys.stderr.write('Profit %f from %s\n'%(net_profit, name))
     investment = -net_profit
@@ -1264,6 +1361,10 @@ def PrintHoldingSecurities(all_records):
     stat_records_map.append(summation)
     stat_records_map.sort(reverse = True, key = lambda record: record.get('MV', 0))
     PrintTableMap(table_header, stat_records_map, silent_column)
+  if 'chart' in set(sys.argv):
+    open('/tmp/charts.html', 'w').write(
+      HTML_TEMPLATE%(function_html, div_html) 
+    )
 
 def PrintWatchedETF():
   table_header = [

@@ -56,11 +56,12 @@ FUNCTION_TEMPLATE = """
               {
                curveType: "function",
                lineWidth: 2,
-               pointSize: 4,
+               pointSize: 5,
                legend: { position: 'bottom' },
                vAxis: {
                         minValue: %f,
                         maxValue: %f,
+                        title: 'Price(%s)',
                       },
                explorer: {
                            actions: 'dragToZoom',
@@ -1170,7 +1171,8 @@ def CalOneStock(NO_RISK_RATE, records, code, name):
             data,
             vid,
             min(prices),
-            max(prices)),
+            max(prices),
+            currency),
           DIV_TEMPLATE%(vid))
 
 def ReadRecords(input):

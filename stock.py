@@ -169,7 +169,7 @@ EPS0 = {
 }
 
 FORGOTTEN = {
-  # 'Facebook': 0
+  'Facebook': 0,
 }
 
 """
@@ -1009,7 +1009,7 @@ def BOCHandBOC():
 def ReduceOverflow():
   for code in holding_percent.keys():
     if holding_percent[code] == 0.0: continue
-    if GetAHDiscount(code) > 0.0: continue
+    if code in AH_PAIR and holding_percent[AH_PAIR[code]] > 0 and GetAHDiscount(code) > 0.0: continue
     upper = PERCENT_UPPER[code] if code in PERCENT_UPPER else MAX_PERCENT_PER_STOCK
     hold = holding_percent[code] + (holding_percent[AH_PAIR[code]] if code in AH_PAIR else 0.0)
     if hold > upper:

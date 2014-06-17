@@ -135,6 +135,8 @@ CAP = {
   'Yandex': 34,
   # 雅虎日本(28B)35％的股权 和 alibaba 23%的股权，阿里按150B估值。
   'Yahoo': 38,
+  # 按照阿里收购UC出资的股票部分和对UC的估值计算。
+  'Alibaba': 72,
 }
 
 BVPS0 = {
@@ -357,9 +359,9 @@ MAX_PERCENT_PER_STOCK = 0.2
 
 PERCENT_UPPER = {
   '南方A50': 0.5,
-  '中国银行': 0.3,
-  '建设银行': 0.3,
-  '招商银行': 0.3,
+  '中国银行': 0.4,
+  '建设银行': 0.4,
+  '招商银行': 0.35,
 }
 
 CURRENCY = 'RMB'
@@ -761,10 +763,6 @@ def PrintTableMap(table_header, records_map, silent_column):
 #--------------End of print functions-------------
 
 #--------------Beginning of strategy functions-----
-"""
-个股占比不超过40%
-ETF占比不超过60%
-"""
 
 def GenericDynamicStrategy(name,
                            indicator,
@@ -1032,7 +1030,6 @@ STRATEGY_FUNCS = {
   CIBtoCMB: 'CIB->CMB',
   CMBtoCIB: 'CMB->CIB',
   BuyWeibo: 'Buy Weibo',
-  BuyMSBH: 'Buy 民生银行H',
   KeepDaLanChou: 'Buy 大蓝筹',
   BOCHandBOC: 'BOCH and BOC',
   CMBHandCMB: 'CMBH and CMB',

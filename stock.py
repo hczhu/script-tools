@@ -1025,7 +1025,7 @@ STRATEGY_FUNCS = {
   BuyDeNA:  'Buy :DeNA',
   BuyCMBH:  'Buy 招商银行H ',
   BuyCMB:  'Buy CMB',
-  BuyMSBH: 'Buy MSBH',
+  #BuyMSBH: 'Buy MSBH',
   #BuyCIB: 'Buy CIB',
   BuyA50: 'Buy A50',
   BuyBOCH: 'Buy BOCH',

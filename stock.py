@@ -418,6 +418,7 @@ WATCH_LIST_INTERNET = {
   'WB': 'Weibo',
   'YNDX': 'Yandex',
   'YHOO': 'Yahoo',
+  'ALIBABA': 'Alibaba',
 }
 
 WATCH_LIST_CB = {

@@ -256,6 +256,8 @@ BVPS = {
                   + 188500 * 5.0 / 100 # 过剩产业贷款损失
                 ) * 1.02 # 乘以增长率
                 - 248945 * 6 * 0.7 / 100 # 买入返售－信托受益权损失率按GDP下行6个点带来的不良率计算
+                # 媒体已报道的坏账，违规放款，损失率按50%计算
+                - (10300) * 0.5
               ) * 10**6 / SHARES['中国银行'],
 }
 
@@ -991,11 +993,12 @@ def BuyWeibo():
   return GenericDynamicStrategy(
     'Weibo',
     'P/B',
-    [1.05, 0.8],
-    [0.1, 0.15],
+    [1.1, 0.8],
+    [0.04, 0.08],
     # 等阿里收购微博的消息
     [1.5, 2.0],
-    0.05)
+    0.05,
+    buy_condition = lambda code: GetMarketPriceChange(code) < -2);
 
 def KeepDaLanChou():
   holding = 0

@@ -132,7 +132,7 @@ CAP = {
   # 阿里入股5.86亿美元，占比18%
   'Weibo': 5.86 * 10**8 / 0.18 / SHARES['Weibo'],
   # 俄罗斯GDP是中国的四分之一，估值按百度目前的58B的四分之一计算。
-  'Yandex': 34,
+  'Yandex': lambda: GetMarketCap('Baidu') / GetMarketCap('Yandex') / 4 * GetMarketPrice('Yandex'),
   # 雅虎日本(28B)35％的股权 和 alibaba 23%的股权，阿里按150B估值。
   'Yahoo': 38,
   # 按照阿里收购UC出资的股票部分和对UC的估值计算。
@@ -306,7 +306,7 @@ DIVIDEND_DATE = {
   '建设银行': date(2014, 7, 2),
   '招商银行H': date(2014, 7, 3),
   '招商银行': date(2014, 7, 3),
-  '中国银行H': date(2014, 6, 26),
+  '中国银行H': date(2015, 6, 19),
   '中国银行': date(2014, 6, 26),
 }
 
@@ -419,6 +419,7 @@ WATCH_LIST_INTERNET = {
   'YNDX': 'Yandex',
   'YHOO': 'Yahoo',
   'ALIBABA': 'Alibaba',
+  'BIDU': 'Baidu',
 }
 
 WATCH_LIST_CB = {
@@ -476,7 +477,7 @@ ETF_BOOK_VALUE_FUNC = {
                                       )
 }
 
-# In the form of '2432': [price, change].
+# In the form of '2432': [price, change, cap].
 market_price_cache = {
 }
 
@@ -517,6 +518,9 @@ NET_ASSET = 0.0
 #----------Begining of global variables------------------
 
 #--------------Beginning of logic util functions---------------
+def IsLambda(v):
+  return isinstance(v, type(lambda: None)) and v.__name__ == (lambda: None).__name__
+
 def GetCurrency(code):
   if code in STOCK_CURRENCY:
     return STOCK_CURRENCY[code]
@@ -577,7 +581,8 @@ def GetPB0(code, mp):
       if trans < BVPS0[code]:
         dilution = (1.0 + CB[code][0] * 1.0 / BVPS0[code] / SHARES[code]) / (
           1.0 + CB[code][0] / trans / SHARES[code])
-    return mp / (BVPS0[code] * dilution)
+    book_value = BVPS0[code]() if IsLambda(BVPS0[code]) else BVPS0[code]
+    return mp / (book_value * dilution)
   return float('inf')
  
 def GetPB(code, mp):
@@ -594,8 +599,9 @@ def GetPB(code, mp):
   return float('inf')
  
 def GetCAP(code, mp):
+  code = NAME_TO_CODE[code] if code in NAME_TO_CODE else code
   if code in CAP:
-    return CAP[code]
+    return CAP[code]() if IsLambda(CAP[code]) else CAP[code]
   return 0
 
 def GetXueqiuUrlPrefix(code):
@@ -609,17 +615,22 @@ def GetXueqiuMarketPrice(code):
   price_end_str = '"'
   change_feature_str = ['<span class="quote-percentage">', '(']
   change_end_str = '%)'
+  cap_feature_str = ['市值：<span>']
+  cap_end_str = '<'
   for pr in GetXueqiuUrlPrefix(code):
     url = url_prefix + pr + code
     try:
       price = GetValueFromUrl(url, price_feature_str, price_end_str, float)
       change = GetValueFromUrl(url, change_feature_str, change_end_str, float)
-      return [price, change]
+      cap = GetValueFromUrl(url, cap_feature_str, cap_end_str,
+                            lambda s: float(s.replace('亿', '')) * 10**8)
+      return [price, change, cap]
     except:
       continue
   return [float('inf'), 0.0]
 
 def GetMarketPrice(code):
+  code = NAME_TO_CODE[code] if code in NAME_TO_CODE else code
   sys.stderr.write('Getting market price for ' + code + '\n')
   if code in market_price_cache:
     return market_price_cache[code][0]
@@ -634,7 +645,16 @@ def GetMarketPrice(code):
   except:
     return 0.0
 
+def GetMarketCap(code):
+  code = NAME_TO_CODE[code] if code in NAME_TO_CODE else code
+  if code not in market_price_cache:
+    GetMarketPrice(code)
+  if code in market_price_cache:
+    return market_price_cache[code][2]
+  return 0.0
+
 def GetMarketPriceChange(code):
+  code = NAME_TO_CODE[code] if code in NAME_TO_CODE else code
   if code not in market_price_cache:
     GetMarketPrice(code)
   if code in market_price_cache:
@@ -642,6 +662,7 @@ def GetMarketPriceChange(code):
   return 0.0
 
 def GetMarketPriceInBase(code):
+  code = NAME_TO_CODE[code] if code in NAME_TO_CODE else code
   mp = GetMarketPrice(code)
   currency = GetCurrency(code);
   mp *= EX_RATE[currency + '-' + CURRENCY]
@@ -679,12 +700,14 @@ def GetIRR(market_value, cash_flow_records):
   return low
 
 def GetAHDiscount(code, mp = 0):
+  code = NAME_TO_CODE[code] if code in NAME_TO_CODE else code
   if code not in AH_PAIR:
      return 0
   mp_base, mp_pair_base = GetMarketPriceInBase(code), GetMarketPriceInBase(AH_PAIR[code])
   return (mp_pair_base - mp_base) / mp_base
 
 def GetRZ(code, mp = 0):
+  code = NAME_TO_CODE[code] if code in NAME_TO_CODE else code
   if GetCurrency(code) != 'RMB': return 0.0
   url_pattern = 'http://data.eastmoney.com/rzrq/detail/%s,1.html'
   try:
@@ -817,11 +840,11 @@ def BuyYandex():
   return GenericDynamicStrategy(
     'Yandex',
     'P/B0',
-    [.9, 0.8],
-    [0.015, 0.03],
-    [1.2, 1.5],
+    [.8, 0.6],
+    [0.02, 0.04],
+    [0.9, 1],
     0.1,
-    buy_condition = lambda code: GetMarketPriceChange(code) <= 0);
+    buy_condition = lambda code: GetMarketPriceChange(code) <= -2);
 
 def BuyYahoo():
   return GenericDynamicStrategy(
@@ -831,7 +854,7 @@ def BuyYahoo():
     [0.04, 0.08],
     [1.1, 1.2],
     0.1,
-    buy_condition = lambda code: GetMarketPriceChange(code) <= 0);
+    buy_condition = lambda code: GetMarketPriceChange(code) <= -2);
 
 def BuyApple():
   return GenericDynamicStrategy(

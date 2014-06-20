@@ -286,7 +286,7 @@ DVPS0 = {
   ':DeNA': 37.0,
 
   # 已公布
-  # '中国银行': 0.196,
+  '中国银行': 0.196,
 
   # 已公布
   '招商银行': 0.62,
@@ -957,8 +957,8 @@ def BuyBOCH():
   return GenericDynamicStrategy(
     '中国银行H',
     'DR',
-    [0.06, 0.08],
-    [0.4, 0.5],
+    [0.065, 0.08],
+    [0.3, 0.4],
     [.05, .04],
     0.2,
     buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < 0.9 and GetMarketPriceChange(

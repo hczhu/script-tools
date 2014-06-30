@@ -1286,8 +1286,6 @@ def PrintHoldingSecurities(all_records):
       continue
     function_html += function
     div_html += division
-    if remain_stock == 0:
-      sys.stderr.write('Profit %f from %s\n'%(net_profit, name))
     investment = -net_profit
     total_investment[currency] += investment
     total_transaction_fee[currency] += txn_fee
@@ -1301,6 +1299,11 @@ def PrintHoldingSecurities(all_records):
       if key in AH_PAIR:
         mp_pair_rmb = GetMarketPriceInBase(AH_PAIR[key])
     total_market_value[currency] += mv
+    sys.stderr.write('%s profit %.0f %s from %s\n'%(
+      'Realized' if remain_stock == 0 else 'Unrealized',
+      net_profit + mv,
+      CURRENCY,
+      name))
     record = {
         'Code': key,
         'MV': myround(mv, 0),

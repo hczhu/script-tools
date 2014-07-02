@@ -325,6 +325,8 @@ URL_CONTENT_CACHE = {
 
 #----------Beginning of crawler util functions-----------------
 
+# appannie header: User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36
+
 def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True):
   try:
     if url not in URL_CONTENT_CACHE:

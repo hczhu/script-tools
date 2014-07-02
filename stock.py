@@ -313,7 +313,7 @@ DIVIDEND_DATE = {
   '建设银行H': date(2014, 7, 2),
   '建设银行': date(2014, 7, 2),
   '招商银行H': date(2014, 7, 3),
-  '招商银行': date(2014, 7, 3),
+  '招商银行': date(2014, 7, 11),
   '中国银行H': date(2015, 6, 19),
   '中国银行': date(2014, 6, 26),
 }
@@ -419,7 +419,6 @@ WATCH_LIST_INSURANCE = {
 }
 
 WATCH_LIST_INTERNET = {
-  '2432': ':DeNA',
   'FB': 'Facebook',
   'GOOG': 'Google',
   'AAPL': 'Apple',
@@ -428,6 +427,10 @@ WATCH_LIST_INTERNET = {
   'YHOO': 'Yahoo',
   'ALIBABA': 'Alibaba',
   'BIDU': 'Baidu',
+}
+
+WATCH_LIST_MOBILE_GAMES = {
+  '2432': ':DeNA',
 }
 
 WATCH_LIST_CB = {
@@ -1088,8 +1091,8 @@ def InitAll():
   for key in AH_PAIR.keys():
     AH_PAIR[AH_PAIR[key]] = key
 
-  for dt in [WATCH_LIST_BANK, WATCH_LIST_BANK_1,  WATCH_LIST_INSURANCE, WATCH_LIST_INTERNET,
-             WATCH_LIST_ETF, WATCH_LIST_CB, WATCH_LIST_OTHER]:
+  for dt in [WATCH_LIST_BANK, WATCH_LIST_BANK_1,  WATCH_LIST_INSURANCE, WATCH_LIST_MOBILE_GAMES,
+             WATCH_LIST_INTERNET, WATCH_LIST_ETF, WATCH_LIST_CB, WATCH_LIST_OTHER]:
     for code in dt.keys():
       CODE_TO_NAME[code] = dt[code]
       if code in AH_PAIR:

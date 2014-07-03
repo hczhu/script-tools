@@ -327,6 +327,30 @@ URL_CONTENT_CACHE = {
 
 # appannie header: User-Agent: Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36
 
+def AppannieScore(company, country = 'japan'):
+  url_temp = 'http://www.appannie.com/apps/%s/top/%s/overall/%s'
+  urls = [
+           url_temp%('ios', country, '?device=iphone'),
+           url_temp%('ios', country, '?device=ipad'),
+           url_temp%('google-play', country, ''),
+         ]
+  res = 0
+  for url in urls:
+    if url not in URL_CONTENT_CACHE:
+      request = urllib2.Request(url)
+      request.add_header('User-Agent',
+        'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_9_2) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/35.0.1916.153 Safari/537.36') 
+      sys.stderr.write('Getting url: %s\n', url)
+      URL_CONTENT_CACHE[url] = urllib2.urlopen(request).read()
+    content = URL_CONTENT_CACHE[url]
+    idx = content.find(company)
+    while idx >= 0:
+      content = content[idx + len(company):]
+      res += 1
+      idx = content.find(company)
+  return res
+    
+
 def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True):
   try:
     if url not in URL_CONTENT_CACHE:

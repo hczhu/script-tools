@@ -877,8 +877,8 @@ def BuyYandex():
   return GenericDynamicStrategy(
     'Yandex',
     'P/B0',
-    [.8, 0.6],
-    [0.02, 0.04],
+    [.7, 0.5],
+    [0.02, 0.05],
     [0.9, 1],
     0.1,
     buy_condition = lambda code: GetMarketPriceChange(code) <= -2);

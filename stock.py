@@ -989,12 +989,13 @@ def BuyBOCH():
   return GenericDynamicStrategy(
     '中国银行H',
     'DR',
-    [0.06, 0.08],
+    [0.06, 0.07],
     [0.3, 0.4],
     [.05, .04],
     0.2,
     buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < 0.9 and GetMarketPriceChange(
-                                 code) < 0.0 and GetAHDiscount(code) >= -2.5,
+                                 code) < 0.0 and GetAHDiscount('中国银行') >= GetAHDiscount(
+                                   '建设银行') / 2 and GetAHDiscount('中国银行') >= GetAHDiscount('工商银行') / 2,
     sell_condition = lambda code: GetPB(code, GetMarketPrice(code)) > 1.5);
  
 def CIBtoCMB():
@@ -1065,7 +1066,9 @@ def CMBHandCMB():
   return GenericChangeAH('招商银行', 0.05, 0.15)
 
 def BOCHandBOC():
-  return GenericChangeAH('中国银行', 0.02, 0.10)
+  if GetAHDiscount('中国银行') > GetAHDiscount('建设银行') or GetAHDiscount('中国银行') > GetAHDiscount('工商银行'):
+    return '中国银行H(%s) premium is too high: %f'%(NAME_TO_CODE['中国银行H'], GetAHDiscount('中国银行'))
+  return ''
 
 def ReduceOverflow():
   for code in holding_percent.keys():

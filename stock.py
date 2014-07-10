@@ -949,7 +949,7 @@ def BuyDeNA():
     ':DeNA',
     'P/S',
     [1.1, 0.9],
-    [0.5, 0.15],
+    [0.5, 0.8],
     [1.5, 2.0],
     0.1,
     buy_condition = lambda code: GetMarketPriceChange(code) < min(0.0,

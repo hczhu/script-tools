@@ -136,6 +136,7 @@ CAP = {
   # 雅虎日本(28B)35％的股权 和 alibaba 23%的股权，阿里按150B估值。
   # 减去负债，负债率0.09. 最后打八折
   # 回购价格 36.42
+  # Yahoo 持有24%
   'Yahoo': lambda: min((10**9 * (150 * 0.24 + 28 * 0.35) * 0.8 / GetMarketCap(
                     'Yahoo') -0.09) * GetMarketPrice('Yahoo'), 36.42),
   # 按照阿里收购UC出资的股票部分和对UC的估值计算。
@@ -877,9 +878,9 @@ def BuyYandex():
   return GenericDynamicStrategy(
     'Yandex',
     'P/B0',
-    [.7, 0.5],
+    [.7, 0.4],
     [0.02, 0.05],
-    [0.9, 1],
+    [0.8, 1],
     0.1,
     buy_condition = lambda code: GetMarketPriceChange(code) <= -2);
 

@@ -119,6 +119,7 @@ SHARES = {
   'Weibo': 2 * 10**8,
 
   ':DeNA': 135577320,
+  'Yahoo': 1015 * 10**6,
 }
 
 # (总面值，目前转股价)
@@ -133,12 +134,11 @@ CAP = {
   'Weibo': 5.86 * 10**8 / 0.18 / SHARES['Weibo'],
   # 俄罗斯GDP是中国的四分之一，估值按百度目前的58B的四分之一计算。
   'Yandex': lambda: GetMarketCap('Baidu') / GetMarketCap('Yandex') / 4 * GetMarketPrice('Yandex'),
-  # 雅虎日本(28B)35％的股权 和 alibaba 23%的股权，阿里按150B估值。
-  # 减去负债，负债率0.09. 最后打八折
-  # 回购价格 36.42
-  # Yahoo 持有24%
-  'Yahoo': lambda: min((10**9 * (150 * 0.24 + 28 * 0.35) * 0.8 / GetMarketCap(
-                    'Yahoo') -0.09) * GetMarketPrice('Yahoo'), 36.42),
+  # 雅虎日本(24B)35％的股权和alibaba 24%的股权，阿里按150B估值。
+  # 卖出股权税率38%
+  # 净现金3B
+  # 回购价格 34.94
+  'Yahoo': lambda: ((24 * 0.35 + 150 * 0.24) * ( 1 - 0.38) + 3) * 10**9 / SHARES['Yahoo'],
   # 按照阿里收购UC出资的股票部分和对UC的估值计算。
   'Alibaba': 72,
 }
@@ -888,11 +888,12 @@ def BuyYahoo():
   return GenericDynamicStrategy(
     'Yahoo',
     'P/B0',
-    [1.0, 0.8],
+    [0.9, 0.8],
     [0.05, 0.1],
-    [1.1, 1.2],
+    [1, 1.1],
     0.1,
-    buy_condition = lambda code: GetMarketPriceChange(code) <= -2);
+    buy_condition = lambda code: GetMarketPriceChange(code) <= -2,
+    sell_condition = lambda code: GetMarketPriceChange(code) >= 1);
 
 def BuyApple():
   return GenericDynamicStrategy(

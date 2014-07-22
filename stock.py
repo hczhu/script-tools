@@ -134,11 +134,11 @@ CAP = {
   'Weibo': 5.86 * 10**8 / 0.18 / SHARES['Weibo'],
   # 俄罗斯GDP是中国的四分之一，估值按百度目前的58B的四分之一计算。
   'Yandex': lambda: GetMarketCap('Baidu') / GetMarketCap('Yandex') / 4 * GetMarketPrice('Yandex'),
-  # 雅虎日本(24B)35％的股权和alibaba 24%的股权，阿里按150B估值。
+  # 雅虎日本(24B)35％的股权和alibaba 24%的股权，阿里按180B估值。
   # 卖出股权税率38%
   # 净现金3B
   # 回购价格 34.94
-  'Yahoo': lambda: ((24 * 0.35 + 150 * 0.24) * ( 1 - 0.38) + 3) * 10**9 / SHARES['Yahoo'],
+  'Yahoo': lambda: ((24 * 0.35 + 180 * 0.24) * ( 1 - 0.38) + 3) * 10**9 / SHARES['Yahoo'],
   # 按照阿里收购UC出资的股票部分和对UC的估值计算。
   'Alibaba': 72,
 }

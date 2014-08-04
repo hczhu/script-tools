@@ -1174,6 +1174,8 @@ def InitAll():
         sys.stderr.write('Estimation for %s\n'%(msg))
 
 def CalOneStock(NO_RISK_RATE, records, code, name):
+  sell_fee = 18.1 / 10000
+  buy_fee = 8.1 / 10000
   capital_cost = 0.0
   net_profit = 0.0
   investment = 0.0
@@ -1193,11 +1195,15 @@ def CalOneStock(NO_RISK_RATE, records, code, name):
     currency = cell[7]
     ex_rate = EX_RATE[currency + '-' + CURRENCY]
     trans_date = date(int(cell[0][0:4]), int(cell[0][4:6]), int(cell[0][6:8]))
-    fee = sum(map(float, cell[6:7])) * ex_rate
-    sum_fee += fee
     buy_shares = int(cell[5])
     origin_price = float(cell[4])
     price = origin_price * ex_rate
+    if len(cell[6]) > 0:
+      fee = float(cell[6]) * ex_rate
+    else:
+      fee = buy_fee * abs(buy_shares * price) if buy_shares > 0 else sell_fee * abs(buy_shares * price)
+      cell[6] = str(fee)
+    sum_fee += fee
     value = -price * buy_shares - fee
     if -1 == cell[1].find('股息'):
       data += '[new Date(%d, %d, %d), %.3f, \'%s%d\', \'%.0fK %s\'],\n'%(

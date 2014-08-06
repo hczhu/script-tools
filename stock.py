@@ -276,7 +276,7 @@ SPS = {
   # FY2013 Q4
   # TTM = latest Q + ...
   # 36.6 is the guidance for FY2014 Q1.
-  ':DeNA': (36.6 + 0.8 * (39.8 + 41.7 + 47.6)) * 10**9 / SHARES[':DeNA'],
+  ':DeNA': (35.6 + 0.7 * (35.8 + 39.8 + 41.7)) * 10**9 / SHARES[':DeNA'],
 }
 
 DV_TAX = 0.1

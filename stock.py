@@ -1169,7 +1169,7 @@ def InitAll():
   if 'all' in set(sys.argv):
     sys.argv += ['stock', 'hold', 'etf', 'Price']
   for name in EPS:
-    if name in BVPS0:
+    if name in BVPS0 and (name in WATCH_LIST_BANK or name in WATCH_LIST_BANK_1):
       roe = 1.0 * EPS[name] / BVPS0[name]
       msg = '%s ROE=%.1f%%'%(name, roe * 100)
       if roe < 0.1 or roe > 0.28:

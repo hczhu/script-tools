@@ -110,13 +110,13 @@ SHARES = {
   '招商银行': 4590901172 + 20628944429,
 
   # 港股 ＋ A股
-  '中国银行': 83622276395 + 195742329935,
+  '中国银行': 83622276395  + 195814814557,
 
   '兴业银行': 19052336751,
 
   '民生银行': 28366192773,
 
-  '建设银行': int(142590494651 / 0.5703),
+  '建设银行': 240417319880 + 9593657606,
 
   'Weibo': 2 * 10**8,
   # subtract treasury stock.
@@ -1170,7 +1170,7 @@ def InitAll():
   if 'all' in set(sys.argv):
     sys.argv += ['stock', 'hold', 'etf', 'Price']
   for name in EPS:
-    if name in BVPS0:
+    if name in BVPS0 and (name in WATCH_LIST_BANK or name in WATCH_LIST_BANK_1):
       roe = 1.0 * EPS[name] / BVPS0[name]
       msg = '%s ROE=%.1f%%'%(name, roe * 100)
       if roe < 0.1 or roe > 0.28:

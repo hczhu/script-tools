@@ -1212,7 +1212,7 @@ def CalOneStock(NO_RISK_RATE, records, code, name):
     value = -price * buy_shares - fee
     if -1 == cell[1].find('股息'):
       data += '[new Date(%d, %d, %d), %.3f, \'%s%d\', \'%.0fK %s\'],\n'%(
-          trans_date.year, trans_date.month, trans_date.day,
+          trans_date.year, trans_date.month - 1, trans_date.day,
           origin_price, '+' if buy_shares > 0 else '',
           buy_shares, (value + 500) / 1000, CURRENCY)
       prices.append(origin_price)

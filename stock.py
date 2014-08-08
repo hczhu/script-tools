@@ -402,9 +402,9 @@ MAX_PERCENT_PER_STOCK = 0.2
 
 PERCENT_UPPER = {
   '南方A50': 0.5,
-  '中国银行': 0.4,
+  '中国银行': 0.72,
   '建设银行': 0.4,
-  '招商银行': 0.35,
+  '招商银行': 0.40,
 }
 
 CURRENCY = 'RMB'
@@ -861,7 +861,7 @@ def GenericDynamicStrategy(name,
           mp,
           GetMarketPriceChange(code), indicator, indicator_value,
           target_percent * 100, current_percent * 100)
-  if (indicator_value - sell_point) * (buy_range[1] - buy_range[0]) > 0.0:
+  if (indicator_value - sell_point) * (buy_range[1] - buy_range[0]) < 0.0:
     current_percent = holding_percent[code]
     percent = min(current_percent, percent_delta)
     if percent > 0.0 and sell_condition(code):
@@ -886,7 +886,7 @@ def GenericSwapStrategy(name1, name2,
   holding1 = holding_percent[code1]
   holding2 = holding_percent[code2]
   fair_percent = (holding1 + holding2) / 2
-  target1 = fair * (indicator_value - zero1) / (fair - zero1)
+  target1 = fair_percent * (indicator_value - zero1) / (fair - zero1)
   target2 = holding2 + holding1 - target1
   if abs(target1 - holding1) >= percent_delta:
     money = NET_ASSET * percent_delta
@@ -895,9 +895,10 @@ def GenericSwapStrategy(name1, name2,
       mp1, mp2 = mp2, mp1
       mp_base1, mp_base2 = mp_base2, mp_base1 
       indicator_value = 1.0 / indicator_value
-    return 'Convert %s(%s) %d units @%.2f to %s(%s) %d units @%.2f due to %s = %.3f.'%(
-          CODE_TO_NAME[code1], code1, int(money / mp_base1), mp1,
-          CODE_TO_NAME[code2], code2, int(money / mp_base2), mp2,
+      target1, target2 = target2, target1
+    return '%s(%s)(target = %.1f%%) %d units @%.2f ==> %s(%s)(target = %.1f%%) %d units @%.2f due to %s = %.3f.'%(
+          CODE_TO_NAME[code1], code1, target1 * 100, int(money / mp_base1), mp1,
+          CODE_TO_NAME[code2], code2, target2 * 100, int(money / mp_base2), mp2,
           indicator, indicator_value)
   return ''
   
@@ -919,8 +920,8 @@ def BuyYandex():
   return GenericDynamicStrategy(
     'Yandex',
     'P/B0',
-    [.6, 0.4],
-    [0.02, 0.05],
+    [.6, 0.3],
+    [0.02, 0.08],
     0.8,
     buy_condition = lambda code: GetMarketPriceChange(code) <= -2);
 
@@ -987,8 +988,8 @@ def BuyDeNA():
     ':DeNA',
     'P/S',
     [1.0, 0.8],
-    [0.5, 0.8],
-    2.0,
+    [0.05, 0.1],
+    1.5,
     buy_condition = lambda code: GetMarketPriceChange(code) < min(0.0,
       1.1 * GetBeta(code) * GetMarketPriceChange('ni225')));
 
@@ -996,9 +997,9 @@ def BuyA50():
   return GenericDynamicStrategy(
     '南方A50',
     'P/E',
-    [8, 6],
+    [8, 7],
     [0.4, 0.6],
-    10.0,
+    9.0,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
 def BuyBOCH():
@@ -1006,7 +1007,7 @@ def BuyBOCH():
     '中国银行H',
     'DR',
     [0.06, 0.07],
-    [0.3, 0.4],
+    [0.4, 0.5],
     0.05,
     buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < 0.9 and GetMarketPriceChange(
                                  code) < 0.0 and GetAHDiscount('中国银行') >= GetAHDiscount(
@@ -1026,7 +1027,7 @@ def BuyBOC():
 def BuyWeibo():
   return GenericDynamicStrategy(
     'Weibo',
-    'P/B',
+    'P/B0',
     [1.1, 0.8],
     [0.5, 0.1],
     # 等阿里收购微博的消息
@@ -1067,7 +1068,7 @@ def ReduceOverflow():
   return ''
 
 def CMBandBOC():
-  return GenericSwapStrategy('中国银行', '招商银行', 'DR0', 1.0, 1.2)
+  return GenericSwapStrategy('中国银行', '招商银行', 'DR0', 1.0, 1.23)
 
 STRATEGY_FUNCS = {
   BuyApple: 'Buy Apple',

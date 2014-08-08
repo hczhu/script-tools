@@ -865,13 +865,11 @@ def GenericDynamicStrategy(name,
     current_percent = holding_percent[code]
     percent = min(current_percent, percent_delta)
     if percent > 0.0 and sell_condition(code):
-      percent = percent_delta
-      return 'Sell %s(%s) %d units @%.2f change: %.1f%% due to %s = %.3f. Target: %.1f%% current: %.1f%%'%(
+      return 'Sell %s(%s) %d units @%.2f change: %.1f%% due to %s = %.3f.'%(
           CODE_TO_NAME[code], code,
           int(NET_ASSET * percent / mp_base),
           mp,
-          GetMarketPriceChange(code), indicator, indicator_value,
-          target_percent * 100, current_percent * 100)
+          GetMarketPriceChange(code), indicator, indicator_value)
   return ''
 
 def GenericSwapStrategy(name1, name2,
@@ -897,7 +895,7 @@ def GenericSwapStrategy(name1, name2,
       mp1, mp2 = mp2, mp1
       mp_base1, mp_base2 = mp_base2, mp_base1 
       indicator_value = 1.0 / indicator_value
-    return 'Convert %s(%s) %d units @%.2f to %s(%s) %d units @%.2f% due to %s = %.3f.'%(
+    return 'Convert %s(%s) %d units @%.2f to %s(%s) %d units @%.2f due to %s = %.3f.'%(
           CODE_TO_NAME[code1], code1, int(money / mp_base1), mp1,
           CODE_TO_NAME[code2], code2, int(money / mp_base2), mp2,
           indicator, indicator_value)

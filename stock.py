@@ -875,7 +875,7 @@ def GenericDynamicStrategy(name,
 def GenericSwapStrategy(name1, name2,
                         indicator,
                         zero1, fair,
-                        percent_delta = 0.015):
+                        percent_delta):
   code1 = NAME_TO_CODE[name1]
   code2 = NAME_TO_CODE[name2]
   mp1 = GetMarketPrice(code1)
@@ -1068,7 +1068,7 @@ def ReduceOverflow():
   return ''
 
 def CMBandBOC():
-  return GenericSwapStrategy('中国银行', '招商银行', 'DR0', 1.0, 1.23)
+  return GenericSwapStrategy('中国银行', '招商银行', 'DR0', 1.0, 1.23, 0.05)
 
 STRATEGY_FUNCS = {
   BuyApple: 'Buy Apple',
@@ -1191,6 +1191,10 @@ def CalOneStock(NO_RISK_RATE, records, code, name):
           origin_price, '+' if buy_shares > 0 else '',
           buy_shares, (value + 500) / 1000, CURRENCY)
       prices.append(origin_price)
+    elif buy_shares < 0:
+      data += '[new Date(%d, %d, %d), %.3f, \'%s\', \'%.0f %s\'],\n'%(
+          trans_date.year, trans_date.month - 1, trans_date.day,
+          origin_price, 'Dividend', value, CURRENCY)
     if investment > 0.0:
       diff_days = (trans_date - prev_date).days
       capital_cost  += investment * NO_RISK_RATE / 365 * diff_days

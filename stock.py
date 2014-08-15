@@ -199,7 +199,7 @@ FORGOTTEN = {
 EPS = {
   #南方A50ETF，数据来自sse 50ETF统计页面
   # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
-  '南方A50':  9.5581 / 7.82,
+  '南方A50':  9.4050 / 7.74,
   # TTM + Fy2014 Q2 guidance
   ':DeNA': (5.7 + 0.6 * (7 + 9.7 + 11.4)) * 10**9 / SHARES[':DeNA'],
 
@@ -1035,7 +1035,7 @@ def BuyWeibo():
   return GenericDynamicStrategy(
     'Weibo',
     'P/B0',
-    [1.1, 0.8],
+    [1.15, 0.8],
     [0.5, 0.1],
     # 等阿里收购微博的消息
     1.5,

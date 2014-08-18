@@ -135,7 +135,8 @@ CAP = {
   # 阿里入股5.86亿美元，占比18%
   'Weibo': 5.86 * 10**8 / 0.18 / SHARES['Weibo'],
   # 俄罗斯GDP是中国的四分之一，估值按百度目前的58B的四分之一计算。
-  'Yandex': lambda: GetMarketCap('Baidu') / GetMarketCap('Yandex') / 4 * GetMarketPrice('Yandex'),
+  # 互联网渗透率，Russia 62%, China 50%.
+  'Yandex': lambda: GetMarketCap('Baidu') / GetMarketCap('Yandex') / 4 * GetMarketPrice('Yandex') * (38.0 / 50.0),
   # 雅虎日本(24B)35％的股权和alibaba 24%的股权，阿里按180B估值。
   # 卖出股权税率38%
   # 净现金3B
@@ -927,7 +928,7 @@ def BuyYandex():
   return GenericDynamicStrategy(
     'Yandex',
     'P/B0',
-    [.6, 0.3],
+    [.7, 0.3],
     [0.02, 0.08],
     0.8,
     buy_condition = lambda code: GetMarketPriceChange(code) <= -2);
@@ -994,8 +995,8 @@ def BuyDeNA():
   return GenericDynamicStrategy(
     ':DeNA',
     'P/S',
-    [1.0, 0.8],
-    [0.05, 0.1],
+    [1.1, 0.8],
+    [0.05, 0.12],
     1.5,
     buy_condition = lambda code: GetMarketPriceChange(code) < min(0.0,
       1.1 * GetBeta(code) * GetMarketPriceChange('ni225')));

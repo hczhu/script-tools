@@ -169,7 +169,9 @@ BVPS0 = {
   'Yahoo': CAP['Yahoo'],
 
   # 净现金
-  ':DeNA': 1.0 * (110418 - 52858) * 10**6 / SHARES[':DeNA']
+  ':DeNA': 1.0 * (110418 - 52858) * 10**6 / SHARES[':DeNA'],
+
+  '信诚300A': lambda: GetXueqiuETFBookValue('信诚300A'),
 }
 
 # TTM
@@ -482,6 +484,7 @@ WATCH_LIST_ETF = {
   #南方A50 ETF
   '02822': '南方A50',
   '03199': '南方5年国债',
+  '150051': '信诚300A',
 } 
 
 WATCH_LIST_OTHER = {
@@ -528,7 +531,7 @@ ETF_BOOK_VALUE_FUNC = {
                                       '<',
                                       lambda x: round(float(
                                         x.replace(',', '')) / (96 * 10**6) / EX_RATE['HKD-RMB'], 2),
-                                      )
+                                      ),
 }
 
 # In the form of '2432': [price, change, cap].
@@ -671,17 +674,24 @@ def GetXueqiuMarketPrice(code):
   change_end_str = '%)'
   cap_feature_str = ['市值：<span>']
   cap_end_str = '<'
+  book_value_str = ['单位净值', '<span>']
+  book_value_end_str = '<'
   for pr in GetXueqiuUrlPrefix(code):
     url = url_prefix + pr + code
     try:
       price = GetValueFromUrl(url, price_feature_str, price_end_str, float)
       change = GetValueFromUrl(url, change_feature_str, change_end_str, float)
       cap = GetValueFromUrl(url, cap_feature_str, cap_end_str,
-                            lambda s: float(s.replace('亿', '')) * 10**8)
-      return [price, change, cap]
+                            lambda s: float(s.replace('亿', '')) * 10**8, False)
+      book_value = GetValueFromUrl(url, book_value_str, book_value_end_str, float, False)
+      return [price, change, cap, book_value]
     except:
       continue
-  return [float('inf'), 0.0]
+  return [0.0, 0.0, 0.0, 0.0]
+
+def GetXueqiuETFBookValue(code):
+  code = NAME_TO_CODE[code] if code in NAME_TO_CODE else code
+  return GetXueqiuMarketPrice(code)[3]
 
 def GetMarketPrice(code):
   code = NAME_TO_CODE[code] if code in NAME_TO_CODE else code
@@ -1447,15 +1457,15 @@ def PrintWatchedETF():
                  ]
   table_map = []
   for code in WATCH_LIST_ETF.keys():
-    if code in ETF_BOOK_VALUE_FUNC:
-      price, change, real_value = GetMarketPrice(code), GetMarketPriceChange(code), ETF_BOOK_VALUE_FUNC[code]()
-      table_map.append({
-        'Change': str(round(change, 1)) + '%',
-        'Real Value': real_value,
-        'Discount': str(myround((real_value - price) * 100 / real_value, 0)) + '%',
-        'P/E': GetPE(code, price),
-        'Stock name': CODE_TO_NAME[code],
-      })
+    func = ETF_BOOK_VALUE_FUNC[code] if code in ETF_BOOK_VALUE_FUNC else lambda: GetXueqiuETFBookValue(code)
+    price, change, real_value = GetMarketPrice(code), GetMarketPriceChange(code), func()
+    table_map.append({
+      'Change': str(round(change, 1)) + '%',
+      'Real Value': real_value,
+      'Discount': str(myround((real_value - price) * 100 / real_value, 0)) + '%',
+      'P/E': GetPE(code, price),
+      'Stock name': CODE_TO_NAME[code],
+    })
   silent = []
   if 'Price' not in set(sys.argv):
     silent += ['Price']

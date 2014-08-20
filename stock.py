@@ -1088,6 +1088,17 @@ def ReduceOverflow():
 def CMBandBOC():
   return GenericSwapStrategy('中国银行', '招商银行', 'DR0', 1.0, 1.23, 0.05)
 
+def SellBOCH():
+  code = NAME_TO_CODE['中国银行H']
+  if GetAHDiscount(code) < -0.98:
+    mp = GetMarketPriceInBase(code)
+    return 'Sell 中国银行H(%s) %d units @%.3f due to AHR = %.3f'%(
+      code,
+      int((holding_percent[code] - 0.2) * NET_ASSET / mp),
+      mp,
+      GetAHDiscount(code))
+  return ''
+
 STRATEGY_FUNCS = {
   BuyApple: 'Buy Apple',
   BuyBig4BanksH: 'Buy 四大行H股 ',
@@ -1105,6 +1116,7 @@ STRATEGY_FUNCS = {
   BuyYahoo: 'Buy Yahoo',
   ReduceOverflow: 'Reduce overflow',
   CMBandBOC: 'CMB<->BOC',
+  SellBOCH: 'Sell BOCH',
 }
 
 #--------------End of strategy functions-----

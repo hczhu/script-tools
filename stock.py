@@ -124,6 +124,23 @@ SHARES = {
   'Yahoo': 1015 * 10**6,
 }
 
+ETF_BOOK_VALUE_FUNC = {
+  #南方A50 ETF
+  # http://www.csopasset.com/tchi/products/china_A50_etf.php
+  '南方A50': lambda: GetValueFromUrl('http://www.csop.mdgms.com/iopv/nav.html?l=tc',
+                                      ['即日估計每基金單位資產淨值', '<td id="nIopvPriceHKD">'],
+                                      '</td>',
+                                      float,
+                                      ),
+
+  '南方5年国债': lambda: GetValueFromUrl('http://www.csopasset.com/tchi/products/china_bond.php',
+                                      ['<td>總資產淨值', '<td', '>'],
+                                      '<',
+                                      lambda x: round(float(
+                                        x.replace(',', '')) / (96 * 10**6) / EX_RATE['HKD-RMB'], 2),
+                                      ),
+}
+
 # (总面值，目前转股价)
 CB = {
   '中国银行': [39386761000, 2.82 - 0.196],
@@ -172,6 +189,8 @@ BVPS0 = {
   ':DeNA': 1.0 * (110418 - 52858) * 10**6 / SHARES[':DeNA'],
 
   '信诚300A': lambda: GetXueqiuETFBookValue('信诚300A'),
+
+  '南方A50': ETF_BOOK_VALUE_FUNC['南方A50'],
 }
 
 # TTM
@@ -515,23 +534,6 @@ EX_RATE = {
   'RMB-USD': 0.1605,
   'HKD-USD': 0.129,
   'YEN-USD': 0.009782,
-}
-
-ETF_BOOK_VALUE_FUNC = {
-  #南方A50 ETF
-  # http://www.csopasset.com/tchi/products/china_A50_etf.php
-  '南方A50': lambda: GetValueFromUrl('http://www.csop.mdgms.com/iopv/nav.html?l=tc',
-                                      ['即日估計每基金單位資產淨值', '<td id="nIopvPriceHKD">'],
-                                      '</td>',
-                                      float,
-                                      ),
-
-  '南方5年国债': lambda: GetValueFromUrl('http://www.csopasset.com/tchi/products/china_bond.php',
-                                      ['<td>總資產淨值', '<td', '>'],
-                                      '<',
-                                      lambda x: round(float(
-                                        x.replace(',', '')) / (96 * 10**6) / EX_RATE['HKD-RMB'], 2),
-                                      ),
 }
 
 # In the form of '2432': [price, change, cap].
@@ -1104,7 +1106,7 @@ STRATEGY_FUNCS = {
   BuyBig4BanksH: 'Buy 四大行H股 ',
   BuyDeNA:  'Buy :DeNA',
   BuyCMBH:  'Buy 招商银行H ',
-  BuyCMB:  'Buy CMB',
+  #BuyCMB:  'Buy CMB',
   BuyA50: 'Buy A50',
   BuyBOCH: 'Buy BOCH',
   BuyBOC: 'Buy BOC',

@@ -96,6 +96,12 @@ http://www.cbrc.gov.cn/chinese/home/docViewPage/110009.html
 
 2014年一季度大行平均不良率为1.03，股份行平均不良率为0.92。
 
+2014Q2数据
+  \           大行    股份行
+  不良率      1.05    1.00
+  拨备覆盖率  272%    235%
+  ROA         1.45    1.23
+  
 加权风险资产收益率=净利润/加权风险资产
 加权风险资产：银行业各类资产风险系数--（现金 证券 贷款 固定资产 无形资产)0% 10% 20% 50% 100%
 GDP每下行1个点，不良率上升0.7个点。
@@ -1017,7 +1023,7 @@ def BuyA50():
   return GenericDynamicStrategy(
     '南方A50',
     'P/E',
-    [8, 7],
+    [7.5, 7],
     [0.4, 0.6],
     9.0,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);

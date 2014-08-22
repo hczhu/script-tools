@@ -232,15 +232,7 @@ EPS = {
   ':DeNA': (5.7 + 0.6 * (7 + 9.7 + 11.4)) * 10**9 / SHARES[':DeNA'],
 
   # 2014 Q1
-  # 核销回收率15%
-  '招商银行': 10**6 * (
-              29184 * 1.3 # 手续费和佣金净收入，按过去两年的平均增长估计
-              + 4507 # 其非利息他净收入不变
-              + (3507220 * 1.08) * 2.55 / 100 # 利息净收入 = 生息资产估计 * 净息差估计，生息资产增长受限于核心资本充足率，贷存比和M1增长
-              - 45565 * 1.12 # 减去业务管理费估计
-              - 10218 * 1.5 # 减去资产减值损失
-              ) * (1.0 - 0.24)  # 扣税
-              / SHARES['招商银行'],
+  '招商银行': 1.* ((51742 - 13021) * 1.15 + 14945) * 10**6 / SHARES['招商银行'],
   
   # 根据2014 H1，假设下半年增长率10%
   '中国银行': 1.0 * ((156911 - 80721) * 1.1 + 89724) * 10**6 / SHARES['中国银行'],
@@ -909,13 +901,13 @@ def GenericSwapStrategy(name1, name2,
   target2 = holding2 + holding1 - target1
   if abs(target1 - holding1) >= percent_delta:
     money = NET_ASSET * percent_delta
-    if target1 < holding1:
+    if target1 > holding1:
       code1, code2 = code2, code1
       mp1, mp2 = mp2, mp1
       mp_base1, mp_base2 = mp_base2, mp_base1 
       indicator_value = 1.0 / indicator_value
       target1, target2 = target2, target1
-    return '%s(%s)(target = %.1f%%) %d units @%.2f ==> %s(%s)(target = %.1f%%) %d units @%.2f due to %s = %.3f.'%(
+    return '%s(%s)(target = %.1f%%) %d units @%.2f ==> %s(%s)(target = %.1f%%) %d units @%.2f due to %s ratio = %.3f.'%(
           CODE_TO_NAME[code1], code1, target1 * 100, int(money / mp_base1), mp1,
           CODE_TO_NAME[code2], code2, target2 * 100, int(money / mp_base2), mp2,
           indicator, indicator_value)
@@ -1087,7 +1079,7 @@ def ReduceOverflow():
   return ''
 
 def CMBandBOC():
-  return GenericSwapStrategy('中国银行', '招商银行', 'DR', 1.0, 1.23, 0.05)
+  return GenericSwapStrategy('中国银行', '招商银行', 'DR', 1.0, 1.22, 0.05)
 
 def SellBOCH():
   code = NAME_TO_CODE['中国银行H']

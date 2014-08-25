@@ -1079,7 +1079,7 @@ def ReduceOverflow():
   return ''
 
 def CMBandBOC():
-  return GenericSwapStrategy('中国银行', '招商银行', 'DR', 1.0, 1.22, 0.05)
+  return GenericSwapStrategy('中国银行', '招商银行', 'DR', 1.0, 1.2, 0.05)
 
 def SellBOCH():
   code = NAME_TO_CODE['中国银行H']

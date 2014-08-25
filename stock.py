@@ -943,7 +943,7 @@ def BuyYahoo():
     [1.0, 0.8],
     [0.05, 0.12],
     1.1,
-    buy_condition = lambda code: GetMarketPriceChange(code) <= -2,
+    buy_condition = lambda code: GetMarketPriceChange(code) <= -1,
     sell_condition = lambda code: GetMarketPriceChange(code) >= 1);
 
 def BuyApple():

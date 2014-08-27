@@ -168,7 +168,7 @@ CAP = {
   # 卖出股权税率38%
   # 净现金3B
   # 回购价格 34.94
-  'Yahoo': lambda: ((24 * 0.35 + 180 * 0.24) * ( 1 - 0.38) + 3) * 10**9 / SHARES['Yahoo'],
+  'Yahoo': lambda: ((24 * 0.35 + 200 * 0.24) * ( 1 - 0.38) + 3) * 10**9 / SHARES['Yahoo'],
   # 按照阿里收购UC出资的股票部分和对UC的估值计算。
   'Alibaba': 72,
 }
@@ -820,6 +820,9 @@ FINANCIAL_FUNC = {
 
 #--------------Beginning of strategy functions-----
 
+def InBetween(value_range, x):
+  return (x - value_range[0]) * (x - value_range[1]) <= 0.0
+
 def GenericDynamicStrategy(name,
                            indicator,
                            buy_range,
@@ -832,7 +835,7 @@ def GenericDynamicStrategy(name,
   mp = GetMarketPrice(code)
   mp_base = GetMarketPriceInBase(code)
   indicator_value = FINANCIAL_FUNC[indicator](code, mp)
-  if (indicator_value - buy_range[0]) * (buy_range[1] - buy_range[0]) > 0.0:
+  if InBetween(buy_range, indicator_value):
     target_percent = (hold_percent_range[1] - hold_percent_range[0]) * (indicator_value - buy_range[0]) / (
                     buy_range[1] - buy_range[0]) + hold_percent_range[0]
     target_percent = max(hold_percent_range[0], target_percent)
@@ -847,7 +850,7 @@ def GenericDynamicStrategy(name,
           mp,
           GetMarketPriceChange(code), indicator, indicator_value,
           target_percent * 100, current_percent * 100)
-  if (indicator_value - sell_point) * (buy_range[1] - buy_range[0]) < 0.0:
+  elif InBetween([buy_range[0], indicator_value], sell_point):
     current_percent = holding_percent[code]
     percent = min(current_percent, percent_delta)
     if percent > 0.0 and sell_condition(code):
@@ -856,6 +859,10 @@ def GenericDynamicStrategy(name,
           int(NET_ASSET * percent / mp_base),
           mp,
           GetMarketPriceChange(code), indicator, indicator_value)
+  elif InBetween([buy_range[0], indicator_value], buy_range[1]):
+    return 'Extreme price for %s(%s) @%.2f due to %s = %.3f.'%(
+      CODE_TO_NAME[code], code,
+      mp, indicator, indicator_value)
   return ''
 
 def GenericSwapStrategy(name1, name2,
@@ -975,7 +982,7 @@ def BuyDeNA():
     'P/S',
     [1.1, 0.8],
     [0.05, 0.12],
-    1.5,
+    2.0,
     buy_condition = lambda code: GetMarketPriceChange(code) < min(0.0,
       1.1 * GetBeta(code) * GetMarketPriceChange('ni225')));
 

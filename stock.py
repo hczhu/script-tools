@@ -1227,10 +1227,6 @@ def CalOneStock(NO_RISK_RATE, records, code, name):
           origin_price, '+' if buy_shares > 0 else '',
           buy_shares, (value + 500) / 1000, CURRENCY)
       prices.append(origin_price)
-    elif buy_shares < 0:
-      data += '[new Date(%d, %d, %d), %.3f, \'%s\', \'%.0f %s\'],\n'%(
-          trans_date.year, trans_date.month - 1, trans_date.day,
-          origin_price, 'Dividend', value, CURRENCY)
     if investment > 0.0:
       diff_days = (trans_date - prev_date).days
       capital_cost  += investment * NO_RISK_RATE / 365 * diff_days

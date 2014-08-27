@@ -1190,8 +1190,6 @@ def InitAll():
         sys.stderr.write('Estimation for %s\n'%(msg))
 
 def CalOneStock(NO_RISK_RATE, records, code, name):
-  sell_fee = 18.1 / 10000
-  buy_fee = 8.1 / 10000
   capital_cost = 0.0
   net_profit = 0.0
   investment = 0.0
@@ -1210,17 +1208,13 @@ def CalOneStock(NO_RISK_RATE, records, code, name):
   for cell in records:
     currency = cell[7]
     ex_rate = EX_RATE[currency + '-' + CURRENCY]
-    trans_date = date(int(cell[0][0:4]), int(cell[0][4:6]), int(cell[0][6:8]))
-    buy_shares = int(cell[5])
-    origin_price = float(cell[4])
+    trans_date = cell[0]
+    buy_shares = cell[5]
+    origin_price = cell[4]
     price = origin_price * ex_rate
-    if len(cell[6]) > 0:
-      fee = float(cell[6]) * ex_rate
-    else:
-      fee = buy_fee * abs(buy_shares * price) if buy_shares > 0 else sell_fee * abs(buy_shares * price)
-      cell[6] = str(fee)
+    fee = cell[6] * ex_rate
     sum_fee += fee
-    value = -price * buy_shares - fee
+    value = -price * buy_shares - fee - cell[8]
     if -1 == cell[1].find('股息'):
       data += '[new Date(%d, %d, %d), %.3f, \'%s%d\', \'%.0fK %s\'],\n'%(
           trans_date.year, trans_date.month - 1, trans_date.day,
@@ -1266,12 +1260,37 @@ def CalOneStock(NO_RISK_RATE, records, code, name):
           DIV_TEMPLATE%(vid))
 
 def ReadRecords(input):
-  all_records = defaultdict(list)
+  raw_all_records = []
   for line in input:
     if 0 != line.find('20'):
       continue
     cells = line.strip().split(',')
-    all_records[cells[2]].append(cells)
+    cells[0] = date(int(cells[0][0:4]), int(cells[0][4:6]), int(cells[0][6:8]))
+    raw_all_records.append(cells)
+  raw_all_records.sort() 
+
+  all_records = defaultdict(list)
+  sell_fee = 18.1 / 10000
+  buy_fee = 8.1 / 10000
+  for cells in raw_all_records:
+    cells.append(0.0)
+    price, buy_shares = float(cells[4]), int(cells[5])
+    fee = float(cells[6]) if cells[6] != '' else (
+      buy_fee * abs(buy_shares * price) if buy_shares > 0 else sell_fee * abs(buy_shares * price))
+    cells[4], cells[5], cells[6] = price, buy_shares, fee
+    last = all_records[cells[2]][-1] if len(all_records[cells[2]]) > 0 else []
+    if (len(last) > 0 and
+        (cells[0] - last[0]).days < 10
+        and cells[1].find('股息') == -1):
+      if buy_shares + last[5] != 0:
+        last[4] = (last[8] + buy_shares * price + last[5] * last[4]) / (buy_shares + last[5])
+        last[8] = 0
+      else:
+        last[8] += buy_shares * price + last[5] * last[4]
+      last[5] += buy_shares
+      last[6] += fee
+    else:
+      all_records[cells[2]].append(cells)
   return all_records
 
 def PrintHoldingSecurities(all_records):
@@ -1328,7 +1347,7 @@ def PrintHoldingSecurities(all_records):
           NO_RISK_RATE, all_records[key], key, name)
       net_profit *= EX_RATE[CURRENCY + '-' + currency]
       cells = all_records[key][-1]
-      cells[2:7] = [currency, '', '1', str(int(net_profit)), '0']
+      cells[2:7] = [currency, '', 1, int(net_profit), 0]
       all_records[currency].append(cells)
       sys.stderr.write('Convert %s to cash %d in %s\n'%(CODE_TO_NAME[key], net_profit, currency))
       assert net_profit >= 0
@@ -1409,10 +1428,10 @@ def PrintHoldingSecurities(all_records):
     for cell in all_records[key]:
       currency = cell[7]
       ex_rate = EX_RATE[currency + '-' + CURRENCY]
-      trans_date = date(int(cell[0][0:4]), int(cell[0][4:6]), int(cell[0][6:8]))
-      fee = sum(map(float, cell[6:7])) * ex_rate
-      buy_shares = int(cell[5])
-      price = float(cell[4]) * ex_rate
+      trans_date = cell[0]
+      fee = cell[6] * ex_rate
+      buy_shares = cell[5]
+      price = cell[4] * ex_rate
       value = -price * buy_shares - fee
       cash_flow[currency].append([trans_date, key, value]);
   

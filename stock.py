@@ -1249,7 +1249,7 @@ def ReadRecords(input):
     cells[4], cells[5], cells[6] = price, buy_shares, fee
     last = all_records[cells[2]][-1] if len(all_records[cells[2]]) > 0 else []
     if (len(last) > 0 and
-        (cells[0] - last[0]).days < 10
+        (cells[0] - last[0]).days < 7
         and cells[1].find('股息') == -1
         and last[1].find('股息') == -1):
       if buy_shares + last[5] != 0:

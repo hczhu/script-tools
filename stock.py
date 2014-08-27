@@ -1267,7 +1267,6 @@ def PrintHoldingSecurities(all_records):
   global NET_ASSET
   table_header = [
                   'Percent',
-                  'Pos',
                   'CC',
                   '#TxN',
                   'TNF',

@@ -436,7 +436,7 @@ PERCENT_UPPER = {
   '招商银行': 0.40,
 }
 
-CURRENCY = 'RMB'
+CURRENCY = 'USD'
 NO_RISK_RATE = 0.05
 LOAN_RATE = 0.016
 
@@ -1183,7 +1183,7 @@ def CalOneStock(NO_RISK_RATE, records, code, name):
     price = origin_price * ex_rate
     fee = cell[6] * ex_rate
     sum_fee += fee
-    value = -price * buy_shares - fee - cell[8]
+    value = -price * buy_shares - fee - cell[8] * ex_rate
     if -1 == cell[1].find('股息'):
       data += '[new Date(%d, %d, %d), %.3f, \'%s%d\', \'%.0fK %s\'],\n'%(
           trans_date.year, trans_date.month - 1, trans_date.day,
@@ -1250,7 +1250,8 @@ def ReadRecords(input):
     last = all_records[cells[2]][-1] if len(all_records[cells[2]]) > 0 else []
     if (len(last) > 0 and
         (cells[0] - last[0]).days < 10
-        and cells[1].find('股息') == -1):
+        and cells[1].find('股息') == -1
+        and last[1].find('股息') == -1):
       if buy_shares + last[5] != 0:
         last[4] = (last[8] + buy_shares * price + last[5] * last[4]) / (buy_shares + last[5])
         last[8] = 0
@@ -1272,7 +1273,6 @@ def PrintHoldingSecurities(all_records):
                   'TNF',
                   'DTP',
                   '#DT',
-                  'HS',
                   'MP',
                   'Chg',
                   'P/E0',
@@ -1365,7 +1365,6 @@ def PrintHoldingSecurities(all_records):
         'DTP': myround(dtp, 0),
         '#DT': dt,
         'Pos': remain_stock,
-        'MP': str(mp),
         'P/E0': myround(GetPE0(key, mp), 2),
         'P/E': myround(GetPE(key, mp), 2),
         'P/S': myround(GetPS(key, mp), 2),

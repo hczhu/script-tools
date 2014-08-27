@@ -7,6 +7,7 @@ from datetime import time
 from collections import defaultdict
 import urllib2
 import traceback
+import copy
 
 from table_printer import *
 
@@ -1236,7 +1237,7 @@ def ReadRecords(input):
     cells = line.strip().split(',')
     cells[0] = date(int(cells[0][0:4]), int(cells[0][4:6]), int(cells[0][6:8]))
     raw_all_records.append(cells)
-  raw_all_records.sort() 
+  raw_all_records.sort(key = lambda record: record[0]) 
 
   all_records = defaultdict(list)
   sell_fee = 18.1 / 10000
@@ -1399,7 +1400,7 @@ def PrintHoldingSecurities(all_records):
       fee = cell[6] * ex_rate
       buy_shares = cell[5]
       price = cell[4] * ex_rate
-      value = -price * buy_shares - fee
+      value = -price * buy_shares - fee - cell[8] * ex_rate
       cash_flow[currency].append([trans_date, key, value]);
   
   cash_flow['USD'] += cash_flow['HKD']
@@ -1411,12 +1412,11 @@ def PrintHoldingSecurities(all_records):
     dt['RMB'] *= EX_RATE[CURRENCY + '-RMB']
     dt['USD'] *= EX_RATE[CURRENCY + '-USD']
 
-  for dt in [cash_flow]:
-    dt['ALL'] = dt['USD'] + dt['RMB']
-    for record in dt['RMB']:
-      record[2] *= EX_RATE[CURRENCY + '-RMB']
-    for record in dt['USD']:
-      record[2] *= EX_RATE[CURRENCY + '-USD']
+  cash_flow['ALL'] = copy.deepcopy(cash_flow['USD'] + cash_flow['RMB'])
+  for record in cash_flow['RMB']:
+    record[2] *= EX_RATE[CURRENCY + '-RMB']
+  for record in cash_flow['USD']:
+    record[2] *= EX_RATE[CURRENCY + '-USD']
   
   for currency in ['USD', 'RMB', 'ALL']:
     capital_table_map.append(

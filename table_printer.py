@@ -14,7 +14,7 @@ def PrintTable(table_header, records, silent_column = [], truncate_float = True)
   for cells in records:
     for i in range(len(cells)):
       if truncate_float and isinstance(cells[i], float):
-
+        cells[i] = '%.3f'%(cells[i])
       col_len[i] = max(col_len[i], len(str(cells[i])))
   line = PrintOneLine(table_header, col_len, silent_column)
   header = '+' + line[1:len(line) - 1] + '+'
@@ -37,4 +37,4 @@ def PrintTableMap(table_header, records_map, silent_column = [], truncate_float 
   records = []
   for r in records_map:
     records.append([r.get(col, '') for col in table_header])
-  PrintTable(table_header, records, silent_column)
+  PrintTable(table_header, records, silent_column, truncate_float)

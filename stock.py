@@ -7,6 +7,9 @@ from datetime import time
 from collections import defaultdict
 import urllib2
 import traceback
+
+from table_printer import *
+
 #----------------------Template-----------------------------
 
 HTML_TEMPLATE = """
@@ -815,47 +818,6 @@ FINANCIAL_FUNC = {
 
 #--------------End of logic util functions---------------
 
-#--------------Beginning of print functions-------------
-
-def PrintOneLine(table_header, col_len, silent_column):
-  silent_column = set(silent_column)
-  line = '|'
-  for i in range(len(col_len)):
-    if table_header[i] in silent_column: continue
-    line += '-' * col_len[i] + '|'
-  return line
-
-def PrintTable(table_header, records, silent_column):
-  silent_column = set(silent_column)
-  col_len = map(len, table_header)
-  for cells in records:
-    for i in range(len(cells)):
-      col_len[i] = max(col_len[i], len(str(cells[i])))
-  line = PrintOneLine(table_header, col_len, silent_column)
-  header = '+' + line[1:len(line) - 1] + '+'
-  print header
-  records.insert(0, table_header)
-  first = True
-  for cells in records:
-    assert len(cells) == len(records[0])
-    row = '|'
-    for i in range(len(cells)):
-      if table_header[i] in silent_column: continue
-      row += (' ' * (col_len[i] - len(str(cells[i])))) + str(cells[i]) + '|'
-    if first: first = False
-    else: print line
-    print row
-  print header
-
-# 'records_map' are an array of map.
-def PrintTableMap(table_header, records_map, silent_column):
-  records = []
-  for r in records_map:
-    records.append([r.get(col, '') for col in table_header])
-  PrintTable(table_header, records, silent_column)
-
-#--------------End of print functions-------------
-
 #--------------Beginning of strategy functions-----
 
 def GenericDynamicStrategy(name,
@@ -1458,7 +1420,7 @@ def PrintHoldingSecurities(all_records):
         }
     )
   
-  PrintTableMap(capital_header, capital_table_map, set())
+  PrintTableMap(capital_header, capital_table_map, set(), truncate_float = False)
   NET_ASSET = total_market_value['ALL'] + total_capital['ALL'] - total_investment['ALL']
   for col in ['Chg', 'DR', 'DR0', 'Percent']:
     summation[col] = 0.0
@@ -1474,7 +1436,7 @@ def PrintHoldingSecurities(all_records):
   if 'hold' in set(sys.argv):
     stat_records_map.append(summation)
     stat_records_map.sort(reverse = True, key = lambda record: record.get('MV', 0))
-    PrintTableMap(table_header, stat_records_map, silent_column)
+    PrintTableMap(table_header, stat_records_map, silent_column, truncate_float = False)
   if 'chart' in set(sys.argv):
     open('/tmp/charts.html', 'w').write(
       HTML_TEMPLATE%(function_html, div_html) 
@@ -1502,7 +1464,7 @@ def PrintWatchedETF():
   silent = []
   if 'Price' not in set(sys.argv):
     silent += ['Price']
-  PrintTableMap(table_header, table_map, silent)
+  PrintTableMap(table_header, table_map, silent, truncate_float = False)
 
 def PrintWatchedStocks(watch_list, table_header, sort_key, rev = False):
   table, silent = [], []
@@ -1520,7 +1482,7 @@ def PrintWatchedStocks(watch_list, table_header, sort_key, rev = False):
         record[col] = round(FINANCIAL_FUNC[col](code, mp), 3)
     table.append(record)
   table.sort(reverse = rev, key = lambda record: record.get(sort_key, 0))
-  PrintTableMap(table_header, table, silent)
+  PrintTableMap(table_header, table, silent, truncate_float = False)
 
 def PrintWatchedBank():
   table_header = [

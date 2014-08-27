@@ -436,7 +436,7 @@ PERCENT_UPPER = {
   '招商银行': 0.40,
 }
 
-CURRENCY = 'USD'
+CURRENCY = 'RMB'
 NO_RISK_RATE = 0.05
 LOAN_RATE = 0.016
 
@@ -1406,9 +1406,18 @@ def PrintHoldingSecurities(all_records):
   cash_flow['USD'] += cash_flow['HKD']
   cash_flow['USD'] += cash_flow['YEN']
   
-  for dt in [cash_flow, total_market_value, total_capital,
+  for dt in [total_market_value, total_capital,
              total_investment, total_transaction_fee]:
     dt['ALL'] = dt['USD'] + dt['RMB']
+    dt['RMB'] *= EX_RATE[CURRENCY + '-RMB']
+    dt['USD'] *= EX_RATE[CURRENCY + '-USD']
+
+  for dt in [cash_flow]:
+    dt['ALL'] = dt['USD'] + dt['RMB']
+    for record in dt['RMB']:
+      record[2] *= EX_RATE[CURRENCY + '-RMB']
+    for record in dt['USD']:
+      record[2] *= EX_RATE[CURRENCY + '-USD']
   
   for currency in ['USD', 'RMB', 'ALL']:
     capital_table_map.append(

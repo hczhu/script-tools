@@ -1266,6 +1266,7 @@ def PrintHoldingSecurities(all_records):
   global NET_ASSET
   table_header = [
                   'Percent',
+                  'Pos',
                   'CC',
                   '#TxN',
                   'TNF',
@@ -1288,7 +1289,6 @@ def PrintHoldingSecurities(all_records):
   silent_column = [
     'MV',
     'MP',
-    'HS',
     '#TxN',
     'TNF',
     'DTP',
@@ -1364,7 +1364,7 @@ def PrintHoldingSecurities(all_records):
         'TNF': myround(txn_fee, 0),
         'DTP': myround(dtp, 0),
         '#DT': dt,
-        'HS': remain_stock,
+        'Pos': remain_stock,
         'MP': str(mp),
         'P/E0': myround(GetPE0(key, mp), 2),
         'P/E': myround(GetPE(key, mp), 2),

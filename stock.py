@@ -144,13 +144,6 @@ ETF_BOOK_VALUE_FUNC = {
                                       '</td>',
                                       float,
                                       ),
-
-  '南方5年国债': lambda: GetValueFromUrl('http://www.csopasset.com/tchi/products/china_bond.php',
-                                      ['<td>總資產淨值', '<td', '>'],
-                                      '<',
-                                      lambda x: round(float(
-                                        x.replace(',', '')) / (96 * 10**6) / EX_RATE['HKD-RMB'], 2),
-                                      ),
 }
 
 # (总面值，目前转股价)
@@ -236,7 +229,7 @@ FORGOTTEN = {
 EPS = {
   #南方A50ETF，数据来自sse 50ETF统计页面
   # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
-  '南方A50':  9.4050 / 7.74,
+  '南方A50':  9.2116 / 7.64,
   # TTM + Fy2014 Q2 guidance
   ':DeNA': (5.7 + 0.6 * (7 + 9.7 + 11.4)) * 10**9 / SHARES[':DeNA'],
 
@@ -510,7 +503,6 @@ WATCH_LIST_CB = {
 WATCH_LIST_ETF = {
   #南方A50 ETF
   '02822': '南方A50',
-  '03199': '南方5年国债',
   '150051': '信诚300A',
 } 
 
@@ -876,7 +868,8 @@ def GenericSwapStrategy(name1, name2,
   mp2 = GetMarketPrice(code2)
   mp_base1 = GetMarketPriceInBase(code1)
   mp_base2 = GetMarketPriceInBase(code2)
-  indicator_value = FINANCIAL_FUNC[indicator](code1, mp1) / FINANCIAL_FUNC[indicator](code2, mp2)
+  indicator_value = indicator() if IsLambda(indicator) else \
+    FINANCIAL_FUNC[indicator](code1, mp1) / FINANCIAL_FUNC[indicator](code2, mp2)
   holding1 = holding_percent[code1]
   holding2 = holding_percent[code2]
   fair_percent = (holding1 + holding2) / 2
@@ -893,7 +886,7 @@ def GenericSwapStrategy(name1, name2,
     return '%s(%s)(target = %.1f%%) %d units @%.2f ==> %s(%s)(target = %.1f%%) %d units @%.2f due to %s ratio = %.3f.'%(
           CODE_TO_NAME[code1], code1, target1 * 100, int(money / mp_base1), mp1,
           CODE_TO_NAME[code2], code2, target2 * 100, int(money / mp_base2), mp2,
-          indicator, indicator_value)
+          'Function' if IsLambda(indicator) else indicator, indicator_value)
   return ''
   
 def GenericChangeAH(name, adh_lower, adh_upper):
@@ -1064,6 +1057,12 @@ def ReduceOverflow():
 def CMBandBOC():
   return GenericSwapStrategy('中国银行', '招商银行', 'DR', 1.0, 1.2, 0.05)
 
+def BOCHandA50():
+  return GenericSwapStrategy('中国银行H', '南方A50',
+                             lambda: GetDR(NAME_TO_CODE['中国银行H'], GetMarketPrice('中国银行H')) /
+                              (0.5 / GetPE('南方A50', GetMarketPrice('南方A50'))),
+                             0.7, 0.95, 0.05)
+
 def SellBOCH():
   code = NAME_TO_CODE['中国银行H']
   if GetAHDiscount(code) < -0.98:
@@ -1092,6 +1091,7 @@ STRATEGY_FUNCS = {
   BuyYahoo: 'Buy Yahoo',
   ReduceOverflow: 'Reduce overflow',
   CMBandBOC: 'CMB<->BOC',
+  BOCHandA50: 'A50<->BOCH',
   SellBOCH: 'Sell BOCH',
 }
 

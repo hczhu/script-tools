@@ -690,6 +690,41 @@ def GetXueqiuMarketPrice(code):
       return [price, change, cap, book_value]
     except:
       continue
+  return [0.01, 0.0, 0.0, 1.0]
+
+def GetSinaUrlPrefix(code):
+  currency = GetCurrency(code)
+  if currency == 'RMB': return ['sh', 'sz']
+  elif currency == 'HKD': return ['hk']
+  elif currency == 'USD': return ['gb_']
+  return ['']
+
+def GetMarketPriceFromSina(code):
+  url_prefix = 'http://hq.sinajs.cn/list='
+  price_end_str = '"'
+  for pr in GetSinaUrlPrefix(code):
+    suffix = pr + code.lower()
+    url = url_prefix + suffix
+    try:
+      values = GetValueFromUrl(url, 'hq_str_%s="'%(suffix), '"', str)
+      if len(values) == 0: continue
+      sys.stderr.write('Get string for %s: %s\n'%(code, values))
+      values = values.split(',')
+      if suffix.find('hk') == 0: values = values[1:]
+      price, change, cap, book_value = 0, 0, 0, 1.0
+      if suffix.find('gb_') == 0:
+        price, change, cap = float(values[1]), float(values[2]), float(values[12])
+      elif suffix.find('hk') == 0:
+        price, change = float(values[5]), float(values[7])
+      else:
+        price = float(values[3])
+        prev_price = float(values[2])
+        change = 100.0 * (price - prev_price) / prev_price
+      data = [price, change, cap, book_value]
+      sys.stderr.write('Got market data for %s = %s\n'%(code, str(data)))
+      return data
+    except:
+      continue
   return [0.0, 0.0, 0.0, 0.0]
 
 def GetXueqiuETFBookValue(code):
@@ -701,15 +736,15 @@ def GetMarketPrice(code):
   sys.stderr.write('Getting market price for ' + code + '\n')
   if code in market_price_cache:
     return market_price_cache[code][0]
-  func = lambda: GetXueqiuMarketPrice(code)
+  func = lambda: GetMarketPriceFromSina(code)
   if code in market_price_func:
     func = market_price_func[code] 
   try:
-    mp = func()
-    market_price_cache[code] = mp
-    sys.stderr.write('Got market price for ' + code + '\n')
-    return mp[0]
+    data = func()
+    market_price_cache[code] = data
+    return data[0]
   except:
+    sys.stderr.write('Failed to get market price for %s.\n'%(code))
     return 0.0
 
 def GetMarketCap(code):

@@ -114,6 +114,26 @@ GDP数据 2013 - 7.7, 2012 - 7.65, 2011 - 9.30, 2010 - 10.45, 2009 - 9.21
 带0后缀的财务数据是最近4个季度的数据，未带0后缀的是未来四个季度后的数据估计
 """
 
+EX_RATE = {
+  'USD-USD': 1.0,
+  'RMB-USD': 0.1605,
+  'HKD-USD': 0.129,
+  'YEN-USD': 0.009782,
+}
+
+def InitExRate():
+  currencies = [pr.split('-')[0] for pr in EX_RATE.keys()]
+  base = EX_RATE.keys()[0].split('-')[1];
+  for a in currencies:
+    for b in currencies:
+      EX_RATE[a + '-' + b] = EX_RATE[a + '-' + base] / EX_RATE[b + '-' + base]
+  for pr in EX_RATE.keys():
+    currencies = pr.split('-')
+    assert(len(currencies) == 2)
+    EX_RATE[currencies[1] + '-' + currencies[0]] = 1.0 / EX_RATE[pr]
+
+InitExRate()
+
 # Number of total shares
 SHARES = {
   # 港股 ＋ A股
@@ -194,11 +214,11 @@ BVPS0 = {
   # 净现金
   ':DeNA': 1.0 * (110418 - 52858) * 10**6 / SHARES[':DeNA'],
 
-  '信诚300A': lambda: GetXueqiuETFBookValue('信诚300A'),
+  '信诚300A': 1.043, #GetHexinFundBookValue('http://jingzhi.funds.hexun.com/150051.shtml')
 
   '南方A50': ETF_BOOK_VALUE_FUNC['南方A50'],
   '浦发银行': 218312.0 * 10**6 / SHARES['浦发银行'],
-  '中国机械工程': 12032874000.0 / SHARES['中国机械工程'],
+  '中国机械工程': EX_RATE['RMB-HKD'] * 12032874000.0 / SHARES['中国机械工程'],
 }
 
 # TTM
@@ -313,7 +333,7 @@ BVPS = {
               ) * 10**6 / SHARES['民生银行'],
 
   # 2014H，净现金 减去应收款计提50%
-  '中国机械工程': 10**3 * (6233446.0 - 5499767.0 * 0.5) / SHARES['中国机械工程'],
+  '中国机械工程': EX_RATE['RMB-HKD'] * 10**3 * 6233446.0 / SHARES['中国机械工程'],
 }
 
 EPS = {
@@ -578,13 +598,6 @@ AH_PAIR = {
 }
 
 CB_INFO = {
-}
-
-EX_RATE = {
-  'USD-USD': 1.0,
-  'RMB-USD': 0.1605,
-  'HKD-USD': 0.129,
-  'YEN-USD': 0.009782,
 }
 
 # In the form of '2432': [price, change, cap].
@@ -1184,16 +1197,6 @@ STRATEGY_FUNCS = {
 #--------------End of strategy functions-----
 
 def InitAll():
-  currencies = [pr.split('-')[0] for pr in EX_RATE.keys()]
-  base = EX_RATE.keys()[0].split('-')[1];
-  for a in currencies:
-    for b in currencies:
-      EX_RATE[a + '-' + b] = EX_RATE[a + '-' + base] / EX_RATE[b + '-' + base]
-  for pr in EX_RATE.keys():
-    currencies = pr.split('-')
-    assert(len(currencies) == 2)
-    EX_RATE[currencies[1] + '-' + currencies[0]] = 1.0 / EX_RATE[pr]
-
   for key in AH_PAIR.keys():
     AH_PAIR[AH_PAIR[key]] = key
 

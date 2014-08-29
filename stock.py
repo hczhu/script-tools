@@ -7,6 +7,7 @@ from datetime import time
 from collections import defaultdict
 import urllib2
 import traceback
+import copy
 
 from table_printer import *
 
@@ -143,13 +144,6 @@ ETF_BOOK_VALUE_FUNC = {
                                       '</td>',
                                       float,
                                       ),
-
-  '南方5年国债': lambda: GetValueFromUrl('http://www.csopasset.com/tchi/products/china_bond.php',
-                                      ['<td>總資產淨值', '<td', '>'],
-                                      '<',
-                                      lambda x: round(float(
-                                        x.replace(',', '')) / (96 * 10**6) / EX_RATE['HKD-RMB'], 2),
-                                      ),
 }
 
 # (总面值，目前转股价)
@@ -168,7 +162,7 @@ CAP = {
   # 卖出股权税率38%
   # 净现金3B
   # 回购价格 34.94
-  'Yahoo': lambda: ((24 * 0.35 + 180 * 0.24) * ( 1 - 0.38) + 3) * 10**9 / SHARES['Yahoo'],
+  'Yahoo': lambda: ((24 * 0.35 + 200 * 0.24) * ( 1 - 0.38) + 3) * 10**9 / SHARES['Yahoo'],
   # 按照阿里收购UC出资的股票部分和对UC的估值计算。
   'Alibaba': 72,
 }
@@ -235,7 +229,7 @@ FORGOTTEN = {
 EPS = {
   #南方A50ETF，数据来自sse 50ETF统计页面
   # http://www.sse.com.cn/market/sseindex/indexlist/indexdetails/indexturnover/index.shtml?FUNDID=000016&productId=000016&prodType=4&indexCode=000016
-  '南方A50':  9.4050 / 7.74,
+  '南方A50':  9.2116 / 7.64,
   # TTM + Fy2014 Q2 guidance
   ':DeNA': (5.7 + 0.6 * (7 + 9.7 + 11.4)) * 10**9 / SHARES[':DeNA'],
 
@@ -509,11 +503,11 @@ WATCH_LIST_CB = {
 WATCH_LIST_ETF = {
   #南方A50 ETF
   '02822': '南方A50',
-  '03199': '南方5年国债',
   '150051': '信诚300A',
 } 
 
 WATCH_LIST_OTHER = {
+  '01829': '中国机械工程',
 }
 
 AH_PAIR = {
@@ -696,6 +690,41 @@ def GetXueqiuMarketPrice(code):
       return [price, change, cap, book_value]
     except:
       continue
+  return [0.01, 0.0, 0.0, 1.0]
+
+def GetSinaUrlPrefix(code):
+  currency = GetCurrency(code)
+  if currency == 'RMB': return ['sh', 'sz']
+  elif currency == 'HKD': return ['hk']
+  elif currency == 'USD': return ['gb_']
+  return ['']
+
+def GetMarketPriceFromSina(code):
+  url_prefix = 'http://hq.sinajs.cn/list='
+  price_end_str = '"'
+  for pr in GetSinaUrlPrefix(code):
+    suffix = pr + code.lower()
+    url = url_prefix + suffix
+    try:
+      values = GetValueFromUrl(url, 'hq_str_%s="'%(suffix), '"', str)
+      if len(values) == 0: continue
+      sys.stderr.write('Get string for %s: %s\n'%(code, values))
+      values = values.split(',')
+      if suffix.find('hk') == 0: values = values[1:]
+      price, change, cap, book_value = 0, 0, 0, 1.0
+      if suffix.find('gb_') == 0:
+        price, change, cap = float(values[1]), float(values[2]), float(values[12])
+      elif suffix.find('hk') == 0:
+        price, change = float(values[5]), float(values[7])
+      else:
+        price = float(values[3])
+        prev_price = float(values[2])
+        change = 100.0 * (price - prev_price) / prev_price
+      data = [price, change, cap, book_value]
+      sys.stderr.write('Got market data for %s = %s\n'%(code, str(data)))
+      return data
+    except:
+      continue
   return [0.0, 0.0, 0.0, 0.0]
 
 def GetXueqiuETFBookValue(code):
@@ -707,15 +736,15 @@ def GetMarketPrice(code):
   sys.stderr.write('Getting market price for ' + code + '\n')
   if code in market_price_cache:
     return market_price_cache[code][0]
-  func = lambda: GetXueqiuMarketPrice(code)
+  func = lambda: GetMarketPriceFromSina(code)
   if code in market_price_func:
     func = market_price_func[code] 
   try:
-    mp = func()
-    market_price_cache[code] = mp
-    sys.stderr.write('Got market price for ' + code + '\n')
-    return mp[0]
+    data = func()
+    market_price_cache[code] = data
+    return data[0]
   except:
+    sys.stderr.write('Failed to get market price for %s.\n'%(code))
     return 0.0
 
 def GetMarketCap(code):
@@ -820,6 +849,9 @@ FINANCIAL_FUNC = {
 
 #--------------Beginning of strategy functions-----
 
+def InBetween(value_range, x):
+  return (x - value_range[0]) * (x - value_range[1]) <= 0.0
+
 def GenericDynamicStrategy(name,
                            indicator,
                            buy_range,
@@ -832,7 +864,7 @@ def GenericDynamicStrategy(name,
   mp = GetMarketPrice(code)
   mp_base = GetMarketPriceInBase(code)
   indicator_value = FINANCIAL_FUNC[indicator](code, mp)
-  if (indicator_value - buy_range[0]) * (buy_range[1] - buy_range[0]) > 0.0:
+  if InBetween(buy_range, indicator_value):
     target_percent = (hold_percent_range[1] - hold_percent_range[0]) * (indicator_value - buy_range[0]) / (
                     buy_range[1] - buy_range[0]) + hold_percent_range[0]
     target_percent = max(hold_percent_range[0], target_percent)
@@ -847,7 +879,7 @@ def GenericDynamicStrategy(name,
           mp,
           GetMarketPriceChange(code), indicator, indicator_value,
           target_percent * 100, current_percent * 100)
-  if (indicator_value - sell_point) * (buy_range[1] - buy_range[0]) < 0.0:
+  elif InBetween([buy_range[0], indicator_value], sell_point):
     current_percent = holding_percent[code]
     percent = min(current_percent, percent_delta)
     if percent > 0.0 and sell_condition(code):
@@ -856,6 +888,10 @@ def GenericDynamicStrategy(name,
           int(NET_ASSET * percent / mp_base),
           mp,
           GetMarketPriceChange(code), indicator, indicator_value)
+  elif InBetween([buy_range[0], indicator_value], buy_range[1]):
+    return 'Extreme price for %s(%s) @%.2f due to %s = %.3f.'%(
+      CODE_TO_NAME[code], code,
+      mp, indicator, indicator_value)
   return ''
 
 def GenericSwapStrategy(name1, name2,
@@ -868,7 +904,8 @@ def GenericSwapStrategy(name1, name2,
   mp2 = GetMarketPrice(code2)
   mp_base1 = GetMarketPriceInBase(code1)
   mp_base2 = GetMarketPriceInBase(code2)
-  indicator_value = FINANCIAL_FUNC[indicator](code1, mp1) / FINANCIAL_FUNC[indicator](code2, mp2)
+  indicator_value = indicator() if IsLambda(indicator) else \
+    FINANCIAL_FUNC[indicator](code1, mp1) / FINANCIAL_FUNC[indicator](code2, mp2)
   holding1 = holding_percent[code1]
   holding2 = holding_percent[code2]
   fair_percent = (holding1 + holding2) / 2
@@ -885,7 +922,7 @@ def GenericSwapStrategy(name1, name2,
     return '%s(%s)(target = %.1f%%) %d units @%.2f ==> %s(%s)(target = %.1f%%) %d units @%.2f due to %s ratio = %.3f.'%(
           CODE_TO_NAME[code1], code1, target1 * 100, int(money / mp_base1), mp1,
           CODE_TO_NAME[code2], code2, target2 * 100, int(money / mp_base2), mp2,
-          indicator, indicator_value)
+          'Function' if IsLambda(indicator) else indicator, indicator_value)
   return ''
   
 def GenericChangeAH(name, adh_lower, adh_upper):
@@ -975,7 +1012,7 @@ def BuyDeNA():
     'P/S',
     [1.1, 0.8],
     [0.05, 0.12],
-    1.5,
+    2.0,
     buy_condition = lambda code: GetMarketPriceChange(code) < min(0.0,
       1.1 * GetBeta(code) * GetMarketPriceChange('ni225')));
 
@@ -1056,6 +1093,12 @@ def ReduceOverflow():
 def CMBandBOC():
   return GenericSwapStrategy('中国银行', '招商银行', 'DR', 1.0, 1.2, 0.05)
 
+def BOCHandA50():
+  return GenericSwapStrategy('中国银行H', '南方A50',
+                             lambda: GetDR(NAME_TO_CODE['中国银行H'], GetMarketPrice('中国银行H')) /
+                              (0.5 / GetPE('南方A50', GetMarketPrice('南方A50'))),
+                             0.7, 0.95, 0.05)
+
 def SellBOCH():
   code = NAME_TO_CODE['中国银行H']
   if GetAHDiscount(code) < -0.98:
@@ -1084,6 +1127,7 @@ STRATEGY_FUNCS = {
   BuyYahoo: 'Buy Yahoo',
   ReduceOverflow: 'Reduce overflow',
   CMBandBOC: 'CMB<->BOC',
+  BOCHandA50: 'A50<->BOCH',
   SellBOCH: 'Sell BOCH',
 }
 
@@ -1176,7 +1220,7 @@ def CalOneStock(NO_RISK_RATE, records, code, name):
     price = origin_price * ex_rate
     fee = cell[6] * ex_rate
     sum_fee += fee
-    value = -price * buy_shares - fee - cell[8]
+    value = -price * buy_shares - fee - cell[8] * ex_rate
     if -1 == cell[1].find('股息'):
       data += '[new Date(%d, %d, %d), %.3f, \'%s%d\', \'%.0fK %s\'],\n'%(
           trans_date.year, trans_date.month - 1, trans_date.day,
@@ -1229,7 +1273,7 @@ def ReadRecords(input):
     cells = line.strip().split(',')
     cells[0] = date(int(cells[0][0:4]), int(cells[0][4:6]), int(cells[0][6:8]))
     raw_all_records.append(cells)
-  raw_all_records.sort() 
+  raw_all_records.sort(key = lambda record: record[0]) 
 
   all_records = defaultdict(list)
   sell_fee = 18.1 / 10000
@@ -1242,8 +1286,9 @@ def ReadRecords(input):
     cells[4], cells[5], cells[6] = price, buy_shares, fee
     last = all_records[cells[2]][-1] if len(all_records[cells[2]]) > 0 else []
     if (len(last) > 0 and
-        (cells[0] - last[0]).days < 10
-        and cells[1].find('股息') == -1):
+        (cells[0] - last[0]).days < 7
+        and cells[1].find('股息') == -1
+        and last[1].find('股息') == -1):
       if buy_shares + last[5] != 0:
         last[4] = (last[8] + buy_shares * price + last[5] * last[4]) / (buy_shares + last[5])
         last[8] = 0
@@ -1264,7 +1309,6 @@ def PrintHoldingSecurities(all_records):
                   'TNF',
                   'DTP',
                   '#DT',
-                  'HS',
                   'MP',
                   'Chg',
                   'P/E0',
@@ -1281,7 +1325,6 @@ def PrintHoldingSecurities(all_records):
   silent_column = [
     'MV',
     'MP',
-    'HS',
     '#TxN',
     'TNF',
     'DTP',
@@ -1357,8 +1400,7 @@ def PrintHoldingSecurities(all_records):
         'TNF': myround(txn_fee, 0),
         'DTP': myround(dtp, 0),
         '#DT': dt,
-        'HS': remain_stock,
-        'MP': str(mp),
+        'Pos': remain_stock,
         'P/E0': myround(GetPE0(key, mp), 2),
         'P/E': myround(GetPE(key, mp), 2),
         'P/S': myround(GetPS(key, mp), 2),
@@ -1394,15 +1436,23 @@ def PrintHoldingSecurities(all_records):
       fee = cell[6] * ex_rate
       buy_shares = cell[5]
       price = cell[4] * ex_rate
-      value = -price * buy_shares - fee
+      value = -price * buy_shares - fee - cell[8] * ex_rate
       cash_flow[currency].append([trans_date, key, value]);
   
   cash_flow['USD'] += cash_flow['HKD']
   cash_flow['USD'] += cash_flow['YEN']
   
-  for dt in [cash_flow, total_market_value, total_capital,
+  for dt in [total_market_value, total_capital,
              total_investment, total_transaction_fee]:
     dt['ALL'] = dt['USD'] + dt['RMB']
+    dt['RMB'] *= EX_RATE[CURRENCY + '-RMB']
+    dt['USD'] *= EX_RATE[CURRENCY + '-USD']
+
+  cash_flow['ALL'] = copy.deepcopy(cash_flow['USD'] + cash_flow['RMB'])
+  for record in cash_flow['RMB']:
+    record[2] *= EX_RATE[CURRENCY + '-RMB']
+  for record in cash_flow['USD']:
+    record[2] *= EX_RATE[CURRENCY + '-USD']
   
   for currency in ['USD', 'RMB', 'ALL']:
     capital_table_map.append(

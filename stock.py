@@ -1136,7 +1136,7 @@ def ReduceOverflow():
   return ''
 
 def CMBandBOC():
-  return GenericSwapStrategy('中国银行', '招商银行', 'DR', 1.0, 1.2, 0.05)
+  return GenericSwapStrategy('中国银行', '招商银行', 'DR', 1.0, 1.25, 0.05)
 
 def BOCHandA50():
   return GenericSwapStrategy('中国银行H', '南方A50',

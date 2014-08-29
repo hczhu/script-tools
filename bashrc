@@ -41,11 +41,12 @@ PROMPT_COMMAND="settitle; $PROMPT_COMMAND"
 #export XIM_PROGRAM="scim -d" #使可以自动启动
 
 #For Weka
-export WEKAROOT='/home/hczhu/open-source-package/weka-3-6-4'
-export CLASSPATH=$CLASSPATH:.:$WEKAROOT/weka.jar:/home/hczhu/open-source-package/weka-3-6-4-gui/weka-3-6-4/weka.jar:/home/hczhu/open-source-package/weka-3-6-4-gui/weka-3-6-4/WLSVM/lib/libsvm.jar:/home/hczhu/open-source-package/weka-3-6-4-gui/weka-3-6-4/WLSVM/lib/wlsvm.jar
+export WEKAROOT='/data/users/hcz/tools/weka-3-6-11'
+export CLASSPATH="$CLASSPATH:.:$WEKAROOT/weka.jar"
 alias weka-lr='java weka.classifiers.functions.LinearRegression'
 alias weka-lg='java -Xmx2028m weka.classifiers.functions.Logistic'
-alias weka='java -Xmx2024m -jar /home/build/static/projects/experimental/mledu/weka/weka.jar'
+alias weka-svm='java -Xmx2028m weka.classifiers.functions.LibSVM'
+alias weka='java -Xmx2024m -jar $WEKAROOT/weka.jar'
 
 #Start a single workrave
 if [[ -e workrave && $(pgrep workrave | wc -l) = "0" ]]

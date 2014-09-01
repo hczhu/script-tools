@@ -579,6 +579,7 @@ WATCH_LIST_ETF = {
 
 WATCH_LIST_OTHER = {
   '01829': '中国机械工程',
+  '00826': '天工国际',
 }
 
 AH_PAIR = {

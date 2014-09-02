@@ -219,6 +219,7 @@ BVPS0 = {
   '南方A50': ETF_BOOK_VALUE_FUNC['南方A50'],
   '浦发银行': 218312.0 * 10**6 / SHARES['浦发银行'],
   '中国机械工程': EX_RATE['RMB-HKD'] * 12032874000.0 / SHARES['中国机械工程'],
+  '中行转债': lambda: 100.0 * GetMarketPrice('中国银行') / CB['中国银行'][1],
 }
 
 # TTM
@@ -569,6 +570,7 @@ WATCH_LIST_MOBILE_GAMES = {
 }
 
 WATCH_LIST_CB = {
+  '113001': '中行转债',
 }
 
 WATCH_LIST_ETF = {
@@ -1459,7 +1461,7 @@ def PrintHoldingSecurities(all_records):
         'P/E0': myround(GetPE0(key, mp), 2),
         'P/E': myround(GetPE(key, mp), 2),
         'P/S': myround(GetPS(key, mp), 2),
-        'P/B0': myround(GetPB0(key, mp), 2),
+        'P/B0': myround(GetPB0(key, mp), 3),
         'P/B': myround(GetPB(key, mp), 2),
         'DR0':  myround(GetDR0(key, mp) * 100 , 2),
         'DR':  myround(GetDR(key, mp) * 100 , 2),

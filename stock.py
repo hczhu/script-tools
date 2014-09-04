@@ -230,6 +230,8 @@ EPS0 = {
   # 根据2014H计算
   '招商银行': 1.* (51342 - 26271 + 30459) * 10**6 / SHARES['招商银行'],
   '建设银行': 1.* (214657 + 65780 - 59580) * 10**6 / SHARES['建设银行'],
+
+  '中国机械工程': (1077132000.0 + (1974823000 - 995680000) * 1.05) /SHARES['中国机械工程'] * EX_RATE['RMB-HKD'],
 }
 
 FORGOTTEN = {
@@ -367,6 +369,19 @@ EPS = {
       * (1 - 0.23)  # 23%的所得税率
       * (1 - 4.0 / 100) # 减去少数股东收益
   ) * 10**6 / SHARES['中国银行'],
+
+  # 按照待已签约待生效合同种不同工程类型的比例计算未来的毛利率
+  # 费用开支约为毛利的50%
+  '中国机械工程': 10**6 * 15384 * 1.05 *  # 一年的工程收入
+                  (
+                    0.25 * 0.67 # 电力能源的毛利
+                    + 0.08 * 0.33 # 其他工程低毛利
+                  )
+                  * (1.0 + 0.05) # 贸易毛利占比
+                  * 0.5 # 减去费用
+                  * (1 - 0.04) # 减去坏账
+                  * (1- 0.26) # 税收
+                  / SHARES['中国机械工程'] * EX_RATE['RMB-HKD'],
 }
 
 # Sales per share.
@@ -1376,7 +1391,6 @@ def PrintHoldingSecurities(all_records):
                   'DR0',
                   'DR',
                   'AHD',
-                  'RZ',
                   'DvDays',
                   'Stock name']
   silent_column = [
@@ -1466,7 +1480,6 @@ def PrintHoldingSecurities(all_records):
         'DR0':  myround(GetDR0(key, mp) * 100 , 2),
         'DR':  myround(GetDR(key, mp) * 100 , 2),
         'AHD': str(myround(100.0 * (mp_pair_rmb - mp * ex_rate ) / mp / ex_rate, 1)) + '%',
-        'RZ': round(GetRZ(key), 3) if remain_stock > 0 else 0.0,
         'DvDays': ((DIVIDEND_DATE[name] if name in DIVIDEND_DATE else date(2016, 1, 1)) - date.today()).days,
         'Stock name': name + '(' + key + ')',
     }

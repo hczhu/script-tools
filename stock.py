@@ -999,7 +999,6 @@ def GenericSwapStrategy(name1, name2,
       code1, code2 = code2, code1
       mp1, mp2 = mp2, mp1
       mp_base1, mp_base2 = mp_base2, mp_base1 
-      indicator_value = 1.0 / indicator_value
       target1, target2 = target2, target1
     return '%s(%s)(target = %.1f%%) %d units @%.2f ==> %s(%s)(target = %.1f%%) %d units @%.2f due to %s ratio = %.3f.'%(
           CODE_TO_NAME[code1], code1, target1 * 100, int(money / mp_base1), mp1,
@@ -1196,9 +1195,9 @@ def SellBOCH():
   return ''
 
 def BOCandCB():
-  return GenericSwapStrategy('中行转债', '中国银行',
+  return GenericSwapStrategy('中国银行', '中行转债',
                              lambda: GetPB0('中行转债', GetMarketPrice('中行转债')),
-                             1.04, 1.01, 0.05)
+                             1.000, 1.01, 0.05)
 
 STRATEGY_FUNCS = {
   BuyApple: 'Buy Apple',

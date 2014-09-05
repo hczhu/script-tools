@@ -414,7 +414,7 @@ DVPS0 = {
   '建设银行': 0.3,
   
   '南方A50': (3.63 - 1.0) / 100 * 8.4,
-
+  '中国机械工程': 0.19 * EX_RATE['RMB-HKD'], # 2013年股息
 }
 
 # The portion of EPS used for dividend.
@@ -1173,7 +1173,10 @@ def ReduceOverflow():
   return ''
 
 def CMBandBOC():
-  return GenericSwapStrategy('中国银行', '招商银行', 'DR', 1.0, 1.25, 0.05)
+  holding_percent[NAME_TO_CODE['中国银行']] += holding_percent[NAME_TO_CODE['中行转债']]
+  res = GenericSwapStrategy('中国银行', '招商银行', 'DR', 1.0, 1.25, 0.05)
+  holding_percent[NAME_TO_CODE['中国银行']] -= holding_percent[NAME_TO_CODE['中行转债']]
+  return res
 
 def BOCHandA50():
   return GenericSwapStrategy('中国银行H', '南方A50',

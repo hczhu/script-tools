@@ -1195,11 +1195,15 @@ def SellBOCH():
       GetAHDiscount(code))
   return ''
 
+def BOCandCB():
+  return GenericSwapStrategy('中行转债', '中国银行',
+                             lambda: GetPB0('中行转债', GetMarketPrice('中行转债')),
+                             1.04, 1.01, 0.05)
+
 STRATEGY_FUNCS = {
   BuyApple: 'Buy Apple',
   BuyBig4BanksH: 'Buy 四大行H股 ',
   BuyDeNA:  'Buy :DeNA',
-  BuyCMBH:  'Buy 招商银行H ',
   #BuyCMB:  'Buy CMB',
   BuyA50: 'Buy A50',
   #BuyBOCH: 'Buy BOCH',
@@ -1214,6 +1218,7 @@ STRATEGY_FUNCS = {
   CMBandBOC: 'CMB<->BOC',
   BOCHandA50: 'A50<->BOCH',
   SellBOCH: 'Sell BOCH',
+  BOCandCB: 'BOC<->CB',
 }
 
 #--------------End of strategy functions-----

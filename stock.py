@@ -1208,7 +1208,7 @@ def BOCandCB():
 
 def BuyJixieGongcheng():
   return GenericDynamicStrategy(
-    'Weibo',
+    '中国机械工程',
     'P/E',
     [12, 9],
     [0.5, 0.1],

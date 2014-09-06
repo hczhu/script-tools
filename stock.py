@@ -1040,9 +1040,9 @@ def BuyYahoo():
   return GenericDynamicStrategy(
     'Yahoo',
     'P/B0',
-    [1.0, 0.8],
-    [0.05, 0.12],
-    1.1,
+    [1.0, 0.9],
+    [0.05, 0.15],
+    1.2,
     buy_condition = lambda code: GetMarketPriceChange(code) <= -1,
     sell_condition = lambda code: GetMarketPriceChange(code) >= 1);
 
@@ -1206,6 +1206,16 @@ def BOCandCB():
                              lambda: GetPB0('中行转债', GetMarketPrice('中行转债')),
                              1.000, 1.01, 0.05)
 
+def BuyJixieGongcheng():
+  return GenericDynamicStrategy(
+    'Weibo',
+    'P/E',
+    [12, 9],
+    [0.5, 0.1],
+    15,
+    buy_condition = lambda code: GetMarketPriceChange(code) < -2);
+
+
 STRATEGY_FUNCS = {
   BuyApple: 'Buy Apple',
   BuyBig4BanksH: 'Buy 四大行H股 ',
@@ -1225,6 +1235,7 @@ STRATEGY_FUNCS = {
   BOCHandA50: 'A50<->BOCH',
   SellBOCH: 'Sell BOCH',
   BOCandCB: 'BOC<->CB',
+  BuyJixieGongcheng: '中国机械工程',
 }
 
 #--------------End of strategy functions-----

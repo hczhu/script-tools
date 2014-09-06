@@ -180,13 +180,20 @@ CAP = {
   # 俄罗斯GDP是中国的四分之一，估值按百度目前的58B的四分之一计算。
   # 互联网渗透率，Russia 62%, China 50%.
   'Yandex': lambda: GetMarketCap('Baidu') / GetMarketCap('Yandex') / 4 * GetMarketPrice('Yandex') * (38.0 / 50.0),
+
+  # 按照阿里收购UC出资的股票部分和对UC的估值计算。
+  'Alibaba': 72,
+
   # 雅虎日本(24B)35％的股权和alibaba 24%的股权，阿里按180B估值。
+  # 卖出阿里121,739,130股
+  # IPO后剩余401,826,286 
   # 卖出股权税率38%
   # 净现金3B
   # 回购价格 34.94
-  'Yahoo': lambda: ((24 * 0.35 + 200 * 0.24) * ( 1 - 0.38) + 3) * 10**9 / SHARES['Yahoo'],
-  # 按照阿里收购UC出资的股票部分和对UC的估值计算。
-  'Alibaba': 72,
+  'Yahoo': lambda: ((24 * 10**9 * 0.35 + 401826286 * CAP['Alibaba']) * 0.8 # IPO后的间接持股打折
+                   + 3 * 10**9 # 净现金
+                   + 121739130 * 63.0 * (1 - 0.38))  # IPO卖出阿里股份税后现金
+                   / SHARES['Yahoo'],
 }
 
 BVPS0 = {

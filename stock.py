@@ -1204,7 +1204,7 @@ def SellBOCH():
 def BOCandCB():
   return GenericSwapStrategy('中国银行', '中行转债',
                              lambda: GetPB0('中行转债', GetMarketPrice('中行转债')),
-                             1.000, 1.01, 0.05)
+                             1.000, 1.001, 0.05)
 
 def BuyJixieGongcheng():
   return GenericDynamicStrategy(

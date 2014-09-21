@@ -155,6 +155,7 @@ SHARES = {
 
   '浦发银行': 18653471415,
   '中国机械工程': 4125700000,
+
 }
 
 ETF_BOOK_VALUE_FUNC = {
@@ -190,9 +191,9 @@ CAP = {
   # 卖出股权税率38%
   # 净现金3B
   # 回购价格 34.94
-  'Yahoo': lambda: ((24 * 10**9 * 0.35 + 401826286 * CAP['Alibaba']) * 0.9 # IPO后的间接持股打折
+  'Yahoo': lambda: ((24 * 10**9 * 0.35 + 401826286 * GetMarketPrice('Alibaba')) * 0.8 # IPO后的间接持股打折
                    + 3 * 10**9 # 净现金
-                   + 121739130 * 63.0 * (1 - 0.38))  # IPO卖出阿里股份税后现金
+                   + 121739130 * 68.0 * (1 - 0.38))  # IPO卖出阿里股份税后现金
                    / SHARES['Yahoo'],
 }
 
@@ -583,7 +584,7 @@ WATCH_LIST_INTERNET = {
   'WB': 'Weibo',
   'YNDX': 'Yandex',
   'YHOO': 'Yahoo',
-  'ALIBABA': 'Alibaba',
+  'BABA': 'Alibaba',
   'BIDU': 'Baidu',
 }
 
@@ -1042,7 +1043,7 @@ def BuyYahoo():
     'P/B0',
     [1.0, 0.9],
     [0.05, 0.15],
-    1.2,
+    1.1,
     buy_condition = lambda code: GetMarketPriceChange(code) <= -1,
     sell_condition = lambda code: GetMarketPriceChange(code) >= 1);
 

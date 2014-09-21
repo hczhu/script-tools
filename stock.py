@@ -1154,8 +1154,9 @@ def KeepDaLanChou():
       holding += holding_percent[AH_PAIR[bank]]
   for etf in WATCH_LIST_ETF.keys():
     holding += holding_percent[etf]
-  if holding < 1.0:
-    return 'Buy %.1fK RMB DaLanChou'%((1.0 - holding) * NET_ASSET / 1000)
+  target = 0.8
+  if holding < target:
+    return 'Buy %.1fK RMB DaLanChou'%((target - holding) * NET_ASSET / 1000)
   return ''
 
 def CMBHandCMB():
@@ -1203,9 +1204,17 @@ def SellBOCH():
   return ''
 
 def BOCandCB():
-  return GenericSwapStrategy('中国银行', '中行转债',
-                             lambda: GetPB0('中行转债', GetMarketPrice('中行转债')),
-                             1.001, 1.01, 0.1)
+  if GetPB0('中行转债', GetMarketPrice('中行转债')) > 1.02:
+    return '中行转债(%s) @%.3f ==> 中国银行(%s) @%.3f' % (
+      NAME_TO_CODE['中行转债'], GetMarketPrice('中行转债'),
+      NAME_TO_CODE['中国银行'], GetMarketPrice('中国银行'),
+    )
+  if GetPB0('中行转债', GetMarketPrice('中行转债')) < 1.002:
+    return '中国银行(%s) @%.3f ==> 中行转债(%s) @%.3f' % (
+      NAME_TO_CODE['中国银行'], GetMarketPrice('中国银行'),
+      NAME_TO_CODE['中行转债'], GetMarketPrice('中行转债'),
+    )
+  return ''
 
 def BuyJixieGongcheng():
   return GenericDynamicStrategy(

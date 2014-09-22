@@ -949,7 +949,7 @@ def GenericDynamicStrategy(name,
                            buy_range,
                            hold_percent_range,
                            sell_point,
-                           percent_delta = 0.015,
+                           percent_delta = 0.03,
                            buy_condition = lambda code: True,
                            sell_condition = lambda code: True):
   code = NAME_TO_CODE[name]
@@ -989,7 +989,7 @@ def GenericDynamicStrategy(name,
 def GenericSwapStrategy(name1, name2,
                         indicator,
                         zero1, fair,
-                        percent_delta):
+                        percent_delta = 0.05):
   code1 = NAME_TO_CODE[name1]
   code2 = NAME_TO_CODE[name2]
   mp1 = GetMarketPrice(code1)
@@ -1043,9 +1043,9 @@ def BuyYahoo():
   return GenericDynamicStrategy(
     'Yahoo',
     'P/B0',
-    [1.0, 0.9],
-    [0.05, 0.15],
-    1.1,
+    [0.9, 0.75],
+    [0.05, 0.20],
+    1,
     buy_condition = lambda code: GetMarketPriceChange(code) <= -1,
     sell_condition = lambda code: GetMarketPriceChange(code) >= 1);
 
@@ -1087,10 +1087,10 @@ def BuyCMBH():
 def BuyCMB():
   return GenericDynamicStrategy(
     '招商银行',
-    'P/B',
-    [0.9, 0.7],
-    [0.3, 0.5],
-    1.0,
+    'DR',
+    [6.0, 7.0],
+    [0.3, 0.4],
+    5.0,
     buy_condition = lambda code: GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0)
 
 def BuyDeNA():

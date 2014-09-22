@@ -222,7 +222,7 @@ BVPS0 = {
   # 净现金
   ':DeNA': 1.0 * (110418 - 52858) * 10**6 / SHARES[':DeNA'],
 
-  '信诚300A': 1.043, #GetHexinFundBookValue('http://jingzhi.funds.hexun.com/150051.shtml')
+  '信诚300A': 1.046, #GetHexinFundBookValue('http://jingzhi.funds.hexun.com/150051.shtml')
 
   '南方A50': ETF_BOOK_VALUE_FUNC['南方A50'],
   '浦发银行': 218312.0 * 10**6 / SHARES['浦发银行'],

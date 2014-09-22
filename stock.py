@@ -423,6 +423,8 @@ DVPS0 = {
   
   '南方A50': (3.63 - 1.0) / 100 * 8.4,
   '中国机械工程': 0.19 * EX_RATE['RMB-HKD'], # 2013年股息
+  # 定存利率加3%
+  '信诚300A': 0.06,
 }
 
 # The portion of EPS used for dividend.

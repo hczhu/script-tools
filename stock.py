@@ -151,11 +151,10 @@ SHARES = {
   'Weibo': 2 * 10**8,
   # subtract treasury stock.
   ':DeNA': 150810033 - 21283601,
-  'Yahoo': 1015 * 10**6,
+  'Yahoo': 994603000,
 
   '浦发银行': 18653471415,
   '中国机械工程': 4125700000,
-
 }
 
 ETF_BOOK_VALUE_FUNC = {
@@ -192,7 +191,7 @@ CAP = {
   # 净现金3B
   # 回购价格 34.94
   'Yahoo': lambda: ((24 * 10**9 * 0.35 + 401826286 * GetMarketPrice('Alibaba')) * 0.8 # IPO后的间接持股打折
-                   + (4157749.0 - 3726298) * 1000 # 净现金
+                   + 392924 * 1000 # 净现金NCAV = Current Assets - Total Liabilities
                    + 121739130 * 68.0 * (1 - 0.38))  # IPO卖出阿里股份税后现金
                    / SHARES['Yahoo'],
 }

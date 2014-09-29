@@ -1475,7 +1475,7 @@ def PrintHoldingSecurities(all_records):
     # All in CURRENCY
     (net_profit, capital_cost, remain_stock, dtp, dt, txn_fee, currency, function, division) = CalOneStock(
       NO_RISK_RATE, all_records[key], key, name)
-    if key in total_investment:
+    if key in total_investment or key == 'interest':
       total_capital[currency] += -net_profit
       total_capital_cost[currency] += capital_cost
       continue

@@ -190,9 +190,11 @@ CAP = {
   # 卖出股权税率38%
   # 净现金3B
   # 回购价格 34.94
-  'Yahoo': lambda: ((24 * 10**9 * 0.35 + 401826286 * GetMarketPrice('Alibaba')) * 0.8 # IPO后的间接持股打折
-                   + 392924 * 1000 # 净现金NCAV = Current Assets - Total Liabilities
-                   + 121739130 * 68.0 * (1 - 0.38))  # IPO卖出阿里股份税后现金
+  'Yahoo': lambda: (
+                    24 * 10**9 * 0.35 * 0.9  # Yahoo Japan
+                    + 384 * 10**6 * GetMarketPrice('Alibaba') * 0.8 # IPO后的间接持股打折
+                    + 7209 * 10**6  # 净现金NCAV = Current Assets - Total Liabilities 包括卖出阿里股份
+                   )
                    / SHARES['Yahoo'],
 }
 

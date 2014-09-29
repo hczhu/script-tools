@@ -151,11 +151,10 @@ SHARES = {
   'Weibo': 2 * 10**8,
   # subtract treasury stock.
   ':DeNA': 150810033 - 21283601,
-  'Yahoo': 1015 * 10**6,
+  'Yahoo': 994603000,
 
   '浦发银行': 18653471415,
   '中国机械工程': 4125700000,
-
 }
 
 ETF_BOOK_VALUE_FUNC = {
@@ -191,9 +190,11 @@ CAP = {
   # 卖出股权税率38%
   # 净现金3B
   # 回购价格 34.94
-  'Yahoo': lambda: ((24 * 10**9 * 0.35 + 401826286 * GetMarketPrice('Alibaba')) * 0.8 # IPO后的间接持股打折
-                   + 3 * 10**9 # 净现金
-                   + 121739130 * 68.0 * (1 - 0.38))  # IPO卖出阿里股份税后现金
+  'Yahoo': lambda: (
+                    24 * 10**9 * 0.35 * 0.9  # Yahoo Japan
+                    + 384 * 10**6 * GetMarketPrice('Alibaba') * 0.8 # IPO后的间接持股打折
+                    + 7209 * 10**6  # 净现金NCAV = Current Assets - Total Liabilities 包括卖出阿里股份
+                   )
                    / SHARES['Yahoo'],
 }
 
@@ -1474,7 +1475,7 @@ def PrintHoldingSecurities(all_records):
     # All in CURRENCY
     (net_profit, capital_cost, remain_stock, dtp, dt, txn_fee, currency, function, division) = CalOneStock(
       NO_RISK_RATE, all_records[key], key, name)
-    if key in total_investment:
+    if key in total_investment or key == 'interest':
       total_capital[currency] += -net_profit
       total_capital_cost[currency] += capital_cost
       continue

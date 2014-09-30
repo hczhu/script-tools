@@ -1475,7 +1475,7 @@ def PrintHoldingSecurities(all_records):
     # All in CURRENCY
     (net_profit, capital_cost, remain_stock, dtp, dt, txn_fee, currency, function, division) = CalOneStock(
       NO_RISK_RATE, all_records[key], key, name)
-    if key in total_investment or key == 'interest':
+    if key in total_investment:
       total_capital[currency] += -net_profit
       total_capital_cost[currency] += capital_cost
       continue
@@ -1563,6 +1563,7 @@ def PrintHoldingSecurities(all_records):
     record[2] *= EX_RATE[CURRENCY + '-USD']
   
   for currency in ['USD', 'RMB', 'ALL']:
+    net_asset[currency] = total_market_value[currency] + total_capital[currency] - total_investment[currency]
     capital_table_map.append(
         {
         'Currency': currency,
@@ -1571,15 +1572,15 @@ def PrintHoldingSecurities(all_records):
         'Investment': str(myround(total_investment[currency] / 1000, 0)) + 'K',
         'Free Cash': str(myround((total_capital[currency] - total_investment[currency]) / 1000, 0)) + 'K',
         'Transaction Fee': str(myround(total_transaction_fee[currency] / 100.0, 0)) + 'h(' +
-          str(myround(100.0 * total_transaction_fee[currency] / total_investment[currency], 2)) + '%)',
+          str(myround(100.0 * total_transaction_fee[currency] / net_asset[currency], 2)) + '%)',
         'Max Decline': str(myround((total_market_value[currency] + 2 * total_capital[currency] - 2 * total_investment[currency]) * 100.0 / total_market_value[currency], 0)) + '%',
         'IRR': str(myround(GetIRR(total_market_value[currency], cash_flow[currency]) * 100, 2)) + '%',
         'Net': str(myround((total_market_value[currency] + total_capital[currency] - total_investment[currency]) / 1000, 0)) + 'K',
         }
     )
+  NET_ASSET = total_market_value['ALL'] + total_capital['ALL'] - total_investment['ALL']
   
   PrintTableMap(capital_header, capital_table_map, set(), truncate_float = False)
-  NET_ASSET = total_market_value['ALL'] + total_capital['ALL'] - total_investment['ALL']
   for col in ['Chg', 'DR', 'DR0', 'Percent']:
     summation[col] = 0.0
   for record in stat_records_map:

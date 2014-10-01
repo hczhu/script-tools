@@ -191,8 +191,8 @@ CAP = {
   # 净现金3B
   # 回购价格 34.94
   'Yahoo': lambda: (
-                    24 * 10**9 * 0.35 * 0.9  # Yahoo Japan
-                    + 384 * 10**6 * GetMarketPrice('Alibaba') * 0.8 # IPO后的间接持股打折
+                    24 * 10**9 * 0.35 * 0.72  # Yahoo Japan
+                    + 384 * 10**6 * GetMarketPrice('Alibaba') * 0.72 # IPO后的间接持股打折
                     + 7209 * 10**6  # 净现金NCAV = Current Assets - Total Liabilities 包括卖出阿里股份
                    )
                    / SHARES['Yahoo'],
@@ -1044,9 +1044,9 @@ def BuyYahoo():
   return GenericDynamicStrategy(
     'Yahoo',
     'P/B0',
-    [0.9, 0.7],
-    [0.05, 0.20],
-    1,
+    [1, 0.8],
+    [0.05, 0.15],
+    1.1,
     buy_condition = lambda code: GetMarketPriceChange(code) <= -1,
     sell_condition = lambda code: GetMarketPriceChange(code) >= 1);
 
@@ -1065,12 +1065,13 @@ def BuyBig4BanksH():
                '工商银行H',
                '建设银行H',
                '中国银行H',
+               '招商银行H',
               ])
   for code in codes:
     dis = GetAHDiscount(code)
     changeH = GetMarketPriceChange(code)
     change = GetMarketPriceChange(AH_PAIR[code])
-    if dis >= 0.01 and changeH < 0:
+    if dis >= 0.001 and changeH < 0:
       return 'Buy %s(%s) %d units @%.2f AH discount=%.1f%%'%(
         CODE_TO_NAME[code], code, int(NET_ASSET * 0.02 / GetMarketPriceInBase(code)),
         GetMarketPrice(code), dis * 100.0)
@@ -1080,9 +1081,9 @@ def BuyCMBH():
   return GenericDynamicStrategy(
     '招商银行H',
     'AHD',
-    [-0.05, 0],
-    [0.2, 0.4],
-    -0.1,
+    [-0.03, 0.05],
+    [0.1, 0.2],
+    -0.08,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0)
 
 def BuyCMB():
@@ -1143,7 +1144,7 @@ def BuyWeibo():
   return GenericDynamicStrategy(
     'Weibo',
     'P/B0',
-    [1.15, 0.8],
+    [1.1, 0.8],
     [0.5, 0.1],
     # 等阿里收购微博的消息
     1.5,
@@ -1163,7 +1164,7 @@ def KeepDaLanChou():
   return ''
 
 def CMBHandCMB():
-  return GenericChangeAH('招商银行', 0.05, 0.15)
+  return GenericChangeAH('招商银行', 0.02, 0.15)
 
 def BOCHandBOC():
   if GetAHDiscount('中国银行') > GetAHDiscount('建设银行') or GetAHDiscount('中国银行') > GetAHDiscount('工商银行'):
@@ -1573,7 +1574,7 @@ def PrintHoldingSecurities(all_records):
         'Free Cash': str(myround((total_capital[currency] - total_investment[currency]) / 1000, 0)) + 'K',
         'Transaction Fee': str(myround(total_transaction_fee[currency] / 100.0, 0)) + 'h(' +
           str(myround(100.0 * total_transaction_fee[currency] / net_asset[currency], 2)) + '%)',
-        'Max Decline': str(myround((total_market_value[currency] + 2 * total_capital[currency] - 2 * total_investment[currency]) * 100.0 / total_market_value[currency], 0)) + '%',
+        'Max Decline': str(myround((total_market_value[currency] + 2 * total_capital[currency] - 2 * total_investment[currency]) * 100.0 / max(1, total_market_value[currency]), 0)) + '%',
         'IRR': str(myround(GetIRR(total_market_value[currency], cash_flow[currency]) * 100, 2)) + '%',
         'Net': str(myround((total_market_value[currency] + total_capital[currency] - total_investment[currency]) / 1000, 0)) + 'K',
         }

@@ -179,7 +179,8 @@ CAP = {
   'Weibo': 5.86 * 10**8 / 0.18 / SHARES['Weibo'],
   # 俄罗斯GDP是中国的四分之一，估值按百度目前的58B的四分之一计算。
   # 互联网渗透率，Russia 62%, China 50%.
-  'Yandex': lambda: GetMarketCap('Baidu') / GetMarketCap('Yandex') / 4 * GetMarketPrice('Yandex') * (38.0 / 50.0),
+  # 卢布贬值50%
+  'Yandex': lambda: GetMarketCap('Baidu') / GetMarketCap('Yandex') / 4 * GetMarketPrice('Yandex') * (38.0 / 50.0) * 0.5,
 
   # 按照阿里收购UC出资的股票部分和对UC的估值计算。
   'Alibaba': 72,
@@ -1035,9 +1036,9 @@ def BuyYandex():
   return GenericDynamicStrategy(
     'Yandex',
     'P/B0',
-    [.7, 0.3],
+    [0.9, 0.3],
     [0.02, 0.08],
-    0.8,
+    1.0,
     buy_condition = lambda code: GetMarketPriceChange(code) <= -2);
 
 def BuyYahoo():
@@ -1084,7 +1085,8 @@ def BuyCMBH():
     [-0.03, 0.05],
     [0.1, 0.2],
     -0.08,
-    buy_condition = lambda code: GetMarketPriceChange(code) < 0)
+    0.02,
+    buy_condition = lambda code: GetMarketPriceChange(code) < 0 and GetDR('招商银行H') > 0.045)
 
 def BuyCMB():
   return GenericDynamicStrategy(

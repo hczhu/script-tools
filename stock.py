@@ -154,7 +154,7 @@ SHARES = {
   'Yahoo': 994603000,
 
   '浦发银行': 18653471415,
-  '中国机械工程': 4125700000,
+  '中国机械工程': 908270000 + 3217430000,
 }
 
 ETF_BOOK_VALUE_FUNC = {
@@ -1146,8 +1146,8 @@ def BuyWeibo():
   return GenericDynamicStrategy(
     'Weibo',
     'P/B0',
-    [1.1, 0.8],
-    [0.5, 0.1],
+    [1, 0.8],
+    [0.05, 0.1],
     # 等阿里收购微博的消息
     1.5,
     buy_condition = lambda code: GetMarketPriceChange(code) < -2);
@@ -1231,6 +1231,10 @@ def BuyJixieGongcheng():
     15,
     buy_condition = lambda code: GetMarketPriceChange(code) < -2);
 
+def BuyFbPut():
+  if GetMarketPrice('FB') > 80.0 and GetMarketPriceChange('FB') > 0.01:
+    return 'Buy Facebook put @80.'
+  return ''
 
 STRATEGY_FUNCS = {
   BuyApple: 'Buy Apple',
@@ -1252,6 +1256,7 @@ STRATEGY_FUNCS = {
   SellBOCH: 'Sell BOCH',
   BOCandCB: 'BOC<->CB',
   BuyJixieGongcheng: '中国机械工程',
+  BuyFbPut: 'Buy Facebook put',
 }
 
 #--------------End of strategy functions-----

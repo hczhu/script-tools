@@ -1086,7 +1086,7 @@ def BuyCMBH():
     [0.1, 0.2],
     -0.08,
     0.02,
-    buy_condition = lambda code: GetMarketPriceChange(code) < 0 and GetDR('招商银行H') > 0.045)
+    buy_condition = lambda code: GetMarketPriceChange(code) < 0 and GetDR('招商银行H', GetMarketPrice('招商银行H')) > 0.045)
 
 def BuyCMB():
   return GenericDynamicStrategy(
@@ -1236,9 +1236,9 @@ STRATEGY_FUNCS = {
   BuyApple: 'Buy Apple',
   BuyBig4BanksH: 'Buy 四大行H股 ',
   BuyDeNA:  'Buy :DeNA',
-  #BuyCMB:  'Buy CMB',
+  BuyCMBH:  'Buy CMBH',
   BuyA50: 'Buy A50',
-  #BuyBOCH: 'Buy BOCH',
+  BuyBOCH: 'Buy BOCH',
   #BuyBOC: 'Buy BOC',
   BuyWeibo: 'Buy Weibo',
   KeepDaLanChou: 'Buy 大蓝筹',

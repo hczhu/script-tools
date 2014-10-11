@@ -8,6 +8,7 @@ from collections import defaultdict
 import urllib2
 import traceback
 import copy
+import re
 
 from table_printer import *
 
@@ -826,6 +827,11 @@ def GetXueqiuETFBookValue(code):
   return GetXueqiuMarketPrice(code)[3]
 
 def GetMarketPrice(code):
+  if code.find('@') != -1:
+    tokens = re.split('[-@]', code)
+    strike = float(tokens[2])
+    mp = GetMarketPrice(tokens[0])
+    return max(0.01, strike - mp) if tokens[1].lower() == 'put' else max(0.01, mp - strike)
   code = NAME_TO_CODE[code] if code in NAME_TO_CODE else code
   sys.stderr.write('Getting market price for ' + code + '\n')
   if code in market_price_cache:
@@ -1366,7 +1372,6 @@ def CalOneStock(NO_RISK_RATE, records, code, name):
       assert value <= 0.0
       holding_cost = (holding_cost * holding_shares - value) / (holding_shares + buy_shares)
     holding_shares += buy_shares
-    assert holding_shares >= 0.0
   if investment > 0.0:
     capital_cost  += investment * NO_RISK_RATE / 365 * (date.today() - prev_date).days
   if day_trade_net_shares == 0:
@@ -1422,6 +1427,7 @@ def PrintHoldingSecurities(all_records):
   global NET_ASSET
   table_header = [
                   'Percent',
+                  'Percent1',
                   'CC',
                   '#TxN',
                   'TNF',
@@ -1494,7 +1500,7 @@ def PrintHoldingSecurities(all_records):
     total_transaction_fee[currency] += txn_fee
     ex_rate = EX_RATE[currency + '-' + CURRENCY]
     mp, chg, mp_pair_rmb, mv, = 0.0001, 0, 1, 0
-    if remain_stock > 0 :
+    if remain_stock != 0:
       mp = GetMarketPrice(key)
       chg = GetMarketPriceChange(key)
       mp_pair_rmb = mp * ex_rate
@@ -1510,6 +1516,7 @@ def PrintHoldingSecurities(all_records):
     record = {
         'Code': key,
         'MV': myround(mv, 0),
+        'currency': currency,
         'Price': mp,
         'Chg': round(chg, 2),
         'CC': myround(capital_cost, 0),
@@ -1531,7 +1538,7 @@ def PrintHoldingSecurities(all_records):
     }
     for col in ['MV', 'CC', '#TxN', 'TNF', 'DTP', '#DT']:
       summation[col] = summation.get(col, 0) + record[col]
-    if remain_stock > 0:
+    if remain_stock != 0:
       stat_records_map.append(record)
   
   for dt in [total_market_value, total_capital,
@@ -1595,6 +1602,8 @@ def PrintHoldingSecurities(all_records):
     holding_percent[record['Code']] = 1.0 * record['MV'] / NET_ASSET
     summation['Percent'] += holding_percent[record['Code']]
     record['Percent'] = str(myround(holding_percent[record['Code']] * 100, 1)) + '%'
+    currency = 'RMB' if record['currency'] == 'RMB' else 'USD'
+    record['Percent1'] = str(myround(100.0 * record['MV'] * EX_RATE[CURRENCY + '-' + currency] / net_asset[currency], 1)) + '%'
     for col in ['Chg', 'DR', 'DR0']:
       summation[col] += holding_percent[record['Code']] * record[col]
   for col in ['Chg', 'DR', 'DR0']:

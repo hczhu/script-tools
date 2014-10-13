@@ -1242,6 +1242,9 @@ def BuyFbPut():
     return 'Buy Facebook put @80.'
   return ''
 
+def YahooAndBaba():
+ return ''
+
 STRATEGY_FUNCS = {
   BuyApple: 'Buy Apple',
   BuyBig4BanksH: 'Buy 四大行H股 ',
@@ -1428,6 +1431,7 @@ def PrintHoldingSecurities(all_records):
   table_header = [
                   'Percent',
                   'Percent1',
+                  'HS',
                   'CC',
                   '#TxN',
                   'TNF',
@@ -1515,6 +1519,7 @@ def PrintHoldingSecurities(all_records):
       name))
     record = {
         'Code': key,
+        'HS': remain_stock,
         'MV': myround(mv, 0),
         'currency': currency,
         'Price': mp,

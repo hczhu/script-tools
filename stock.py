@@ -158,6 +158,11 @@ SHARES = {
   '中国机械工程': 908270000 + 3217430000,
 }
 
+CROSS_SHARE = {
+  # The amount of Alibaba stocks Yahoo holds
+  'Yahoo-Alibaba': 384 * 10**6,
+}
+
 ETF_BOOK_VALUE_FUNC = {
   #南方A50 ETF
   # http://www.csopasset.com/tchi/products/china_A50_etf.php
@@ -194,7 +199,7 @@ CAP = {
   # 回购价格 34.94
   'Yahoo': lambda: (
                     24 * 10**9 * 0.35 * 0.72  # Yahoo Japan
-                    + 384 * 10**6 * GetMarketPrice('Alibaba') * 0.72 # IPO后的间接持股打折
+                    + CROSS_SHARE['Yahoo-Alibaba'] * GetMarketPrice('Alibaba') * 0.72 # IPO后的间接持股打折
                     + 7209 * 10**6  # 净现金NCAV = Current Assets - Total Liabilities 包括卖出阿里股份
                    )
                    / SHARES['Yahoo'],
@@ -1242,10 +1247,17 @@ def BuyFbPut():
     return 'Buy Facebook put @80.'
   return ''
 
-def YahooAndBaba():
- return ''
+def YahooAndAlibaba():
+  kUnit = 50
+  ratio = 1.0 * CROSS_SHARE['Yahoo-Alibaba'] / SHARES['Yahoo'] * 0.72
+  return 'Long Yahoo @%.2f %d units short Alibaba @.2f %.0f units with price %.2f' % (
+          GetMarketPrice('Yahoo'), kUnit,
+          GetMarketPrice('Alibaba'), kUnit * ratio,
+          GetMarketPrice('Yahoo') - ratio * GetMarketPrice('Alibaba')
+         )
 
 STRATEGY_FUNCS = {
+  YahooAndAlibaba: 'Yahoo and Alibaba comp',
   BuyApple: 'Buy Apple',
   BuyBig4BanksH: 'Buy 四大行H股 ',
   BuyDeNA:  'Buy :DeNA',

@@ -118,8 +118,8 @@ GDP数据 2013 - 7.7, 2012 - 7.65, 2011 - 9.30, 2010 - 10.45, 2009 - 9.21
 EX_RATE = {
   'USD-USD': 1.0,
   'RMB-USD': 0.1605,
-  'HKD-USD': 0.129,
-  'YEN-USD': 0.009782,
+  'HKD-USD': 0.1288,
+  'YEN-USD': 0.0094,
 }
 
 def InitExRate():
@@ -198,7 +198,7 @@ CAP = {
   # 净现金3B
   # 回购价格 34.94
   'Yahoo': lambda: (
-                    24 * 10**9 * 0.35 * 0.72  # Yahoo Japan
+                    2.31 * 10**12 * 0.35 * 0.72 * EX_RATE['YEN-USD']  # Yahoo Japan
                     + CROSS_SHARE['Yahoo-Alibaba'] * GetMarketPrice('Alibaba') * 0.72 # IPO后的间接持股打折
                     + 7209 * 10**6  # 净现金NCAV = Current Assets - Total Liabilities 包括卖出阿里股份
                    )
@@ -1248,13 +1248,19 @@ def BuyFbPut():
   return ''
 
 def YahooAndAlibaba():
-  kUnit = 50
+  kUnit = 100
   ratio = 1.0 * CROSS_SHARE['Yahoo-Alibaba'] / SHARES['Yahoo'] * 0.72
-  return 'Long Yahoo @%.2f %d units short Alibaba @.2f %.0f units with price %.2f' % (
-          GetMarketPrice('Yahoo'), kUnit,
-          GetMarketPrice('Alibaba'), kUnit * ratio,
-          GetMarketPrice('Yahoo') - ratio * GetMarketPrice('Alibaba')
-         )
+  mp = GetMarketPrice('Yahoo') - ratio * GetMarketPrice('Alibaba')
+  YahooJapanPerShare = 2.31 * 10**12 * EX_RATE['YEN-USD'] * 0.35 * 0.72 / SHARES['Yahoo']
+  net_money = 7209 * 10**6 / SHARES['Yahoo']
+  PB = mp / (YahooJapanPerShare + net_money)
+  if PB < 1.2:
+    return 'Long Yahoo @%.2f %d units short Alibaba @%.2f %.0f units with PB = %.2f' % (
+        GetMarketPrice('Yahoo'), kUnit,
+        GetMarketPrice('Alibaba'), kUnit * ratio,
+        PB
+        )
+  return ''
 
 STRATEGY_FUNCS = {
   YahooAndAlibaba: 'Yahoo and Alibaba comp',

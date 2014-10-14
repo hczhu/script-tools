@@ -1260,7 +1260,7 @@ def YahooAndAlibaba():
         GetMarketPrice('Alibaba'), kUnit * ratio,
         PB
         )
-  return ''
+  return 'PB ( Yahoo - %.2f * Alibaba) = %.2f' % (ratio, PB)
 
 STRATEGY_FUNCS = {
   YahooAndAlibaba: 'Yahoo and Alibaba comp',

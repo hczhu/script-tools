@@ -1257,7 +1257,7 @@ def YahooAndAlibaba():
   YahooJapanPerShare = 2.31 * 10**12 * EX_RATE['YEN-USD'] * 0.35 * 0.72 / SHARES['Yahoo']
   net_money = 7209 * 10**6 / SHARES['Yahoo']
   PB = mp / (YahooJapanPerShare + net_money)
-  if PB < 1.10:
+  if PB < 1.05:
     return 'Long Yahoo @%.2f %d units short Alibaba @%.2f %.0f units with PB = %.2f' % (
         GetMarketPrice('Yahoo'), kUnit,
         GetMarketPrice('Alibaba'), kUnit * ratio,

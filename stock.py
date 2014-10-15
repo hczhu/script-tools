@@ -236,7 +236,7 @@ BVPS0 = {
   '浦发银行': 218312.0 * 10**6 / SHARES['浦发银行'],
   '中国机械工程': EX_RATE['RMB-HKD'] * 12032874000.0 / SHARES['中国机械工程'],
   '中行转债': lambda: 100.0 * GetMarketPrice('中国银行') / CB['中国银行'][1],
-  'BAC': 14.3,
+  'Bank of America': 14.3,
 }
 
 # TTM

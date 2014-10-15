@@ -566,6 +566,7 @@ WATCH_LIST_BANK = {
   '600036': '招商银行',
   '600000': '浦发银行',
   '601166': '兴业银行',
+  'BAC': 'Bank of America',
 }
 
 WATCH_LIST_BANK_1 = {

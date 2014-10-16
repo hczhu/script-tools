@@ -1261,9 +1261,9 @@ def YahooAndAlibaba():
   YahooJapanPerShare = 2.3 * 10**12 * EX_RATE['YEN-USD'] * 0.35 * 0.72 / SHARES['Yahoo']
   net_money = 7209 * 10**6 / SHARES['Yahoo']
   PB = mp / (YahooJapanPerShare + net_money)
-  imbalance = g_holding_shares['Yahoo'] + ratio * g_holding_shares['Alibaba']
-  if imbalance < -10:
-    print 'Buy Yahoo %d unit @%.2f for portfolio parity.' % (-imbalance, GetMarketPrice('Yahoo'))
+  imbalance = g_holding_shares['Yahoo'] * ratio + g_holding_shares['Alibaba']
+  if imbalance / ratio < -50:
+    print 'Buy Yahoo %d unit @%.2f for portfolio parity.' % (-imbalance / ratio, GetMarketPrice('Yahoo'))
   elif imbalance > 10:
     print 'Sell Alibaba %d units @%.2f for portfolio parity.' % (imbalance, GetMarketPrice('Alibaba'))
 

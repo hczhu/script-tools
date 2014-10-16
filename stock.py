@@ -1480,6 +1480,7 @@ def PrintHoldingSecurities(all_records):
     '#DT',
     'CC',
     'NCF',
+    'HS',
   ]
   for col in ['Price']:
     if col not in set(sys.argv):

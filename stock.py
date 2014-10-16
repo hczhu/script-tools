@@ -1550,7 +1550,9 @@ def PrintHoldingSecurities(all_records):
       net_profit + mv,
       CURRENCY,
       name))
-    g_holding_shares[CODE_TO_NAME[key]] = g_holding_shares[key] = remain_stock
+    g_holding_shares[key] = remain_stock
+    if key in CODE_TO_NAME:
+      g_holding_shares[CODE_TO_NAME[key]] = remain_stock
     record = {
         'Code': key,
         'HS': remain_stock,

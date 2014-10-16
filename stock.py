@@ -677,6 +677,9 @@ total_transaction_fee = defaultdict(float)
 total_market_value = defaultdict(int) 
 
 holding_percent = defaultdict(float)
+
+g_holding_shares = defaultdict(int)
+
 NET_ASSET = 0.0
 
 #----------Begining of global variables------------------
@@ -1255,15 +1258,22 @@ def YahooAndAlibaba():
   kUnit = 100
   ratio = 1.0 * CROSS_SHARE['Yahoo-Alibaba'] / SHARES['Yahoo'] * 0.72
   mp = GetMarketPrice('Yahoo') - ratio * GetMarketPrice('Alibaba')
-  YahooJapanPerShare = 2.31 * 10**12 * EX_RATE['YEN-USD'] * 0.35 * 0.72 / SHARES['Yahoo']
+  YahooJapanPerShare = 2.3 * 10**12 * EX_RATE['YEN-USD'] * 0.35 * 0.72 / SHARES['Yahoo']
   net_money = 7209 * 10**6 / SHARES['Yahoo']
   PB = mp / (YahooJapanPerShare + net_money)
-  if PB < 1.05:
+  imbalance = g_holding_shares['Yahoo'] + ratio * g_holding_shares['Alibaba']
+  if imbalance < -10:
+    print 'Buy Yahoo %d unit @%.2f for portfolio parity.' % (-imbalance, GetMarketPrice('Yahoo'))
+  elif imbalance > 10:
+    print 'Sell Alibaba %d units @%.2f for portfolio parity.' % (imbalance, GetMarketPrice('Alibaba'))
+
+  if PB < 1.1:
     return 'Long Yahoo @%.2f %d units short Alibaba @%.2f %.0f units with PB = %.2f' % (
         GetMarketPrice('Yahoo'), kUnit,
         GetMarketPrice('Alibaba'), kUnit * ratio,
         PB
         )
+
   return 'PB ( Yahoo - %.2f * Alibaba) = %.2f' % (ratio, PB)
 
 STRATEGY_FUNCS = {
@@ -1540,6 +1550,7 @@ def PrintHoldingSecurities(all_records):
       net_profit + mv,
       CURRENCY,
       name))
+    g_holding_shares[CODE_TO_NAME[key]] = g_holding_shares[key] = remain_stock
     record = {
         'Code': key,
         'HS': remain_stock,

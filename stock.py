@@ -1267,7 +1267,7 @@ def YahooAndAlibaba():
   elif imbalance > 10:
     print 'Sell Alibaba %d units @%.2f for portfolio parity.' % (imbalance, GetMarketPrice('Alibaba'))
 
-  if PB < 1.1:
+  if PB < 1.1 and (holding_percent['Yahoo'] + holding_percent['Alibaba'] < 0.15):
     return 'Long Yahoo @%.2f %d units short Alibaba @%.2f %.0f units with PB = %.2f' % (
         GetMarketPrice('Yahoo'), kUnit,
         GetMarketPrice('Alibaba'), kUnit * ratio,

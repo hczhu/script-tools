@@ -1290,7 +1290,7 @@ STRATEGY_FUNCS = {
   BOCHandBOC: 'BOCH and BOC',
   CMBHandCMB: 'CMBH and CMB',
   BuyYandex: 'Buy Yandex',
-  BuyYahoo: 'Buy Yahoo',
+  #BuyYahoo: 'Buy Yahoo',
   ReduceOverflow: 'Reduce overflow',
   CMBandBOC: 'CMB<->BOC',
   BOCHandA50: 'A50<->BOCH',

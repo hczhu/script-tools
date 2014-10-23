@@ -191,16 +191,14 @@ CAP = {
   # 按照阿里收购UC出资的股票部分和对UC的估值计算。
   'Alibaba': 72,
 
-  # 雅虎日本(24B)35％的股权和alibaba 24%的股权，阿里按180B估值。
-  # 卖出阿里121,739,130股
-  # IPO后剩余401,826,286 
-  # 卖出股权税率38%
-  # 净现金3B
   # 回购价格 34.94
   'Yahoo': lambda: (
-                    2.31 * 10**12 * 0.35 * 0.72 * EX_RATE['YEN-USD']  # Yahoo Japan
+                    2.2 * 10**12 * 0.36 * 0.72 * EX_RATE['YEN-USD']  # Yahoo Japan
                     + CROSS_SHARE['Yahoo-Alibaba'] * GetMarketPrice('Alibaba') * 0.72 # IPO后的间接持股打折
-                    + 7209 * 10**6  # 净现金NCAV = Current Assets - Total Liabilities 包括卖出阿里股份
+                    + (12579507 * 10**3  # 当前现金
+                       + 1.1 * 10**9  # 加回预防的股票回购计划现金
+                       - 9.4 * 0.38 * 10**9  # 减去阿里IPO时套现的现金税金
+                      ) # 净现金NCAV = Current Assets - Total Liabilities 包括卖出阿里股份
                    )
                    / SHARES['Yahoo'],
 }
@@ -1273,8 +1271,17 @@ def YahooAndAlibaba():
         GetMarketPrice('Alibaba'), kUnit * ratio,
         PB
         )
+  best_tax_rate = 0.2
+  upper_PB = GetMarketPrice('Yahoo') *SHARES['Yahoo'] / (
+               GetMarketPrice('Yahoo') / GetPB0('Yahoo', GetMarketPrice('Yahoo')) * SHARES['Yahoo'] +
+               CROSS_SHARE['Yahoo-Alibaba'] * GetMarketPrice('Alibaba') * (0.38 - best_tax_rate))
+  if upper_PB > 1.0:
+    return 'Sell Yahoo @%.2f %d units Buy Alibaba @%.2f %.0f units with upper PB = %.2f' % (
+        GetMarketPrice('Yahoo'), g_holding_shares['Yahoo'],
+        GetMarketPrice('Alibaba'), g_holding_shares['Alibaba'],
+        upper_PB)
 
-  return 'PB ( Yahoo - %.2f * Alibaba) = %.2f' % (ratio, PB)
+  return 'PB ( Yahoo - %.2f * Alibaba) = %.2f Yahoo upper PB = %.2f' % (ratio, PB, upper_PB)
 
 STRATEGY_FUNCS = {
   YahooAndAlibaba: 'Yahoo and Alibaba comp',

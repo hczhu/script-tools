@@ -1116,6 +1116,15 @@ def BuyCMB():
     5.0,
     buy_condition = lambda code: GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0)
 
+def BuyCCB():
+  return GenericDynamicStrategy(
+    '建设银行',
+    'DR',
+    [7.0, 8.0],
+    [0.1, 0.2],
+    5.0,
+    buy_condition = lambda code: GetAHDiscount(code) >= 0.05)
+
 def BuyDeNA():
   # 同类公司P/S
   # KONAMI: 1.5
@@ -1143,10 +1152,10 @@ def BuyBOCH():
   return GenericDynamicStrategy(
     '中国银行H',
     'DR',
-    [0.06, 0.07],
-    [0.4, 0.5],
+    [0.065, 0.075],
+    [0.1, 0.2],
     0.05,
-    buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < 0.9 and GetMarketPriceChange(
+    buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < 0.85 and GetMarketPriceChange(
                                  code) < 0.0 and GetAHDiscount('中国银行') >= min(GetAHDiscount(
                                    '建设银行') / 2, min(GetAHDiscount('工商银行') / 2, -0.025)),
     sell_condition = lambda code: GetMarketPriceChange(code) > 0)
@@ -1155,7 +1164,7 @@ def BuyBOC():
   return GenericDynamicStrategy(
     '中国银行',
     'DR',
-    [0.06, 0.075],
+    [0.065, 0.075],
     [0.3, 0.4],
     0.05,
     buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < 0.85,
@@ -1294,7 +1303,8 @@ STRATEGY_FUNCS = {
   BuyCMBH:  'Buy CMBH',
   BuyA50: 'Buy A50',
   BuyBOCH: 'Buy BOCH',
-  #BuyBOC: 'Buy BOC',
+  BuyCCB: 'Buy CCB',
+  BuyBOC: 'Buy BOC',
   BuyWeibo: 'Buy Weibo',
   KeepDaLanChou: 'Buy 大蓝筹',
   BOCHandBOC: 'BOCH and BOC',
@@ -1718,8 +1728,8 @@ def PrintWatchedBank():
                   'P/E',
                   'P/B0',
                   'P/B',
-                  'DR',
                   'DR0',
+                  'DR',
                   'AHD',
                   'Stock name'
                   ]

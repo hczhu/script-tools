@@ -562,6 +562,15 @@ CODE_TO_NAME = {
 NAME_TO_CODE = {
 }
 
+DA_LAN_CHOU = set([
+  '中国银行',
+  '建设银行',
+  '招商银行',
+  '工商银行',
+  '中行转债',
+  '南方A50',
+])
+
 WATCH_LIST_BANK = {
   '601988': '中国银行',
   '601939': '建设银行',
@@ -1182,15 +1191,15 @@ def BuyWeibo():
 
 def KeepDaLanChou():
   holding = 0
-  for bank in WATCH_LIST_BANK.keys():
-    holding += holding_percent[bank]
-    if bank in AH_PAIR:
-      holding += holding_percent[AH_PAIR[bank]]
-  for etf in WATCH_LIST_ETF.keys():
-    holding += holding_percent[etf]
-  target = 0.8
+  for dalanchou in DA_LAN_CHOU:
+    dalanchou = NAME_TO_CODE[dalanchou]
+    holding += holding_percent[dalanchou]
+    if dalanchou in AH_PAIR:
+      holding += holding_percent[AH_PAIR[dalanchou]]
+  target = 0.6
   if holding < target:
-    return 'Buy %.1fK RMB DaLanChou'%((target - holding) * NET_ASSET / 1000)
+    return 'Buy %.1fK RMB DaLanChou in (%s)'%((target - holding) * NET_ASSET / 1000,
+      ', '.join([str(x) for x in DA_LAN_CHOU]))
   return ''
 
 def CMBHandCMB():

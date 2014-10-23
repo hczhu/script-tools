@@ -195,9 +195,10 @@ CAP = {
   'Yahoo': lambda: (
                     2.2 * 10**12 * 0.36 * 0.72 * EX_RATE['YEN-USD']  # Yahoo Japan
                     + CROSS_SHARE['Yahoo-Alibaba'] * GetMarketPrice('Alibaba') * 0.72 # IPO后的间接持股打折
-                    + (12579507 * 10**3  # 当前现金
+                    + (12579507 * 10**3 + 1056992 * 10**3  # 当前现金
                        + 1.1 * 10**9  # 加回预防的股票回购计划现金
                        - 9.4 * 0.38 * 10**9  # 减去阿里IPO时套现的现金税金
+                       - (4377961 + 1155168 + 146072) * 10**3 # 减去其他负债
                       ) # 净现金NCAV = Current Assets - Total Liabilities 包括卖出阿里股份
                    )
                    / SHARES['Yahoo'],
@@ -1144,8 +1145,8 @@ def BuyBOCH():
     [0.4, 0.5],
     0.05,
     buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < 0.9 and GetMarketPriceChange(
-                                 code) < 0.0 and GetAHDiscount('中国银行') >= GetAHDiscount(
-                                   '建设银行') / 2 and GetAHDiscount('中国银行') >= GetAHDiscount('工商银行') / 2,
+                                 code) < 0.0 and GetAHDiscount('中国银行') >= min(GetAHDiscount(
+                                   '建设银行') / 2, min(GetAHDiscount('工商银行') / 2, -0.025)),
     sell_condition = lambda code: GetMarketPriceChange(code) > 0)
 
 def BuyBOC():

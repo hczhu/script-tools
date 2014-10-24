@@ -1110,17 +1110,17 @@ def BuyCMBH():
   return GenericDynamicStrategy(
     '招商银行H',
     'AHD',
-    [-0.03, 0.05],
+    [-0.05, 0.05],
     [0.1, 0.2],
-    -0.08,
-    0.02,
+    -0.1,
+    0.05,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0 and GetDR('招商银行H', GetMarketPrice('招商银行H')) > 0.045)
 
 def BuyCMB():
   return GenericDynamicStrategy(
     '招商银行',
     'DR',
-    [6.0, 7.0],
+    [0.06, 0.07],
     [0.3, 0.4],
     5.0,
     buy_condition = lambda code: GetAHDiscount(code) >= 0 and GetMarketPriceChange(code) < 0)
@@ -1129,7 +1129,7 @@ def BuyCCB():
   return GenericDynamicStrategy(
     '建设银行',
     'DR',
-    [7.0, 8.0],
+    [0.07, 0.08],
     [0.1, 0.2],
     5.0,
     buy_condition = lambda code: GetAHDiscount(code) >= 0.05)
@@ -1153,7 +1153,7 @@ def BuyA50():
     '南方A50',
     'P/E',
     [7.5, 7],
-    [0.4, 0.6],
+    [0.2, 0.3],
     9.0,
     buy_condition = lambda code: GetMarketPriceChange(code) < 0.0);
 
@@ -1174,7 +1174,7 @@ def BuyBOC():
     '中国银行',
     'DR',
     [0.065, 0.075],
-    [0.3, 0.4],
+    [0.1, 0.2],
     0.05,
     buy_condition = lambda code: GetPB(code, GetMarketPriceChange(code)) < 0.85,
     sell_condition = lambda code: GetMarketPriceChange(code) > 0)
@@ -1196,7 +1196,7 @@ def KeepDaLanChou():
     holding += holding_percent[dalanchou]
     if dalanchou in AH_PAIR:
       holding += holding_percent[AH_PAIR[dalanchou]]
-  target = 0.6
+  target = 0.8
   if holding < target:
     return 'Buy %.1fK RMB DaLanChou in (%s)'%((target - holding) * NET_ASSET / 1000,
       ', '.join([str(x) for x in DA_LAN_CHOU]))

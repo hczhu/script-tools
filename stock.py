@@ -819,7 +819,7 @@ def GetSinaUrlPrefix(code):
 def GetMarketPriceFromSina(code):
   url_prefix = 'http://hq.sinajs.cn/list='
   price_end_str = '"'
-  for pr in GetSinaUrlPrefix(code):
+  for pr in GetSinaUrlPrefix(code) + GetSinaUrlPrefix(code):
     suffix = pr + code.lower()
     url = url_prefix + suffix
     try:
@@ -841,6 +841,7 @@ def GetMarketPriceFromSina(code):
       sys.stderr.write('Got market data for %s = %s\n'%(code, str(data)))
       return data
     except:
+      time.sleep(3)
       continue
   return [0.0, 0.0, 0.0, 0.0]
 

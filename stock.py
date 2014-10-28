@@ -1297,7 +1297,7 @@ def YahooAndAlibaba():
   upper_PB = GetMarketPrice('Yahoo') *SHARES['Yahoo'] / (
                GetMarketPrice('Yahoo') / GetPB0('Yahoo', GetMarketPrice('Yahoo')) * SHARES['Yahoo'] +
                CROSS_SHARE['Yahoo-Alibaba'] * GetMarketPrice('Alibaba') * (0.38 - best_tax_rate))
-  if upper_PB > 1.0:
+  if upper_PB > 1.0 and PB > 1.9:
     return 'Sell Yahoo @%.2f %d units Buy Alibaba @%.2f %.0f units with upper PB = %.2f' % (
         GetMarketPrice('Yahoo'), g_holding_shares['Yahoo'],
         GetMarketPrice('Alibaba'), g_holding_shares['Alibaba'],
@@ -1433,7 +1433,7 @@ def CalOneStock(NO_RISK_RATE, records, code, name):
     #assert investment >= 0.0
     net_profit += value
     prev_date = trans_date
-    if buy_shares > 0:
+    if buy_shares > 0 and holding_shares > 0:
       assert value <= 0.0
       holding_cost = (holding_cost * holding_shares - value) / (holding_shares + buy_shares)
     holding_shares += buy_shares

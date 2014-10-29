@@ -1291,11 +1291,11 @@ def YahooAndAlibaba():
   upper_PB = GetMarketPrice('Yahoo') *SHARES['Yahoo'] / (
                GetMarketPrice('Yahoo') / GetPB0('Yahoo', GetMarketPrice('Yahoo')) * SHARES['Yahoo'] +
                CROSS_SHARE['Yahoo-Alibaba'] * GetMarketPrice('Alibaba') * (0.38 - best_tax_rate))
-  if holding_percent['Yahoo'] + holding_percent['Alibaba'] < 0.15 and (PB < 1.8 or upper_PB < 1.8):
-    return 'Long Yahoo @%.2f %d units short Alibaba @%.2f %.0f units with PB = %.2f' % (
+  if holding_percent['Yahoo'] + holding_percent['Alibaba'] < 0.15 and (PB < 1.8 and upper_PB < 1.1):
+    return 'Long Yahoo @%.2f %d units short Alibaba @%.2f %.0f units with PB = %.2f upper_PB = %.2f' % (
         GetMarketPrice('Yahoo'), kUnit,
         GetMarketPrice('Alibaba'), kUnit * ratio,
-        PB
+        PB, upper_PB
         )
   if upper_PB > 1.0 and PB > 1.9:
     return 'Sell Yahoo @%.2f %d units Buy Alibaba @%.2f %.0f units with upper PB = %.2f' % (

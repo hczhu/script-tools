@@ -1261,7 +1261,7 @@ def BOCandCB():
       NAME_TO_CODE['中行转债'], GetMarketPrice('中行转债'),
       NAME_TO_CODE['中国银行'], GetMarketPrice('中国银行'),
     )
-  if GetPB0('中行转债', GetMarketPrice('中行转债')) < 1.002:
+  if GetPB0('中行转债', GetMarketPrice('中行转债')) < 1.01:
     return '中国银行(%s) @%.3f ==> 中行转债(%s) @%.3f' % (
       NAME_TO_CODE['中国银行'], GetMarketPrice('中国银行'),
       NAME_TO_CODE['中行转债'], GetMarketPrice('中行转债'),
@@ -1330,7 +1330,7 @@ STRATEGY_FUNCS = {
   BuyYandex: 'Buy Yandex',
   #BuyYahoo: 'Buy Yahoo',
   ReduceOverflow: 'Reduce overflow',
-  CMBandBOC: 'CMB<->BOC',
+  #CMBandBOC: 'CMB<->BOC',
   BOCHandA50: 'A50<->BOCH',
   SellBOCH: 'Sell BOCH',
   BOCandCB: 'BOC<->CB',

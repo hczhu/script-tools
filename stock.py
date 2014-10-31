@@ -1527,7 +1527,7 @@ def PrintHoldingSecurities(all_records):
                   'DvDays',
                   'Stock name']
   silent_column = [
-    #'MV',
+    'MV',
     'MP',
     '#TxN',
     'TNF',
@@ -1601,6 +1601,7 @@ def PrintHoldingSecurities(all_records):
     record = {
         'Code': key,
         'HS': remain_stock,
+        'MV': myround(mv, 0),
         'MV(K)': myround(mv / 1000.0, 0),
         'currency': currency,
         'Price': mp,
@@ -1622,7 +1623,7 @@ def PrintHoldingSecurities(all_records):
         'DvDays': ((DIVIDEND_DATE[name] if name in DIVIDEND_DATE else date(2016, 1, 1)) - date.today()).days,
         'Stock name': name + '(' + key + ')',
     }
-    for col in ['MV', 'CC', '#TxN', 'TNF', 'DTP', '#DT']:
+    for col in ['MV', 'MV(K)', 'CC', '#TxN', 'TNF', 'DTP', '#DT']:
       summation[col] = summation.get(col, 0) + record[col]
     if remain_stock != 0:
       stat_records_map.append(record)

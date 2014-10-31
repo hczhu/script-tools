@@ -239,6 +239,7 @@ BVPS0 = {
   'Bank of America': 14.3,
 
   '工商银行': 4.06,
+  '中信银行': 4.84,
 }
 
 # TTM
@@ -578,6 +579,9 @@ DA_LAN_CHOU = set([
   '中行转债',
   '南方A50',
 ])
+
+WATCH_LIST_DISCONTED_H = {
+}
 
 WATCH_LIST_BANK = {
   '601988': '中国银行',

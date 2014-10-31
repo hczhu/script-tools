@@ -117,21 +117,22 @@ GDP数据 2013 - 7.7, 2012 - 7.65, 2011 - 9.30, 2010 - 10.45, 2009 - 9.21
 
 EX_RATE = {
   'USD-USD': 1.0,
-  'RMB-USD': 0.1605,
-  'HKD-USD': 0.1288,
-  'YEN-USD': 0.0094,
+  'USD-RMB': 6.11,
+  'USD-HKD': 7.75,
+  'USD-YEN': 112.32,
 }
 
+CURRENCY = 'USD'
+
 def InitExRate():
-  currencies = [pr.split('-')[0] for pr in EX_RATE.keys()]
-  base = EX_RATE.keys()[0].split('-')[1];
-  for a in currencies:
-    for b in currencies:
-      EX_RATE[a + '-' + b] = EX_RATE[a + '-' + base] / EX_RATE[b + '-' + base]
+  all_currencies = [pr.split('-')[1] for pr in EX_RATE.keys()]
   for pr in EX_RATE.keys():
     currencies = pr.split('-')
     assert(len(currencies) == 2)
     EX_RATE[currencies[1] + '-' + currencies[0]] = 1.0 / EX_RATE[pr]
+  for a in all_currencies:
+    for b in all_currencies:
+      EX_RATE[a + '-' + b] = EX_RATE[a + '-' + CURRENCY] * EX_RATE[CURRENCY + '-' + b]
 
 InitExRate()
 
@@ -548,7 +549,6 @@ PERCENT_UPPER = {
   '招商银行': 0.40,
 }
 
-CURRENCY = 'RMB'
 NO_RISK_RATE = 0.05
 LOAN_RATE = 0.016
 
@@ -1507,6 +1507,7 @@ def PrintHoldingSecurities(all_records):
   table_header = [
                   'Percent',
                   'Percent1',
+                  'MV(K)',
                   'HS',
                   'CC',
                   '#TxN',
@@ -1526,7 +1527,7 @@ def PrintHoldingSecurities(all_records):
                   'DvDays',
                   'Stock name']
   silent_column = [
-    'MV',
+    #'MV',
     'MP',
     '#TxN',
     'TNF',
@@ -1600,7 +1601,7 @@ def PrintHoldingSecurities(all_records):
     record = {
         'Code': key,
         'HS': remain_stock,
-        'MV': myround(mv, 0),
+        'MV(K)': myround(mv / 1000.0, 0),
         'currency': currency,
         'Price': mp,
         'Chg': round(chg, 2),

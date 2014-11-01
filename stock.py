@@ -1209,7 +1209,7 @@ def KeepDaLanChou():
     holding += holding_percent[dalanchou]
     if dalanchou in AH_PAIR:
       holding += holding_percent[AH_PAIR[dalanchou]]
-  target = 0.5
+  target = 0.7
   if holding < target:
     return 'Buy %.1fK RMB DaLanChou in (%s)'%((target - holding) * NET_ASSET / 1000,
       ', '.join([str(x) for x in DA_LAN_CHOU]))

@@ -562,6 +562,8 @@ DA_LAN_CHOU = set([
 ])
 
 WATCH_LIST_DISCONTED_H = {
+  '601808': '中海油服',
+  '601998': '中信银行',
 }
 
 WATCH_LIST_BANK = {
@@ -578,7 +580,6 @@ WATCH_LIST_BANK_1 = {
   '600016': '民生银行',
   '600015': '华夏银行',
   '601328': '交通银行',
-  '601998': '中信银行',
   '601818': '光大银行',
   '601288': '农业银行',
 }
@@ -625,6 +626,7 @@ WATCH_LIST_OTHER = {
 }
 
 AH_PAIR = {
+  '601808': '02883',
   '600036': '03968',
   '601988': '03988',
   '600016': '01988',
@@ -1339,7 +1341,7 @@ def InitAll():
     AH_PAIR[AH_PAIR[key]] = key
 
   for dt in [WATCH_LIST_BANK, WATCH_LIST_BANK_1,  WATCH_LIST_INSURANCE, WATCH_LIST_MOBILE_GAMES,
-             WATCH_LIST_INTERNET, WATCH_LIST_ETF, WATCH_LIST_CB, WATCH_LIST_OTHER]:
+             WATCH_LIST_INTERNET, WATCH_LIST_ETF, WATCH_LIST_CB, WATCH_LIST_OTHER, WATCH_LIST_DISCONTED_H]:
     for code in dt.keys():
       CODE_TO_NAME[code] = dt[code]
       if code in AH_PAIR:

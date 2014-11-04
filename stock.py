@@ -505,9 +505,10 @@ MAX_PERCENT_PER_STOCK = 0.2
 
 PERCENT_UPPER = {
   '南方A50': 0.5,
-  '中国银行': 0.72,
-  '建设银行': 0.4,
-  '招商银行': 0.40,
+  '中国银行': 0.3,
+  '建设银行': 0.3,
+  '招商银行': 0.3,
+  'Yahoo': 0.5,
 }
 
 NO_RISK_RATE = 0.05
@@ -1268,7 +1269,7 @@ def YahooAndAlibaba():
   upper_PB = GetMarketPrice('Yahoo') *SHARES['Yahoo'] / (
                GetMarketPrice('Yahoo') / GetPB0('Yahoo', GetMarketPrice('Yahoo')) * SHARES['Yahoo'] +
                CROSS_SHARE['Yahoo-Alibaba'] * GetMarketPrice('Alibaba') * (0.38 - best_tax_rate))
-  if holding_percent['Yahoo'] + holding_percent['Alibaba'] < 0.15 and (PB < 1.8 and upper_PB < 0.95):
+  if holding_percent['Yahoo'] + holding_percent['Alibaba'] < 0.15 and (PB < 1.7 and upper_PB < 0.95):
     return 'Long Yahoo @%.2f %d units short Alibaba @%.2f %.0f units with PB = %.2f upper_PB = %.2f' % (
         GetMarketPrice('Yahoo'), kUnit,
         GetMarketPrice('Alibaba'), kUnit * ratio,
@@ -1280,7 +1281,7 @@ def YahooAndAlibaba():
         GetMarketPrice('Alibaba'), g_holding_shares['Alibaba'],
         upper_PB)
 
-  return 'PB ( Yahoo - %.2f * Alibaba) = %.2f Yahoo upper PB = %.2f' % (ratio, PB, upper_PB)
+  return 'PB ( Yahoo - %.3f * Alibaba) = %.2f Yahoo upper PB = %.2f' % (ratio, PB, upper_PB)
 
 def SellZhongxinH():
   code = NAME_TO_CODE['中信银行H']
@@ -1298,7 +1299,7 @@ STRATEGY_FUNCS = {
   BuyA50: 'Buy A50',
   BuyBOCH: 'Buy BOCH',
   BuyCCB: 'Buy CCB',
-  BuyBOC: 'Buy BOC',
+  #BuyBOC: 'Buy BOC',
   BuyWeibo: 'Buy Weibo',
   KeepDaLanChou: 'Buy 大蓝筹',
   BOCHandBOC: 'BOCH and BOC',

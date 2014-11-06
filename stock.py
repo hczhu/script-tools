@@ -1296,7 +1296,7 @@ STRATEGY_FUNCS = {
   YahooAndAlibaba: 'Yahoo and Alibaba comp',
   BuyApple: 'Buy Apple',
   BuyBig4BanksH: 'Buy 四大行H股 ',
-  BuyDeNA:  'Buy :DeNA',
+  # BuyDeNA:  'Buy :DeNA',
   BuyCMBH:  'Buy CMBH',
   BuyA50: 'Buy A50',
   BuyBOCH: 'Buy BOCH',

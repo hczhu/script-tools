@@ -260,7 +260,7 @@ EPS0 = {
 }
 
 FORGOTTEN = {
-  # 'Facebook': 0,
+  'Facebook': 0,
 }
 
 """
@@ -419,6 +419,9 @@ DVPS = {
 
   # 来自雪球大牛预测
   '浦发银行': 2.6 * 0.3,
+
+  # 公司章程规定不少于20%
+  '中国机械工程': EPS['中国机械工程'] * 0.2,
 }
 
 DIVIDEND_DATE = {
@@ -603,7 +606,6 @@ WATCH_LIST_ETF = {
 
 WATCH_LIST_OTHER = {
   '01829': '中国机械工程',
-  '00826': '天工国际',
 }
 
 AH_PAIR = {
@@ -1242,10 +1244,10 @@ def BuyJixieGongcheng():
   return GenericDynamicStrategy(
     '中国机械工程',
     'P/E',
-    [12, 9],
-    [0.5, 0.1],
+    [10, 9],
+    [0.05, 0.1],
     15,
-    buy_condition = lambda code: GetMarketPriceChange(code) < -2);
+    buy_condition = lambda code: GetMarketPriceChange(code) < -1);
 
 def BuyFbPut():
   if GetMarketPrice('FB') > 80.0 and GetMarketPriceChange('FB') > 0.01:
@@ -1312,7 +1314,7 @@ STRATEGY_FUNCS = {
   SellBOCH: 'Sell BOCH',
   BOCandCB: 'BOC<->CB',
   BuyJixieGongcheng: '中国机械工程',
-  BuyFbPut: 'Buy Facebook put',
+  # BuyFbPut: 'Buy Facebook put',
 }
 
 #--------------End of strategy functions-----
@@ -1757,6 +1759,21 @@ def PrintWatchedInternet():
                   ]
   PrintWatchedStocks(WATCH_LIST_INTERNET, table_header, 'CAP')
 
+def PrintWatchedOthers():
+  table_header = [
+                  'Change',
+                  'P/E0',
+                  'P/E',
+                  'P/B0',
+                  'P/B',
+                  'DR0',
+                  'DR',
+                  'AHD',
+                  'Stock name'
+                  ]
+  PrintWatchedStocks(WATCH_LIST_DISCONTED_H, table_header, 'P/E')
+  PrintWatchedStocks(WATCH_LIST_OTHER, table_header, 'P/E')
+
 def RunStrategies():
   for strategy in STRATEGY_FUNCS.keys():
     sys.stderr.write("Running straregy: %s\n"%(STRATEGY_FUNCS[strategy]))
@@ -1779,6 +1796,9 @@ try:
   if 'stock' in set(sys.argv) or 'bank' in set(sys.argv):
     PrintWatchedBank()
   
+  if 'stock' in set(sys.argv) or 'other' in set(sys.argv):
+    PrintWatchedOthers()
+
   PrintHoldingSecurities(ReadRecords(sys.stdin))
   RunStrategies()
 except Exception as ins:

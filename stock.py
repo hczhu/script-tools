@@ -119,7 +119,7 @@ EX_RATE = {
   'USD-USD': 1.0,
   'USD-RMB': 6.11,
   'USD-HKD': 7.75,
-  'USD-YEN': 112.32,
+  'USD-YEN': 116,
 }
 
 CURRENCY = 'USD'

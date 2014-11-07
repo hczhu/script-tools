@@ -119,7 +119,7 @@ EX_RATE = {
   'USD-USD': 1.0,
   'USD-RMB': 6.11,
   'USD-HKD': 7.75,
-  'USD-YEN': 112.32,
+  'USD-YEN': 116,
 }
 
 CURRENCY = 'USD'
@@ -293,39 +293,16 @@ CORE_CAP = {
 """
 LOSS_RATE = 0.6
 BVPS = {
-  # 模型计算最坏情况下
-  '招商银行': 10.09,
-
-  # 根据最新一期财报按照模型预测的最坏情况下
+  # 一下均为模型计算最坏情况下 2014Q3
+  '招商银行': 9.39,
+  '兴业银行': 9.13,
   '建设银行': 3.68,
-
-  # 根据最新一期财报按照模型预测的最坏情况下
   '中国银行': 2.46,
-
-  # 2014H
-  '民生银行': BVPS0['民生银行'] +
-              (
-                + 34146 # 加回贷款减值准备余额
-                - (607106 + 188900 + 157437 + 45466) * 1.0 / 1000 # 表外资产减值
-                - (1982 + 12819) # 减去商誉和无形资产
-                - LOSS_RATE * (  # 不良贷款损失率
-                  15818 # 最近一次年报已有不良总额
-                  + 45697 + 336 # 重组贷款和逾期贷款
-                  + 26540 * (28.71 + 23.72) / 200 # 从关注迁移到可疑的估计
-                  + 1680465 * (1.66 + 2.4) / 200 * (28.71 + 23.72) / 200   # 正常类->关注类->可疑类
-                  + 528535 * 2.0 / 100 # 减去华东地区额外贷款损失
-                  + 188547 * 2.0 / 100 # 房地产业贷款损失
-                  + 99969 * 1.0 / 100 # 应收款类投资损失 
-                  + 123889 * 1.0 / 100 # 信用卡贷款损失
-                  + 5371 * 50.0 / 100 # 贷款应收利息损失
-                )
-              ) * 10**6 / SHARES['民生银行'],
+  '浦发银行': 8.09,
 
   # 2014H，净现金 减去应收款计提50%
   '中国机械工程': EX_RATE['RMB-HKD'] * 10**3 * 6233446.0 / SHARES['中国机械工程'],
 
-  # 最坏情况下模型计算结果
-  '浦发银行': 8.09,
 }
 
 EPS = {
@@ -1304,15 +1281,15 @@ STRATEGY_FUNCS = {
   #BuyBOC: 'Buy BOC',
   BuyWeibo: 'Buy Weibo',
   KeepDaLanChou: 'Buy 大蓝筹',
-  BOCHandBOC: 'BOCH and BOC',
+  #BOCHandBOC: 'BOCH and BOC',
   CMBHandCMB: 'CMBH and CMB',
   BuyYandex: 'Buy Yandex',
   #BuyYahoo: 'Buy Yahoo',
   ReduceOverflow: 'Reduce overflow',
   #CMBandBOC: 'CMB<->BOC',
-  BOCHandA50: 'A50<->BOCH',
+  #BOCHandA50: 'A50<->BOCH',
   SellBOCH: 'Sell BOCH',
-  BOCandCB: 'BOC<->CB',
+  #BOCandCB: 'BOC<->CB',
   BuyJixieGongcheng: '中国机械工程',
   # BuyFbPut: 'Buy Facebook put',
 }

@@ -466,7 +466,7 @@ def GetJapanStockPriceAndChange(code):
             GetValueFromUrl(url, ['<div id="percentChange">', '<span class="valueContent"><span class="', '>'],
                             '%', lambda s: float(s.replace(',', ''))))
   except:
-    return [float('inf'), 0.0]
+    return [float(0), 0.0]
 
 def GetJapanStockBeta(code):
   url = 'http://jp.reuters.com/investing/quotes/quote?symbol=%s.T'%(str(code))
@@ -675,17 +675,17 @@ def myround(x, n):
   return round(x, n)
 
 def GetPE0(code, mp):
-  return myround(mp / EPS0[code], 1) if code in EPS0 else float('inf')
+  return myround(mp / EPS0[code], 1) if code in EPS0 else float(0)
 
 def GetPE(code, mp):
   if code in EPS:
     return myround(mp / EPS[code], 1)
-  return float('inf')
+  return float(0)
 
 def GetPS(code, mp):
   if code in SPS:
     return myround(mp / SPS[code], 1)
-  return float('inf')
+  return float(0)
 
 def GetDR(code, mp):
   if code in DVPS:
@@ -700,7 +700,7 @@ def GetDR0(code, mp):
 def GetPB1(code, mp):
   if code in BVPS1:
     return mp / BVPS1[code]
-  return float('inf')
+  return float(0)
 
 def GetBeta(code):
   return STOCK_BETA[code](code) if code in STOCK_BETA else 10
@@ -715,7 +715,7 @@ def GetPB0(code, mp):
           1.0 + CB[code][0] / trans / SHARES[code])
     book_value = BVPS0[code]() if IsLambda(BVPS0[code]) else BVPS0[code]
     return mp / (book_value * dilution)
-  return float('inf')
+  return float(0)
  
 def GetPB(code, mp):
   if code in BVPS:
@@ -728,7 +728,7 @@ def GetPB(code, mp):
         dilution = (1.0 + CB[code][0] * 1.0 / BVPS[code] / SHARES[code]) / (
           1.0 + CB[code][0] / trans / SHARES[code])
     return mp / (BVPS[code] * dilution)
-  return float('inf')
+  return float(0)
  
 def GetCAP(code, mp):
   code = NAME_TO_CODE[code] if code in NAME_TO_CODE else code
@@ -1310,7 +1310,7 @@ def InitAll():
   for code in CODE_TO_NAME.keys():
     NAME_TO_CODE[CODE_TO_NAME[code]] = code
 
-  for dt in [WATCH_LIST_BANK, WATCH_LIST_BANK_1, WATCH_LIST_INSURANCE]:
+  for dt in [WATCH_LIST_BANK, WATCH_LIST_BANK_1, WATCH_LIST_INSURANCE, WATCH_LIST_DISCONTED_H]:
     keys = dt.keys()
     for code in keys:
       if code in AH_PAIR:

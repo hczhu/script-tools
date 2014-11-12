@@ -533,10 +533,10 @@ WATCH_LIST_BANK = {
   '600036': '招商银行',
   '600000': '浦发银行',
   '601166': '兴业银行',
-  'BAC': 'Bank of America',
 }
 
 WATCH_LIST_BANK_1 = {
+  'BAC': 'Bank of America',
   '601398': '工商银行',
   '600016': '民生银行',
   '600015': '华夏银行',
@@ -1254,7 +1254,7 @@ def YahooAndAlibaba():
         GetMarketPrice('Alibaba'), kUnit * ratio,
         PB, upper_PB
         )
-  if upper_PB > 1.0 and PB > 1.9:
+  if PB > 2.0:
     return 'Sell Yahoo @%.2f %d units Buy Alibaba @%.2f %.0f units with upper PB = %.2f' % (
         GetMarketPrice('Yahoo'), g_holding_shares['Yahoo'],
         GetMarketPrice('Alibaba'), g_holding_shares['Alibaba'],
@@ -1769,12 +1769,12 @@ try:
   
   if 'stock' in set(sys.argv) or 'internet' in set(sys.argv):
     PrintWatchedInternet()
-  
-  if 'stock' in set(sys.argv) or 'bank' in set(sys.argv):
-    PrintWatchedBank()
-  
+   
   if 'stock' in set(sys.argv) or 'other' in set(sys.argv):
     PrintWatchedOthers()
+
+  if 'stock' in set(sys.argv) or 'bank' in set(sys.argv):
+    PrintWatchedBank()
 
   PrintHoldingSecurities(ReadRecords(sys.stdin))
   RunStrategies()

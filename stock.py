@@ -11,6 +11,7 @@ import copy
 import re
 
 from table_printer import *
+from stock_online_data import *
 
 #----------------------Template-----------------------------
 
@@ -1364,17 +1365,17 @@ def CalOneStock(NO_RISK_RATE, records, code, name):
   vid = 'visualization_%s'%(code)
   data = ''
   prices = []
-  for cell in records:
-    currency = cell[7]
+  for record in records:
+    currency = record['currency']
     ex_rate = EX_RATE[currency + '-' + CURRENCY]
-    trans_date = cell[0]
-    buy_shares = cell[5]
-    origin_price = cell[4]
+    trans_date = record['date']
+    buy_shares = record['amount']
+    origin_price = record['price']
     price = origin_price * ex_rate
-    fee = cell[6] * ex_rate
+    fee = record['commission'] * ex_rate
     sum_fee += fee
-    value = -price * buy_shares - fee - cell[8] * ex_rate
-    if -1 == cell[1].find('股息'):
+    value = -price * buy_shares - fee - record['extra'] * ex_rate
+    if -1 == record['transection'].find(u'股息'):
       data += '[new Date(%d, %d, %d), %.3f, \'%s%d\', \'%.0fK %s\'],\n'%(
           trans_date.year, trans_date.month - 1, trans_date.day,
           origin_price, '+' if buy_shares > 0 else '',
@@ -1418,38 +1419,38 @@ def CalOneStock(NO_RISK_RATE, records, code, name):
           DIV_TEMPLATE%(vid))
 
 def ReadRecords(input):
-  raw_all_records = []
-  for line in input:
-    if 0 != line.find('20'):
-      continue
-    cells = line.strip().split(',')
-    cells[0] = date(int(cells[0][0:4]), int(cells[0][4:6]), int(cells[0][6:8]))
-    raw_all_records.append(cells)
-  raw_all_records.sort(key = lambda record: record[0]) 
+  client = LoginMyGoogle('/Users/hcz/.smart-stocker-google-email.txt',
+                         '/Users/hcz/.smart-stocker-google-password.txt')
+  records = GetTransectionRecords(client)
+  for record in records:
+    date_str = record['date']
+    record['date'] = date(int(date_str[0:4]), int(date_str[4:6]), int(date_str[6:8]))
+
+  records.sort(key = lambda record: record['date']) 
 
   all_records = defaultdict(list)
   sell_fee = 18.1 / 10000
   buy_fee = 8.1 / 10000
-  for cells in raw_all_records:
-    cells.append(0.0)
-    price, buy_shares = float(cells[4]), int(cells[5])
-    fee = float(cells[6]) if cells[6] != '' else (
+  for record in records:
+    record['extra'] = 0.0
+    price, buy_shares = float(record['price']), int(record['amount'])
+    fee = float(record['commission']) if record['commission'] is not None else (
       buy_fee * abs(buy_shares * price) if buy_shares > 0 else sell_fee * abs(buy_shares * price))
-    cells[4], cells[5], cells[6] = price, buy_shares, fee
-    last = all_records[cells[2]][-1] if len(all_records[cells[2]]) > 0 else []
+    record['price'], record['amount'], record['commission'] = price, buy_shares, fee
+    last = all_records[record['ticker']][-1] if len(all_records[record['ticker']]) > 0 else {}
     if (len(last) > 0 and
-        (cells[0] - last[0]).days < 7
-        and cells[1].find('股息') == -1
-        and last[1].find('股息') == -1):
-      if buy_shares + last[5] != 0:
-        last[4] = (last[8] + buy_shares * price + last[5] * last[4]) / (buy_shares + last[5])
-        last[8] = 0
+        (record['date'] - last['date']).days < 7
+        and record['transection'].find(u'股息') == -1
+        and last['transection'].find(u'股息') == -1):
+      if buy_shares + last['amount'] != 0:
+        last['price'] = (last['extra'] + buy_shares * price + last['amount'] * last['price']) / (buy_shares + last['amount'])
+        last['extra'] = 0
       else:
-        last[8] += buy_shares * price + last[5] * last[4]
-      last[5] += buy_shares
-      last[6] += fee
+        last['extra'] += buy_shares * price + last['amount'] * last['price']
+      last['amount'] += buy_shares
+      last['commission'] += fee
     else:
-      all_records[cells[2]].append(cells)
+      all_records[record['ticker']].append(record)
   return all_records
 
 def PrintHoldingSecurities(all_records):
@@ -1502,13 +1503,13 @@ def PrintHoldingSecurities(all_records):
   for key in all_records.keys():
     if key in FORGOTTEN:
       # in CURRENCY
-      name = all_records[key][0][3]
+      name = all_records[key][0]['name']
       (net_profit, capital_cost, remain_stock, dtp, dt, txn_fee, currency, function,division) = CalOneStock(
           NO_RISK_RATE, all_records[key], key, name)
       net_profit *= EX_RATE[CURRENCY + '-' + currency]
-      cells = all_records[key][-1]
-      cells[2:7] = [currency, '', 1, int(net_profit), 0]
-      all_records[currency].append(cells)
+      record = all_records[key][-1]
+      record['currency'], record['amount'], record['price'], record['commission'], record['extra'] = currency, 1, int(net_profit), 0, 0
+      all_records[currency].append(record)
       sys.stderr.write('Convert %s to cash %d in %s\n'%(CODE_TO_NAME[key], net_profit, currency))
       assert net_profit >= 0
       del all_records[key]
@@ -1517,7 +1518,8 @@ def PrintHoldingSecurities(all_records):
        
   for key in all_records.keys():
     sys.stderr.write('Processing [' + key + ']\n')
-    name = all_records[key][0][3]
+    name = all_records[key][0]['name']
+    name = name.encode('utf-8') if name is not None else ''
     # All in CURRENCY
     (net_profit, capital_cost, remain_stock, dtp, dt, txn_fee, currency, function, division) = CalOneStock(
       NO_RISK_RATE, all_records[key], key, name)
@@ -1543,8 +1545,7 @@ def PrintHoldingSecurities(all_records):
     sys.stderr.write('%s profit %.0f %s from %s\n'%(
       'Realized' if remain_stock == 0 else 'Unrealized',
       net_profit + mv,
-      CURRENCY,
-      name))
+      CURRENCY, name))
     g_holding_shares[key] = remain_stock
     if key in CODE_TO_NAME:
       g_holding_shares[CODE_TO_NAME[key]] = remain_stock
@@ -1589,14 +1590,14 @@ def PrintHoldingSecurities(all_records):
   # All are in CURRENCY
   cash_flow = defaultdict(list)
   for key in all_records.keys():
-    for cell in all_records[key]:
-      currency = cell[7]
+    for record in all_records[key]:
+      currency = record['currency']
       ex_rate = EX_RATE[currency + '-' + CURRENCY]
-      trans_date = cell[0]
-      fee = cell[6] * ex_rate
-      buy_shares = cell[5]
-      price = cell[4] * ex_rate
-      value = -price * buy_shares - fee - cell[8] * ex_rate
+      trans_date = record['date']
+      fee = record['commission'] * ex_rate
+      buy_shares = record['amount']
+      price = record['price'] * ex_rate
+      value = -price * buy_shares - fee - record['extra'] * ex_rate
       cash_flow[currency].append([trans_date, key, value]);
   
   cash_flow['USD'] += cash_flow['HKD']

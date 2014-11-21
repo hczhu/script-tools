@@ -84,38 +84,6 @@ DIV_TEMPLATE = """
 
 #----------Beginning of manually upated financial data-------
 
-"""
-银监会数据
-http://www.cbrc.gov.cn/chinese/home/docViewPage/110009.html
-2013年
- 不良贷款率 1%
- 拨备覆盖率 300%
- 存贷比 66%
- 年均ROA 1.345%
- 年均ROE 20.5%
- 季度平均杠杆率 15
- 季度净息差 2.57% 2.59% 2.63% 2.68%
- 季度非利息收入占比 23.84% 23.73% 22.46% 21.15%
- 季度成本收入比 29.18% 29.44% 30.21% 32.90%
- 季度大型商业银行不良贷款率 0.98% 0.97% 0.98% 1.00%
- 季度股份制银行不良贷款率 0.77% 0.80% 0.83% 0.86%
-
-2014年一季度大行平均不良率为1.03，股份行平均不良率为0.92。
-
-2014Q2数据
-  \           大行    股份行
-  不良率      1.05    1.00
-  拨备覆盖率  272%    235%
-  ROA         1.45    1.23
-  
-加权风险资产收益率=净利润/加权风险资产
-加权风险资产：银行业各类资产风险系数--（现金 证券 贷款 固定资产 无形资产)0% 10% 20% 50% 100%
-GDP每下行1个点，不良率上升0.7个点。
-GDP数据 2013 - 7.7, 2012 - 7.65, 2011 - 9.30, 2010 - 10.45, 2009 - 9.21
-
-带0后缀的财务数据是最近4个季度的数据，未带0后缀的是未来四个季度后的数据估计
-"""
-
 EX_RATE = {
   'USD-USD': 1.0,
   'USD-RMB': 6.11,
@@ -259,26 +227,6 @@ EPS0 = {
 
   '中国机械工程': (1077132000.0 + (1974823000 - 995680000) * 1.05) /SHARES['中国机械工程'] * EX_RATE['RMB-HKD'],
 }
-
-FORGOTTEN = {
-  'Facebook': 0,
-}
-
-"""
-根据TTM预测一年以后
-
-银行资产增长受限于以下几个约束
-1. 核心资产充足率 8.5% 9.5%
-2. 存贷比 < 75%
-3. M2增长 < 13%
-4. 存款准备金率 < 20%
-
-生息资产 = 客户贷款 + 债券投资 + 存放中央银行 + 存拆放同业
-证券投资＝交易性金融资产+可供出售金融资产+持有至到期投资+应收款项债券投资
-存拆放同业 = 存放同业款项 + 拆出资金 + (买入返售金融资产)
-
-主要估计资产增长，净利差和资产减值。
-"""
 
 # 净利差
 NIM = {
@@ -1261,7 +1209,7 @@ def YahooAndAlibaba():
         GetMarketPrice('Alibaba'), g_holding_shares['Alibaba'],
         upper_PB)
 
-  return 'PB ( Yahoo - %.3f * Alibaba) = %.2f Yahoo upper PB = %.2f' % (ratio, PB, upper_PB)
+  return ''
 
 def SellZhongxinH():
   code = NAME_TO_CODE['中信银行H']
@@ -1318,7 +1266,7 @@ def InitAll():
         dt[AH_PAIR[code]] = dt[code] + 'H'.encode('utf-8')
 
   for dt in [STOCK_CURRENCY, SHARES, CAP, CB, EPS0, EPS, DVPS, DVPS0, SPS,
-             BVPS0, BVPS, ETF_BOOK_VALUE_FUNC, FORGOTTEN, PERCENT_UPPER]:
+             BVPS0, BVPS, ETF_BOOK_VALUE_FUNC, PERCENT_UPPER]:
     keys = dt.keys()
     for key in keys:
       dt[NAME_TO_CODE[key]] = dt[key]
@@ -1356,7 +1304,6 @@ def CalOneStock(NO_RISK_RATE, records, code, name):
   prev_date = date(2000, 1, 1)
   holding_cost = 0.0
   holding_shares = 0
-  records.sort()
   day_trade_profit = 0
   day_trade_net_shares = 0
   sum_day_trade_profit = 0
@@ -1383,6 +1330,7 @@ def CalOneStock(NO_RISK_RATE, records, code, name):
       prices.append(origin_price)
     if investment > 0.0:
       diff_days = (trans_date - prev_date).days
+      assert diff_days >= 0
       capital_cost  += investment * NO_RISK_RATE / 365 * diff_days
     if prev_date == trans_date:
       day_trade_net_shares += buy_shares
@@ -1418,7 +1366,7 @@ def CalOneStock(NO_RISK_RATE, records, code, name):
             currency),
           DIV_TEMPLATE%(vid))
 
-def ReadRecords(input):
+def ReadRecords():
   client = LoginMyGoogle('/Users/hcz/.smart-stocker-google-email.txt',
                          '/Users/hcz/.smart-stocker-google-password.txt')
   records = GetTransectionRecords(client)
@@ -1459,34 +1407,9 @@ def PrintHoldingSecurities(all_records):
                   'Percent',
                   'Percent1',
                   'MV(K)',
-                  'HS',
-                  'CC',
-                  '#TxN',
-                  'TNF',
-                  'DTP',
-                  '#DT',
-                  'MP',
                   'Chg',
-                  'P/E0',
-                  'P/E',
-                  'P/S',
-                  'P/B0',
-                  'P/B',
-                  'DR0',
-                  'DR',
-                  'AHD',
-                  'DvDays',
                   'Stock name']
   silent_column = [
-    'MV',
-    'MP',
-    '#TxN',
-    'TNF',
-    'DTP',
-    '#DT',
-    'CC',
-    'NCF',
-    'HS',
   ]
   for col in ['Price']:
     if col not in set(sys.argv):
@@ -1500,22 +1423,6 @@ def PrintHoldingSecurities(all_records):
   function_html = ''
   div_html = ''
   
-  for key in all_records.keys():
-    if key in FORGOTTEN:
-      # in CURRENCY
-      name = all_records[key][0]['name']
-      (net_profit, capital_cost, remain_stock, dtp, dt, txn_fee, currency, function,division) = CalOneStock(
-          NO_RISK_RATE, all_records[key], key, name)
-      net_profit *= EX_RATE[CURRENCY + '-' + currency]
-      record = all_records[key][-1]
-      record['currency'], record['amount'], record['price'], record['commission'], record['extra'] = currency, 1, int(net_profit), 0, 0
-      all_records[currency].append(record)
-      sys.stderr.write('Convert %s to cash %d in %s\n'%(CODE_TO_NAME[key], net_profit, currency))
-      assert net_profit >= 0
-      del all_records[key]
-      function_html += function
-      div_html += division
-       
   for key in all_records.keys():
     sys.stderr.write('Processing [' + key + ']\n')
     name = all_records[key][0]['name']
@@ -1647,110 +1554,13 @@ def PrintHoldingSecurities(all_records):
   for col in ['Chg', 'DR', 'DR0']:
     summation[col] = round(summation[col], 2)
   summation['Percent'] = str(round(summation['Percent'] * 100, 0)) + '%'
-  if 'hold' in set(sys.argv):
-    stat_records_map.append(summation)
-    stat_records_map.sort(reverse = True, key = lambda record: record.get('MV', 0))
-    PrintTableMap(table_header, stat_records_map, silent_column, truncate_float = False)
+  stat_records_map.append(summation)
+  stat_records_map.sort(reverse = True, key = lambda record: record.get('MV', 0))
+  PrintTableMap(table_header, stat_records_map, silent_column, truncate_float = False)
   if 'chart' in set(sys.argv):
     open('/tmp/charts.html', 'w').write(
       HTML_TEMPLATE%(function_html, div_html) 
     )
-
-def PrintWatchedETF():
-  table_header = [
-                  'Change',
-                  'Real Value',
-                  'Discount',
-                  'P/E',
-                  'Stock name',
-                 ]
-  table_map = []
-  for code in WATCH_LIST_ETF.keys():
-    func = ETF_BOOK_VALUE_FUNC[code] if code in ETF_BOOK_VALUE_FUNC else lambda: GetXueqiuETFBookValue(code)
-    price, change, real_value = GetMarketPrice(code), GetMarketPriceChange(code), func()
-    table_map.append({
-      'Change': str(round(change, 1)) + '%',
-      'Real Value': real_value,
-      'Discount': str(myround((real_value - price) * 100 / real_value, 0)) + '%',
-      'P/E': GetPE(code, price),
-      'Stock name': CODE_TO_NAME[code],
-    })
-  silent = []
-  if 'Price' not in set(sys.argv):
-    silent += ['Price']
-  PrintTableMap(table_header, table_map, silent, truncate_float = False)
-
-def PrintWatchedStocks(watch_list, table_header, sort_key, rev = False):
-  table, silent = [], []
-  if 'Price' not in set(sys.argv):
-    silent += ['Price']
-  for code in watch_list.keys():
-    mp = GetMarketPrice(code)
-    record = {
-              'Stock name': watch_list[code] + ('(' + code + ')').encode('utf-8'),
-    }
-    for col in table_header:
-      if col == 'Change':
-        record[col] = str(GetMarketPriceChange(code)) + '%'
-      elif col in FINANCIAL_FUNC:
-        record[col] = round(FINANCIAL_FUNC[col](code, mp), 3)
-    table.append(record)
-  table.sort(reverse = rev, key = lambda record: record.get(sort_key, 0))
-  PrintTableMap(table_header, table, silent, truncate_float = False)
-
-def PrintWatchedBank():
-  table_header = [
-                  'Change',
-                  'P/E0',
-                  'P/E',
-                  'P/B0',
-                  'P/B',
-                  'DR0',
-                  'DR',
-                  'AHD',
-                  'Stock name'
-                  ]
-  PrintWatchedStocks(WATCH_LIST_BANK_1, table_header, 'P/B')
-  PrintWatchedStocks(WATCH_LIST_BANK, table_header, 'P/B')
-
-def PrintWatchedInsurance():
-  table_header = [
-                  'Change',
-                  'P/E',
-                  'P/B',
-                  'P/S',
-                  'DR',
-                  'AHD',
-                  'Stock name'
-                  ]
-  PrintWatchedStocks(WATCH_LIST_INSURANCE, table_header, 'P/S')
-
-def PrintWatchedInternet():
-  table_header = [
-                  'Change',
-                  'P/E',
-                  'P/S',
-                  'CAP',
-                  'P/B0',
-                  'DR0',
-                  'Stock name'
-                  ]
-  PrintWatchedStocks(WATCH_LIST_INTERNET, table_header, 'CAP')
-
-def PrintWatchedOthers():
-  table_header = [
-                  'Change',
-                  'P/E0',
-                  'P/E',
-                  'P/B0',
-                  'P/B',
-                  'DR0',
-                  'DR',
-                  'AHD',
-                  'Stock name'
-                  ]
-  PrintWatchedStocks(WATCH_LIST_DISCONTED_H, table_header, 'P/E')
-  PrintWatchedStocks(WATCH_LIST_OTHER, table_header, 'P/E')
 
 def RunStrategies():
   for strategy in STRATEGY_FUNCS.keys():
@@ -1761,23 +1571,7 @@ def RunStrategies():
 
 try:
   InitAll()
-  
-  if 'etf' in set(sys.argv):
-    PrintWatchedETF()
-  
-  #if 'stock' in set(sys.argv) or 'insurance' in set(sys.argv):
-    #PrintWatchedInsurance()
-  
-  if 'stock' in set(sys.argv) or 'internet' in set(sys.argv):
-    PrintWatchedInternet()
-   
-  if 'stock' in set(sys.argv) or 'other' in set(sys.argv):
-    PrintWatchedOthers()
-
-  if 'stock' in set(sys.argv) or 'bank' in set(sys.argv):
-    PrintWatchedBank()
-
-  PrintHoldingSecurities(ReadRecords(sys.stdin))
+  PrintHoldingSecurities(ReadRecords())
   RunStrategies()
 except Exception as ins:
   print 'Run time error: ', ins

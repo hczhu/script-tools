@@ -4,6 +4,7 @@ import gdata.docs
 import gdata.docs.service
 import gdata.spreadsheet.service
 import re, os
+import sys
 
 def LoginMyGoogle(email_file, password_file):
   # Connect to Google

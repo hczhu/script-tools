@@ -9,6 +9,7 @@ import urllib2
 import traceback
 import copy
 import re
+from os.path import expanduser
 
 from table_printer import *
 from smart_stocker_private_data import *
@@ -122,8 +123,9 @@ def CalOneStock(records, code, name):
           DIV_TEMPLATE%(vid))
 
 def ReadRecords():
-  client = LoginMyGoogle('/Users/hcz/.smart-stocker-google-email.txt',
-                         '/Users/hcz/.smart-stocker-google-password.txt')
+  home = expanduser("~")
+  client = LoginMyGoogle(home + '/.smart-stocker-google-email.txt',
+                         home + '/.smart-stocker-google-password.txt')
   records = GetTransectionRecords(client)
   for record in records:
     date_str = record['date']

@@ -5,6 +5,7 @@ import gdata.docs.service
 import gdata.spreadsheet.service
 import re, os
 import sys
+from os.path import expanduser
 
 def LoginMyGoogle(email_file, password_file):
   # Connect to Google
@@ -33,7 +34,9 @@ def GetTransectionRecords(gd_client):
   return []
 
 if __name__ == "__main__":
- client = LoginMyGoogle('/Users/hcz/.smart-stocker-google-email.txt', '/Users/hcz/.smart-stocker-google-password.txt')
+ home = expanduser("~")
+ client = LoginMyGoogle(home + '/.smart-stocker-google-email.txt',
+                        home + '/.smart-stocker-google-password.txt')
  for row in GetTransectionRecords(client)[0:5]:
    print row
   

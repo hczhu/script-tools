@@ -23,7 +23,7 @@ def GetIRR(market_value, cash_flow_records):
   cash_flow_records.sort()
   low, high = -1.0, 5.0
   day_loan_rate = pow(LOAN_RATE + 1, 1.0 / 365)
-  now = date.today()
+  now = datetime.date.today()
   while low + 0.004 < high:
     mid = (low + high) / 2
     day_rate = pow(mid + 1, 1.0 / 365)
@@ -61,7 +61,7 @@ def CalOneStock(records, code, name):
   capital_cost = 0.0
   net_profit = 0.0
   investment = 0.0
-  prev_date = date(2000, 1, 1)
+  prev_date = datetime.date(2000, 1, 1)
   holding_cost = 0.0
   holding_shares = 0
   day_trade_profit = 0
@@ -127,7 +127,7 @@ def ReadRecords():
   records = GetTransectionRecords(GD_CLIENT)
   for record in records:
     date_str = record['date']
-    record['date'] = date(int(date_str[0:4]), int(date_str[4:6]), int(date_str[6:8]))
+    record['date'] = datetime.date(int(date_str[0:4]), int(date_str[4:6]), int(date_str[6:8]))
 
   records.sort(key = lambda record: record['date']) 
 

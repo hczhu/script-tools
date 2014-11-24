@@ -2,10 +2,9 @@
 # -*- coding: utf-8 -*-
 
 import sys
-from datetime import timedelta
-from datetime import date
-from datetime import time
-from collections import defaultdict
+import datetime
+import time
+import collections
 import urllib2
 import traceback
 import copy
@@ -83,13 +82,13 @@ DIV_TEMPLATE = """
 # -------------- End of template --------------------------
 
 EX_RATE = {
-  'USD-USD': 1.0,
-  'USD-RMB': 6.11,
-  'USD-HKD': 7.75,
-  'USD-YEN': 116,
+  'usd-usd': 1.0,
+  'usd-rmb': 6.11,
+  'usd-hkd': 7.75,
+  'usd-yen': 116,
 }
 
-CURRENCY = 'USD'
+CURRENCY = 'usd'
 
 def InitExRate():
   all_currencies = [pr.split('-')[1] for pr in EX_RATE.keys()]
@@ -120,88 +119,31 @@ DV_TAX = 0.1
 LOAN_RATE = 1.8 / 100.0
 
 AH_PAIR = {
-  '601808': '02883',
-  '600036': '03968',
-  '601988': '03988',
-  '600016': '01988',
-  '601939': '00939',
-  '601398': '01398',
-  '601318': '02318',
-  '601288': '01288',
-  '601998': '00998',
-  '601328': '03328',
-  '601818': '06818',
-  '601336': '01336',
-  '000666': '00350',
-  '600028': '00386',
-  '000002': '02202',
 }
 
 CODE_TO_NAME = {
-  '601808': '中海油服',
-  '601998': '中信银行',
-  '601988': '中国银行',
-  '601939': '建设银行',
-  '600036': '招商银行',
-  '600000': '浦发银行',
-  '601166': '兴业银行',
-  'BAC': 'Bank of America',
-  '601398': '工商银行',
-  '600016': '民生银行',
-  '600015': '华夏银行',
-  '601328': '交通银行',
-  '601818': '光大银行',
-  '601288': '农业银行',
-  '600028': '中国石化',
-  '000002': '万科',
-  '000651': '格力电器',
-
-  '601318': '中国平安',
-  '601336': '新华保险',
-  'FB': 'Facebook',
-  'GOOG': 'Google',
-  'AAPL': 'Apple',
-  'WB': 'Weibo',
-  'YNDX': 'Yandex',
-  'YHOO': 'Yahoo',
-  'BABA': 'Alibaba',
-  'BIDU': 'Baidu',
-
-  '2432': ':DeNA',
-  '113001': '中行转债',
-  #南方A50 ETF
-  '02822': '南方A50',
-  '150051': '信诚300A',
-  '01829': '中国机械工程',
 }
 
 NAME_TO_CODE = {}
 
-STOCK_CURRENCY = {
-  ':DeNA': 'YEN',
-}
-
-TOTAL_CAPITAL = defaultdict(int)
+TOTAL_CAPITAL = collections.defaultdict(int)
 
 TOTAL_INVESTMENT = {
-  'RMB': 0, 'USD': 0, 'HKD': 0, 'YEN': 0,
+  'rmb': 0, 'usd': 0, 'hkd': 0, 'yen': 0,
 }
-NET_ASSET_BY_CURRENCY = defaultdict(int)
+NET_ASSET_BY_CURRENCY = collections.defaultdict(int)
 
-TOTAL_TRANSACTION_FEE = defaultdict(float)
+TOTAL_TRANSACTION_FEE = collections.defaultdict(float)
 
-TOTAL_MARKET_VALUE = defaultdict(int) 
+TOTAL_MARKET_VALUE = collections.defaultdict(int) 
 
-HOLDING_PERCENT = defaultdict(float)
+HOLDING_PERCENT = collections.defaultdict(float)
 
-HOLDING_SHARES = defaultdict(int)
+HOLDING_SHARES = collections.defaultdict(int)
 
 NET_ASSET = 0.0
 
 FINANCIAL_KEYS = set([
-  'code',
-  'hcode',
-  'name',
   'a-shares',
   'h-shares',
   'shares',
@@ -219,27 +161,14 @@ FINANCIAL_KEYS = set([
   'd-divid/p',
   'ahd',
 ])
-SHOW_KEYS = set([
-  'name',
-  'sbv',  # static book value
-  'p/sbv',
-  'dbv',  # dynamic book value
-  'p/dbv',
-  'ttme', # trailing twelve month earning
-  'p/ttme',
-  'dye', # dynamic yearly earning
-  'p/dye',
-  's-divid', # static dividend yield
-  's-divid/p',
-  'd-divid', # dynamic dividend yield
-  'd-divid/p',
-  'ahd',
-])
 
 GD_CLIENT = None
 
+FINANCAIL_DATA_BASE = collections.defaultdict(dict)
 
-FINANCAIL_DATA = defaultdict(dict)
+FINANCAIL_DATA_ADVANCE = collections.defaultdict(dict)
+
+STOCK_INFO = collections.defaultdict(dict)
 
 #----------Begining of global variables------------------
 

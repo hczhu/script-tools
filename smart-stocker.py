@@ -54,12 +54,6 @@ def GetIRR(market_value, cash_flow_records):
 
 def InitAll():
   InitExRate()
-  for key in AH_PAIR.keys():
-    AH_PAIR[AH_PAIR[key]] = key
-    if key in CODE_TO_NAME:
-      CODE_TO_NAME[AH_PAIR[key]] = CODE_TO_NAME[key] + 'H'
-  for code in CODE_TO_NAME.keys():
-    NAME_TO_CODE[CODE_TO_NAME[code]] = code
   home = expanduser("~")
   global GD_CLIENT
   GD_CLIENT = LoginMyGoogle(home + '/.smart-stocker-google-email.txt',
@@ -239,8 +233,8 @@ def PrintHoldingSecurities(all_records):
   
   for dt in [TOTAL_MARKET_VALUE, TOTAL_CAPITAL,
              TOTAL_INVESTMENT, TOTAL_TRANSACTION_FEE]:
-    dt['USD'] += dt['HKD']
-    dt['USD'] += dt['YEN']
+    dt['usd'] += dt['hkd']
+    dt['usd'] += dt['yen']
   
   capital_header = ['Currency', 'Market Value', 'Free Cash', 'Net', 'Cash',
                     'Transaction Fee', 'Max Decline', 'IRR']
@@ -258,22 +252,22 @@ def PrintHoldingSecurities(all_records):
       value = -price * buy_shares - fee - record['extra'] * ex_rate
       cash_flow[currency].append([trans_date, key, value]);
   
-  cash_flow['USD'] += cash_flow['HKD']
-  cash_flow['USD'] += cash_flow['YEN']
+  cash_flow['usd'] += cash_flow['hkd']
+  cash_flow['usd'] += cash_flow['yen']
   
   for dt in [TOTAL_MARKET_VALUE, TOTAL_CAPITAL,
              TOTAL_INVESTMENT, TOTAL_TRANSACTION_FEE]:
-    dt['ALL'] = dt['USD'] + dt['RMB']
-    dt['RMB'] *= EX_RATE[CURRENCY + '-RMB']
-    dt['USD'] *= EX_RATE[CURRENCY + '-USD']
+    dt['ALL'] = dt['usd'] + dt['rmb']
+    dt['rmb'] *= EX_RATE[CURRENCY + '-rmb']
+    dt['usd'] *= EX_RATE[CURRENCY + '-usd']
 
-  cash_flow['ALL'] = copy.deepcopy(cash_flow['USD'] + cash_flow['RMB'])
-  for record in cash_flow['RMB']:
-    record[2] *= EX_RATE[CURRENCY + '-RMB']
-  for record in cash_flow['USD']:
-    record[2] *= EX_RATE[CURRENCY + '-USD']
+  cash_flow['ALL'] = copy.deepcopy(cash_flow['usd'] + cash_flow['rmb'])
+  for record in cash_flow['rmb']:
+    record[2] *= EX_RATE[CURRENCY + '-rmb']
+  for record in cash_flow['usd']:
+    record[2] *= EX_RATE[CURRENCY + '-usd']
   
-  for currency in ['USD', 'RMB', 'ALL']:
+  for currency in ['usd', 'rmb', 'ALL']:
     NET_ASSET_BY_CURRENCY[currency] = TOTAL_MARKET_VALUE[currency] + TOTAL_CAPITAL[currency] - TOTAL_INVESTMENT[currency]
     capital_table_map.append(
         {
@@ -298,7 +292,7 @@ def PrintHoldingSecurities(all_records):
     HOLDING_PERCENT[record['Code']] = 1.0 * record['MV'] / NET_ASSET
     summation['Percent'] += HOLDING_PERCENT[record['Code']]
     record['Percent'] = str(myround(HOLDING_PERCENT[record['Code']] * 100, 1)) + '%'
-    currency = 'RMB' if record['currency'] == 'RMB' else 'USD'
+    currency = 'rmb' if record['currency'] == 'rmb' else 'usd'
     record['Percent1'] = str(myround(100.0 * record['MV'] * EX_RATE[CURRENCY + '-' + currency] / NET_ASSET_BY_CURRENCY[currency], 1)) + '%'
     for col in ['Chg']:
       summation[col] += HOLDING_PERCENT[record['Code']] * record[col]
@@ -329,6 +323,7 @@ def PrintStocks(names):
 
 try:
   InitAll()
+  GetStockPool(GD_CLIENT)
   GetFinancialData(GD_CLIENT) 
   PopulateFinancialData()
   if len(sys.argv) > 1:

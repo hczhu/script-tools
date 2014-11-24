@@ -1,10 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import sys
-from datetime import timedelta
-from datetime import date
-from datetime import time
-from collections import defaultdict
+import datetime
+import collections
 import urllib2
 import traceback
 import copy

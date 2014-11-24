@@ -1,10 +1,8 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import sys
-from datetime import timedelta
-from datetime import date
-from datetime import time
-from collections import defaultdict
+import datetime
+import collections
 import urllib2
 import traceback
 import copy
@@ -94,19 +92,11 @@ MARKET_PRICE_FUNC = {
 }
 
 def GetCurrency(code):
-  if code in STOCK_CURRENCY:
-    return STOCK_CURRENCY[code]
-  elif code.isdigit() and code[0] == '0' and len(code) == 5:
-    return 'HKD'
-  elif code.isalpha():
-    return 'USD'
-  elif code.isdigit() and len(code) == 4:
-    return 'YEN'
-  return 'RMB'
+  return STOCK_INFO[code]['currency'] if code in STOCK_INFO else 'rmb'
 
 def GetXueqiuUrlPrefix(code):
   currency = GetCurrency(code)
-  if currency == 'RMB': return ['SH', 'SZ']
+  if currency == 'rmb': return ['SH', 'SZ']
   return ['']
 
 def GetXueqiuMarketPrice(code):
@@ -134,9 +124,9 @@ def GetXueqiuMarketPrice(code):
 
 def GetSinaUrlPrefix(code):
   currency = GetCurrency(code)
-  if currency == 'RMB': return ['sh', 'sz']
-  elif currency == 'HKD': return ['hk']
-  elif currency == 'USD': return ['gb_']
+  if currency == 'rmb': return ['sh', 'sz']
+  elif currency == 'hkd': return ['hk']
+  elif currency == 'usd': return ['gb_']
   return ['']
 
 def GetMarketPriceFromSina(code):
@@ -226,15 +216,12 @@ def GetAHDiscount(code):
 #----------End of crawler util functions-----------------
 
 def PopulateFinancialData():
-  for code in FINANCAIL_DATA.keys():
-    data = FINANCAIL_DATA[code]
+  for code in FINANCAIL_DATA_BASE.keys():
+    data = FINANCAIL_DATA_BASE[code]
+    adv_data = FINANCAIL_DATA_ADVANCE[code]
     for key in FINANCIAL_KEYS:
       if key.find('p/') != -1 and key[2:] in data:
-        data[key] = GetMarketPrice(code) / data[key[2:]]
+        adv_data[key] = GetMarketPrice(code) / data[key[2:]]
       elif key.find('/p') != -1 and key[0:-2] in data:
-        data[key] = data[key[0:-2]] / GetMarketPrice(code)
-    data['ahd'] = GetAHDiscount(code)
-  for code in CODE_TO_NAME:
-    if code not in FINANCAIL_DATA and code in AH_PAIR:
-      FINANCAIL_DATA[code]['ahd'] = GetAHDiscount(code)
-      FINANCAIL_DATA[code]['name'] = CODE_TO_NAME[code]
+        adv_data[key] = data[key[0:-2]] / GetMarketPrice(code)
+    adv_data['ahd'] = GetAHDiscount(code)

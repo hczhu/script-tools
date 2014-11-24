@@ -33,10 +33,13 @@ def GetTransectionRecords(gd_client):
     feeds = gd_client.GetListFeed('0Akv9eeSdKMP0dHBzeVIzWTY1VUlQcFVKOWFBZkdDeWc', 'od6').entry
     rows = []
     for row in feeds:
-      rows.append({key : row.custom[key].text.encode('utf-8') for key in row.custom.keys()})  
+      rows.append({key : row.custom[key].text for key in row.custom.keys()})
+      for key in rows[-1].keys():
+        if rows[-1][key] is not None:
+          rows[-1][key] = rows[-1][key].encode('utf-8')
     return rows
   except Exception, e:
-    sys.stderr.write('Failed to read transaction sheet. Exception ' + str(e) +'\n')
+    sys.stderr.write('Failed to read transection sheet. Exception ' + str(e) +'\n')
   return []
 
 def LoginMyGoogleWithFiles():

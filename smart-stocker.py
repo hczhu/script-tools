@@ -1,16 +1,14 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
 import sys
-from datetime import timedelta
-from datetime import date
-from datetime import time
+import datetime
 import time
-from collections import defaultdict
+import collections
 import urllib2
 import traceback
 import copy
 import re
-from os.path import expanduser
+import os.path
 
 from table_printer import *
 from smart_stocker_private_data import *
@@ -54,7 +52,7 @@ def GetIRR(market_value, cash_flow_records):
 
 def InitAll():
   InitExRate()
-  home = expanduser("~")
+  home = os.path.expanduser("~")
   global GD_CLIENT
   GD_CLIENT = LoginMyGoogle(home + '/.smart-stocker-google-email.txt',
                             home + '/.smart-stocker-google-password.txt')
@@ -133,7 +131,7 @@ def ReadRecords():
 
   records.sort(key = lambda record: record['date']) 
 
-  all_records = defaultdict(list)
+  all_records = collections.defaultdict(list)
   sell_fee = 18.1 / 10000
   buy_fee = 8.1 / 10000
   for record in records:
@@ -240,7 +238,7 @@ def PrintHoldingSecurities(all_records):
                     'Transaction Fee', 'Max Decline', 'IRR']
   capital_table_map = []
   # All are in CURRENCY
-  cash_flow = defaultdict(list)
+  cash_flow = collections.defaultdict(list)
   for key in all_records.keys():
     for record in all_records[key]:
       currency = record['currency']
@@ -313,11 +311,11 @@ def RunStrategies():
 
 def PrintStocks(names):
   tableMap = []
-  header = [col for col in (SHOW_KEYS - set(['name']))]
+  header = [col for col in (FINANCIAL_KEYS - set(['name']))]
   header += ['name']
-  for code in FINANCAIL_DATA.keys():
-    data = FINANCAIL_DATA[code]
-    if any([data['name'].find(name) != -1 for name in names]):
+  for code in FINANCAIL_DATA_ADVANCE.keys():
+    data = FINANCAIL_DATA_ADVANCE[code]
+    if any([CODE_TO_NAME[code].find(name) != -1 for name in names]):
       tableMap.append(data)
   PrintTableMap(header, tableMap)
 

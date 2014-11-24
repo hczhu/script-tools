@@ -4,18 +4,22 @@ def PrintOneLine(table_header, col_len, silent_column = []):
   silent_column = set(silent_column)
   line = '|'
   for i in range(len(col_len)):
+    if col_len[i] == 0: continue
     if table_header[i] in silent_column: continue
     line += '-' * col_len[i] + '|'
   return line
 
 def PrintTable(table_header, records, silent_column = [], truncate_float = True):
   silent_column = set(silent_column)
-  col_len = map(len, table_header)
+  col_len = [0] * len(table_header)
   for cells in records:
     for i in range(len(cells)):
       if truncate_float and isinstance(cells[i], float):
         cells[i] = '%.3f'%(cells[i])
       col_len[i] = max(col_len[i], len(str(cells[i])))
+  for i in range(len(col_len)):
+    if col_len[i] > 0:
+      col_len[i] = max(col_len[i], len(table_header[i]))
   line = PrintOneLine(table_header, col_len, silent_column)
   header = '+' + line[1:len(line) - 1] + '+'
   print header
@@ -25,6 +29,7 @@ def PrintTable(table_header, records, silent_column = [], truncate_float = True)
     assert len(cells) == len(records[0])
     row = '|'
     for i in range(len(cells)):
+      if col_len[i] == 0: continue
       if table_header[i] in silent_column: continue
       row += (' ' * (col_len[i] - len(str(cells[i])))) + str(cells[i]) + '|'
     if first: first = False

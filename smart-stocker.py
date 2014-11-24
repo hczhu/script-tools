@@ -4,6 +4,7 @@ import sys
 from datetime import timedelta
 from datetime import date
 from datetime import time
+import time
 from collections import defaultdict
 import urllib2
 import traceback
@@ -55,6 +56,14 @@ def InitAll():
   InitExRate()
   for key in AH_PAIR.keys():
     AH_PAIR[AH_PAIR[key]] = key
+    if key in CODE_TO_NAME:
+      CODE_TO_NAME[AH_PAIR[key]] = CODE_TO_NAME[key] + 'H'
+  for code in CODE_TO_NAME.keys():
+    NAME_TO_CODE[CODE_TO_NAME[code]] = code
+  home = expanduser("~")
+  global GD_CLIENT
+  GD_CLIENT = LoginMyGoogle(home + '/.smart-stocker-google-email.txt',
+                            home + '/.smart-stocker-google-password.txt')
 
 def CalOneStock(records, code, name):
   capital_cost = 0.0
@@ -123,10 +132,7 @@ def CalOneStock(records, code, name):
           DIV_TEMPLATE%(vid))
 
 def ReadRecords():
-  home = expanduser("~")
-  client = LoginMyGoogle(home + '/.smart-stocker-google-email.txt',
-                         home + '/.smart-stocker-google-password.txt')
-  records = GetTransectionRecords(client)
+  records = GetTransectionRecords(GD_CLIENT)
   for record in records:
     date_str = record['date']
     record['date'] = date(int(date_str[0:4]), int(date_str[4:6]), int(date_str[6:8]))
@@ -210,8 +216,6 @@ def PrintHoldingSecurities(all_records):
       net_profit + mv,
       CURRENCY, name))
     HOLDING_SHARES[key] = remain_stock
-    if key in CODE_TO_NAME:
-      HOLDING_SHARES[CODE_TO_NAME[key]] = remain_stock
     record = {
         'Code': key,
         'HS': remain_stock,
@@ -313,9 +317,25 @@ def RunStrategies():
   for strategy in STRATEGY_FUNCS:
     strategy()
 
+def PrintStocks(names):
+  tableMap = []
+  header = [col for col in (SHOW_KEYS - set(['name']))]
+  header += ['name']
+  for code in FINANCAIL_DATA.keys():
+    data = FINANCAIL_DATA[code]
+    if any([data['name'].find(name) != -1 for name in names]):
+      tableMap.append(data)
+  PrintTableMap(header, tableMap)
+
 try:
   InitAll()
-  PrintHoldingSecurities(ReadRecords())
+  GetFinancialData(GD_CLIENT) 
+  PopulateFinancialData()
+  if len(sys.argv) > 1:
+    names = ','.join(sys.argv[1:]).split(',')
+    PrintStocks(names)
+  else:
+    PrintHoldingSecurities(ReadRecords())
   RunStrategies()
 except Exception as ins:
   print 'Run time error: ', ins

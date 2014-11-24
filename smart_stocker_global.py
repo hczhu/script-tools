@@ -119,16 +119,6 @@ ETF_BOOK_VALUE_FUNC = {
 DV_TAX = 0.1
 LOAN_RATE = 1.8 / 100.0
 
-
-CODE_TO_NAME = {
-  'RMB': 'RMB',
-  'USD': 'USD',
-  'HKD': 'HKD',
-}
-
-NAME_TO_CODE = {
-}
-
 AH_PAIR = {
   '601808': '02883',
   '600036': '03968',
@@ -146,6 +136,46 @@ AH_PAIR = {
   '600028': '00386',
   '000002': '02202',
 }
+
+CODE_TO_NAME = {
+  '601808': '中海油服',
+  '601998': '中信银行',
+  '601988': '中国银行',
+  '601939': '建设银行',
+  '600036': '招商银行',
+  '600000': '浦发银行',
+  '601166': '兴业银行',
+  'BAC': 'Bank of America',
+  '601398': '工商银行',
+  '600016': '民生银行',
+  '600015': '华夏银行',
+  '601328': '交通银行',
+  '601818': '光大银行',
+  '601288': '农业银行',
+  '600028': '中国石化',
+  '000002': '万科',
+  '000651': '格力电器',
+
+  '601318': '中国平安',
+  '601336': '新华保险',
+  'FB': 'Facebook',
+  'GOOG': 'Google',
+  'AAPL': 'Apple',
+  'WB': 'Weibo',
+  'YNDX': 'Yandex',
+  'YHOO': 'Yahoo',
+  'BABA': 'Alibaba',
+  'BIDU': 'Baidu',
+
+  '2432': ':DeNA',
+  '113001': '中行转债',
+  #南方A50 ETF
+  '02822': '南方A50',
+  '150051': '信诚300A',
+  '01829': '中国机械工程',
+}
+
+NAME_TO_CODE = {}
 
 STOCK_CURRENCY = {
   ':DeNA': 'YEN',
@@ -167,6 +197,49 @@ HOLDING_PERCENT = defaultdict(float)
 HOLDING_SHARES = defaultdict(int)
 
 NET_ASSET = 0.0
+
+FINANCIAL_KEYS = set([
+  'code',
+  'hcode',
+  'name',
+  'a-shares',
+  'h-shares',
+  'shares',
+  'sbv',  # static book value
+  'p/sbv',
+  'dbv',  # dynamic book value
+  'p/dbv',
+  'ttme', # trailing twelve month earning
+  'p/ttme',
+  'dye', # dynamic yearly earning
+  'p/dye',
+  's-divid', # static dividend yield
+  's-divid/p',
+  'd-divid', # dynamic dividend yield
+  'd-divid/p',
+  'ahd',
+])
+SHOW_KEYS = set([
+  'name',
+  'sbv',  # static book value
+  'p/sbv',
+  'dbv',  # dynamic book value
+  'p/dbv',
+  'ttme', # trailing twelve month earning
+  'p/ttme',
+  'dye', # dynamic yearly earning
+  'p/dye',
+  's-divid', # static dividend yield
+  's-divid/p',
+  'd-divid', # dynamic dividend yield
+  'd-divid/p',
+  'ahd',
+])
+
+GD_CLIENT = None
+
+
+FINANCAIL_DATA = defaultdict(dict)
 
 #----------Begining of global variables------------------
 

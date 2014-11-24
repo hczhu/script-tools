@@ -82,7 +82,7 @@ def CalOneStock(records, code, name):
     fee = record['commission'] * ex_rate
     sum_fee += fee
     value = -price * buy_shares - fee - record['extra'] * ex_rate
-    if -1 == record['transection'].find(u'股息'):
+    if -1 == record['transection'].find('股息'):
       data += '[new Date(%d, %d, %d), %.3f, \'%s%d\', \'%.0fK %s\'],\n'%(
           trans_date.year, trans_date.month - 1, trans_date.day,
           origin_price, '+' if buy_shares > 0 else '',
@@ -143,8 +143,8 @@ def ReadRecords():
     last = all_records[record['ticker']][-1] if len(all_records[record['ticker']]) > 0 else {}
     if (len(last) > 0 and
         (record['date'] - last['date']).days < 7
-        and record['transection'].find(u'股息') == -1
-        and last['transection'].find(u'股息') == -1):
+        and record['transection'].find('股息') == -1
+        and last['transection'].find('股息') == -1):
       if buy_shares + last['amount'] != 0:
         last['price'] = (last['extra'] + buy_shares * price + last['amount'] * last['price']) / (buy_shares + last['amount'])
         last['extra'] = 0
@@ -181,7 +181,6 @@ def PrintHoldingSecurities(all_records):
   for key in all_records.keys():
     sys.stderr.write('Processing [' + key + ']\n')
     name = all_records[key][0]['name']
-    name = name.encode('utf-8') if name is not None else ''
     # All in CURRENCY
     (net_profit, capital_cost, remain_stock, dtp, dt, txn_fee, currency, function, division) = CalOneStock(
      all_records[key], key, name)

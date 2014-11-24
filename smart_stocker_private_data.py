@@ -51,7 +51,7 @@ def GetStockPool(client):
   ws_key = '1Ita0nLCH5zpt6FgpZwOshZFXwIcNeOFvJ3ObGze2UBs'
   ws_id = 'ofub021'
   try:
-    sys.stderr.write('Reading stock pull worksheet.\n')
+    sys.stderr.write('Reading stock pool worksheet.\n')
     feeds = client.GetListFeed(ws_key, ws_id).entry
     for row in feeds:
       info = {key : row.custom[key].text for key in row.custom.keys()}

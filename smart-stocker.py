@@ -73,7 +73,7 @@ def CalOneStock(records, code, name):
   data = ''
   prices = []
   for record in records:
-    currency = record['currency']
+    currency = record['currency'].lower()
     ex_rate = EX_RATE[currency + '-' + CURRENCY]
     trans_date = record['date']
     buy_shares = record['amount']

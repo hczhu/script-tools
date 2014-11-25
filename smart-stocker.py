@@ -188,6 +188,8 @@ def PrintHoldingSecurities(all_records):
     if key in TOTAL_INVESTMENT:
       TOTAL_CAPITAL[currency] += -net_profit
       continue
+    if key in STOCK_INFO and currency != STOCK_INFO[key]['currency']:
+      print 'Inconsistent currency for %s: %s != %s'%(CODE_TO_NAME[key], currency, STOCK_INFO[key]['currency'])
     function_html += function
     div_html += division
     investment = -net_profit

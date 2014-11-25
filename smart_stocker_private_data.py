@@ -126,4 +126,4 @@ if __name__ == "__main__":
   GetStockPool(client)
   GetFinancialData(client)
   PrintData(','.join(sys.argv[1:]).split(','))
-  
+ 

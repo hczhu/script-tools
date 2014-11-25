@@ -137,7 +137,7 @@ def GetMarketPriceFromSina(code):
     url = url_prefix + suffix
     try:
       values = GetValueFromUrl(url, 'hq_str_%s="'%(suffix), '"', str)
-      sys.stderr.write('Get string for %s: [%s] from url: %s\n'%(code, [values]), url)
+      sys.stderr.write('Get string for %s: [%s] from url: %s\n'%(code, [values], url))
       if len(values) == 0: continue
       values = values.split(',')
       if suffix.find('hk') == 0: values = values[1:]

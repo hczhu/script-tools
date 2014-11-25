@@ -314,8 +314,9 @@ def PrintStocks(names):
   header = [col for col in (FINANCIAL_KEYS - set(['name']))]
   header += ['name']
   for code in FINANCAIL_DATA_ADVANCE.keys():
-    data = FINANCAIL_DATA_ADVANCE[code]
     if any([CODE_TO_NAME[code].find(name) != -1 for name in names]):
+      data = dict(FINANCAIL_DATA_ADVANCE[code])
+      data['name'] = CODE_TO_NAME[code]
       tableMap.append(data)
   PrintTableMap(header, tableMap)
 

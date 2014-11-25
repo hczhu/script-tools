@@ -241,7 +241,7 @@ def PrintHoldingSecurities(all_records):
   cash_flow = collections.defaultdict(list)
   for key in all_records.keys():
     for record in all_records[key]:
-      currency = record['currency']
+      currency = record['currency'].lower()
       ex_rate = EX_RATE[currency + '-' + CURRENCY]
       trans_date = record['date']
       fee = record['commission'] * ex_rate

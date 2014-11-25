@@ -181,6 +181,7 @@ def PrintHoldingSecurities(all_records):
   for key in all_records.keys():
     sys.stderr.write('Processing [' + key + ']\n')
     name = all_records[key][0]['name']
+    name = name if name is not None else ''
     # All in CURRENCY
     (net_profit, capital_cost, remain_stock, dtp, dt, txn_fee, currency, function, division) = CalOneStock(
      all_records[key], key, name)

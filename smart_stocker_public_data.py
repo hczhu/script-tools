@@ -224,4 +224,5 @@ def PopulateFinancialData():
         adv_data[key] = GetMarketPrice(code) / data[key[2:]]
       elif key.find('/p') != -1 and key[0:-2] in data:
         adv_data[key] = data[key[0:-2]] / GetMarketPrice(code)
-    adv_data['ahd'] = GetAHDiscount(code)
+    if code in AH_PAIR:
+      adv_data['ahd'] = GetAHDiscount(code)

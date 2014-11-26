@@ -228,6 +228,7 @@ def InitExRate():
   for a in all_currencies:
     for b in all_currencies:
       EX_RATE[a + '-' + b] = EX_RATE[a + '-' + CURRENCY] * EX_RATE[CURRENCY + '-' + b]
+    EX_RATE[a + '-' + b] = 1.0
   sys.stderr.write('%s\n'%(str(EX_RATE)))
 
 def PopulateFinancialData():
@@ -241,4 +242,4 @@ def PopulateFinancialData():
       elif key.find('/p') != -1 and key[0:-2] in data:
         adv_data[key] = data[key[0:-2]] / GetMarketPrice(code)
     if 'hcode' in info:
-      adv_data['h/a'] = GetMarketPrice(info['hcode']) / GetMarketPrice(code) 
+      adv_data['h/a'] = EX_RATE['hkd-cny'] * GetMarketPrice(info['hcode']) / GetMarketPrice(code) 

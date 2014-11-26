@@ -196,11 +196,10 @@ def PrintHoldingSecurities(all_records):
     TOTAL_INVESTMENT[currency] += investment
     TOTAL_TRANSACTION_FEE[currency] += txn_fee
     ex_rate = EX_RATE[currency + '-' + CURRENCY]
-    mp, chg, mp_pair_rmb, mv, = 0.0001, 0, 1, 0
+    mp, chg, mv, = 0.0001, 0, 0
     if remain_stock != 0:
       mp = GetMarketPrice(key)
       chg = GetMarketPriceChange(key)
-      mp_pair_rmb = mp * ex_rate
       mv = mp * remain_stock * ex_rate
     TOTAL_MARKET_VALUE[currency] += mv
     sys.stderr.write('%s profit %.0f %s from %s\n'%(
@@ -232,7 +231,7 @@ def PrintHoldingSecurities(all_records):
   for dt in [TOTAL_MARKET_VALUE, TOTAL_CAPITAL,
              TOTAL_INVESTMENT, TOTAL_TRANSACTION_FEE]:
     dt['usd'] += dt['hkd']
-    dt['usd'] += dt['yen']
+    dt['usd'] += dt['jpy']
   
   capital_header = ['Currency', 'Market Value', 'Free Cash', 'Net', 'Cash',
                     'Transaction Fee', 'Max Decline', 'IRR']
@@ -251,21 +250,21 @@ def PrintHoldingSecurities(all_records):
       cash_flow[currency].append([trans_date, key, value]);
   
   cash_flow['usd'] += cash_flow['hkd']
-  cash_flow['usd'] += cash_flow['yen']
+  cash_flow['usd'] += cash_flow['jpy']
   
   for dt in [TOTAL_MARKET_VALUE, TOTAL_CAPITAL,
              TOTAL_INVESTMENT, TOTAL_TRANSACTION_FEE]:
-    dt['ALL'] = dt['usd'] + dt['rmb']
-    dt['rmb'] *= EX_RATE[CURRENCY + '-rmb']
+    dt['ALL'] = dt['usd'] + dt['cny']
+    dt['cny'] *= EX_RATE[CURRENCY + '-cny']
     dt['usd'] *= EX_RATE[CURRENCY + '-usd']
 
-  cash_flow['ALL'] = copy.deepcopy(cash_flow['usd'] + cash_flow['rmb'])
-  for record in cash_flow['rmb']:
-    record[2] *= EX_RATE[CURRENCY + '-rmb']
+  cash_flow['ALL'] = copy.deepcopy(cash_flow['usd'] + cash_flow['cny'])
+  for record in cash_flow['cny']:
+    record[2] *= EX_RATE[CURRENCY + '-cny']
   for record in cash_flow['usd']:
     record[2] *= EX_RATE[CURRENCY + '-usd']
   
-  for currency in ['usd', 'rmb', 'ALL']:
+  for currency in ['usd', 'cny', 'ALL']:
     NET_ASSET_BY_CURRENCY[currency] = TOTAL_MARKET_VALUE[currency] + TOTAL_CAPITAL[currency] - TOTAL_INVESTMENT[currency]
     capital_table_map.append(
         {
@@ -290,7 +289,7 @@ def PrintHoldingSecurities(all_records):
     HOLDING_PERCENT[record['Code']] = 1.0 * record['MV'] / NET_ASSET
     summation['Percent'] += HOLDING_PERCENT[record['Code']]
     record['Percent'] = str(myround(HOLDING_PERCENT[record['Code']] * 100, 1)) + '%'
-    currency = 'rmb' if record['currency'] == 'rmb' else 'usd'
+    currency = 'cny' if record['currency'] == 'cny' else 'usd'
     record['Percent1'] = str(myround(100.0 * record['MV'] * EX_RATE[CURRENCY + '-' + currency] / NET_ASSET_BY_CURRENCY[currency], 1)) + '%'
     for col in ['Chg']:
       summation[col] += HOLDING_PERCENT[record['Code']] * record[col]

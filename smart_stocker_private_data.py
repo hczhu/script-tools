@@ -69,8 +69,6 @@ def GetStockPool(client):
     NAME_TO_CODE[info['name']] = code
     if 'hcode' in info:
       hcode = info['hcode']
-      AH_PAIR[hcode] = code
-      AH_PAIR[code] = hcode
       CODE_TO_NAME[hcode] = info['name'] + 'H'
       NAME_TO_CODE[CODE_TO_NAME[hcode]] = hcode
       STOCK_INFO[hcode] = {

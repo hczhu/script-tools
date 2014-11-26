@@ -106,7 +106,7 @@ def YahooAndAlibaba():
   kUnit = 100
   ratio = 1.0 * CROSS_SHARE['Yahoo-Alibaba'] / SHARES['Yahoo'] * 0.72
   mp = GetMarketPrice('Yahoo') - ratio * GetMarketPrice('Alibaba')
-  YahooJapanPerShare = 2.3 * 10**12 * EX_RATE['yen-uSD'] * 0.35 * 0.72 / SHARES['Yahoo']
+  YahooJapanPerShare = 2.3 * 10**12 * EX_RATE['jpy-uSD'] * 0.35 * 0.72 / SHARES['Yahoo']
   net_money = 7209 * 10**6 / SHARES['Yahoo']
   PB = mp / (YahooJapanPerShare + net_money)
   imbalance = HOLDING_SHARES['Yahoo'] * ratio + HOLDING_SHARES['Alibaba']

@@ -82,23 +82,9 @@ DIV_TEMPLATE = """
 # -------------- End of template --------------------------
 
 EX_RATE = {
-  'usd-usd': 1.0,
-  'usd-rmb': 6.11,
-  'usd-hkd': 7.75,
-  'usd-yen': 116,
 }
 
 CURRENCY = 'usd'
-
-def InitExRate():
-  all_currencies = [pr.split('-')[1] for pr in EX_RATE.keys()]
-  for pr in EX_RATE.keys():
-    currencies = pr.split('-')
-    assert(len(currencies) == 2)
-    EX_RATE[currencies[1] + '-' + currencies[0]] = 1.0 / EX_RATE[pr]
-  for a in all_currencies:
-    for b in all_currencies:
-      EX_RATE[a + '-' + b] = EX_RATE[a + '-' + CURRENCY] * EX_RATE[CURRENCY + '-' + b]
 
 CROSS_SHARE = {
   # The amount of Alibaba stocks Yahoo holds
@@ -126,7 +112,7 @@ NAME_TO_CODE = {}
 TOTAL_CAPITAL = collections.defaultdict(int)
 
 TOTAL_INVESTMENT = {
-  'rmb': 0, 'usd': 0, 'hkd': 0, 'yen': 0,
+  'cny': 0, 'usd': 0, 'hkd': 0, 'jpy': 0,
 }
 NET_ASSET_BY_CURRENCY = collections.defaultdict(int)
 

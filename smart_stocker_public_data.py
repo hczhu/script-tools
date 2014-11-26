@@ -92,11 +92,11 @@ MARKET_PRICE_FUNC = {
 }
 
 def GetCurrency(code):
-  return STOCK_INFO[code]['currency'] if code in STOCK_INFO else 'rmb'
+  return STOCK_INFO[code]['currency'] if code in STOCK_INFO else 'cny'
 
 def GetXueqiuUrlPrefix(code):
   currency = GetCurrency(code)
-  if currency == 'rmb': return ['SH', 'SZ']
+  if currency == 'cny': return ['SH', 'SZ']
   return ['']
 
 def GetXueqiuMarketPrice(code):
@@ -124,7 +124,7 @@ def GetXueqiuMarketPrice(code):
 
 def GetSinaUrlPrefix(code):
   currency = GetCurrency(code)
-  if currency == 'rmb': return ['sh', 'sz']
+  if currency == 'cny': return ['sh', 'sz']
   elif currency == 'hkd': return ['hk']
   elif currency == 'usd': return ['gb_']
   return ['']
@@ -208,6 +208,27 @@ def GetMarketPriceInBase(code):
   return mp
 
 #----------End of crawler util functions-----------------
+
+def InitExRate():
+  all_currencies = ['usd', 'cny', 'hkd', 'jpy']
+  template_url = 'http://www.bloomberg.com/quote/%s%s:CUR'
+  for cur in all_currencies:
+    if CURRENCY == cur:
+      EX_RATE[CURRENCY + '-' + cur] = 1.0
+    else:
+      EX_RATE[CURRENCY + '-' + cur] = GetValueFromUrl(
+        template_url%(CURRENCY, cur),
+        ['<meta itemprop="exchange" content="CURRENCY',
+         '<span class=" price">'],
+        '<span class=', float, throw_exp = True)
+  for pr in EX_RATE.keys():
+    currencies = pr.split('-')
+    assert(len(currencies) == 2)
+    EX_RATE[currencies[1] + '-' + currencies[0]] = 1.0 / EX_RATE[pr]
+  for a in all_currencies:
+    for b in all_currencies:
+      EX_RATE[a + '-' + b] = EX_RATE[a + '-' + CURRENCY] * EX_RATE[CURRENCY + '-' + b]
+  sys.stderr.write('%s\n'%(str(EX_RATE)))
 
 def PopulateFinancialData():
   for code in FINANCAIL_DATA_BASE.keys():

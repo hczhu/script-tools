@@ -207,16 +207,11 @@ def GetMarketPriceInBase(code):
   mp *= EX_RATE[currency + '-' + CURRENCY]
   return mp
 
-def GetAHDiscount(code):
-  code = NAME_TO_CODE[code] if code in NAME_TO_CODE else code
-  if code not in AH_PAIR:
-     return 0
-  mp_base, mp_pair_base = GetMarketPriceInBase(code), GetMarketPriceInBase(AH_PAIR[code])
-  return (mp_pair_base - mp_base) / mp_base
 #----------End of crawler util functions-----------------
 
 def PopulateFinancialData():
   for code in FINANCAIL_DATA_BASE.keys():
+    info = STOCK_INFO[code]
     data = FINANCAIL_DATA_BASE[code]
     adv_data = FINANCAIL_DATA_ADVANCE[code]
     for key in FINANCIAL_KEYS:
@@ -224,5 +219,5 @@ def PopulateFinancialData():
         adv_data[key] = GetMarketPrice(code) / data[key[2:]]
       elif key.find('/p') != -1 and key[0:-2] in data:
         adv_data[key] = data[key[0:-2]] / GetMarketPrice(code)
-    if code in AH_PAIR:
-      adv_data['ahd'] = GetAHDiscount(code)
+    if 'hcode' in info:
+      adv_data['h/a'] = GetMarketPrice(info['hcode']) / GetMarketPrice(code) 

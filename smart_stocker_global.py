@@ -118,9 +118,6 @@ ETF_BOOK_VALUE_FUNC = {
 DV_TAX = 0.1
 LOAN_RATE = 1.8 / 100.0
 
-AH_PAIR = {
-}
-
 CODE_TO_NAME = {
 }
 
@@ -159,7 +156,7 @@ FINANCIAL_KEYS = set([
   's-divid/p',
   'd-divid', # dynamic dividend yield
   'd-divid/p',
-  'ahd',
+  'h/a',
 ])
 
 GD_CLIENT = None

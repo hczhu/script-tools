@@ -202,8 +202,6 @@ def PrintHoldingSecurities(all_records):
       chg = GetMarketPriceChange(key)
       mp_pair_rmb = mp * ex_rate
       mv = mp * remain_stock * ex_rate
-      if key in AH_PAIR:
-        mp_pair_rmb = GetMarketPriceInBase(AH_PAIR[key])
     TOTAL_MARKET_VALUE[currency] += mv
     sys.stderr.write('%s profit %.0f %s from %s\n'%(
       'Realized' if remain_stock == 0 else 'Unrealized',

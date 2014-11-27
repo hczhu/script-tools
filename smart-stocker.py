@@ -233,9 +233,6 @@ def PrintHoldingSecurities(all_records):
     dt['usd'] += dt['hkd']
     dt['usd'] += dt['jpy']
   
-  capital_header = ['Currency', 'Market Value', 'Free Cash', 'Net', 'Cash',
-                    'Transaction Fee', 'Max Decline', 'IRR']
-  capital_table_map = []
   # All are in CURRENCY
   cash_flow = collections.defaultdict(list)
   for key in all_records.keys():
@@ -254,35 +251,49 @@ def PrintHoldingSecurities(all_records):
   
   for dt in [TOTAL_MARKET_VALUE, TOTAL_CAPITAL,
              TOTAL_INVESTMENT, TOTAL_TRANSACTION_FEE]:
-    dt['ALL'] = dt['usd'] + dt['cny']
+    dt['all'] = dt['usd'] + dt['cny']
     dt['cny'] *= EX_RATE[CURRENCY + '-cny']
     dt['usd'] *= EX_RATE[CURRENCY + '-usd']
 
-  cash_flow['ALL'] = copy.deepcopy(cash_flow['usd'] + cash_flow['cny'])
+  cash_flow['all'] = copy.deepcopy(cash_flow['usd'] + cash_flow['cny'])
   for record in cash_flow['cny']:
     record[2] *= EX_RATE[CURRENCY + '-cny']
   for record in cash_flow['usd']:
     record[2] *= EX_RATE[CURRENCY + '-usd']
   
-  for currency in ['usd', 'cny', 'ALL']:
+  for currency in ['usd', 'cny', 'all']:
     NET_ASSET_BY_CURRENCY[currency] = TOTAL_MARKET_VALUE[currency] + TOTAL_CAPITAL[currency] - TOTAL_INVESTMENT[currency]
-    capital_table_map.append(
-        {
-        'Currency': currency,
-        'Market Value': str(myround(TOTAL_MARKET_VALUE[currency] / 1000, 0)) + 'K',
-        'Cash': str(myround(TOTAL_CAPITAL[currency] / 1000, 0)) + 'K',
-        'Investment': str(myround(TOTAL_INVESTMENT[currency] / 1000, 0)) + 'K',
-        'Free Cash': str(myround((TOTAL_CAPITAL[currency] - TOTAL_INVESTMENT[currency]) / 1000, 0)) + 'K',
-        'Transaction Fee': str(myround(TOTAL_TRANSACTION_FEE[currency] / 100.0, 0)) + 'h(' +
-          str(myround(100.0 * TOTAL_TRANSACTION_FEE[currency] / NET_ASSET_BY_CURRENCY[currency], 2)) + '%)',
-        'Max Decline': str(myround((TOTAL_MARKET_VALUE[currency] + 2 * TOTAL_CAPITAL[currency] - 2 * TOTAL_INVESTMENT[currency]) * 100.0 / max(1, TOTAL_MARKET_VALUE[currency]), 0)) + '%',
-        'IRR': str(myround(GetIRR(TOTAL_MARKET_VALUE[currency], cash_flow[currency]) * 100, 2)) + '%',
-        'Net': str(myround((TOTAL_MARKET_VALUE[currency] + TOTAL_CAPITAL[currency] - TOTAL_INVESTMENT[currency]) / 1000, 0)) + 'K',
-        }
-    )
-  NET_ASSET = TOTAL_MARKET_VALUE['ALL'] + TOTAL_CAPITAL['ALL'] - TOTAL_INVESTMENT['ALL']
-  
-  PrintTableMap(capital_header, capital_table_map, set(), truncate_float = False)
+    CAPITAL_INFO[currency] = {
+        'currency': currency,
+        'net': int(TOTAL_MARKET_VALUE[currency] + TOTAL_CAPITAL[currency] - TOTAL_INVESTMENT[currency]),
+        'market-value': int(TOTAL_MARKET_VALUE[currency]),
+        'free-cash': int(TOTAL_CAPITAL[currency] - TOTAL_INVESTMENT[currency]),
+        'txn-fee': int(TOTAL_TRANSACTION_FEE[currency]),
+        'txn-fee-ratio': 100.0 * TOTAL_TRANSACTION_FEE[currency] / TOTAL_MARKET_VALUE[currency],
+        'IRR': GetIRR(TOTAL_MARKET_VALUE[currency], cash_flow[currency]) * 100,
+    }
+  NET_ASSET = TOTAL_MARKET_VALUE['all'] + TOTAL_CAPITAL['all'] - TOTAL_INVESTMENT['all']
+
+  CAPITAL_INFO['cny']['SMA'] = CAPITAL_INFO['cny']['free-cash']
+  CAPITAL_INFO['usd']['SMA'] = CAPITAL_INFO['usd']['free-cash'] + CAPITAL_INFO['usd']['market-value'] / 2
+  for code in HOLDING_SHARES.keys():
+    if HOLDING_SHARES[code] < 0:
+      CAPITAL_INFO['usd']['SMA'] += int(HOLDING_SHARES[code] * GetMarketPrice(code) * EX_RATE[STOCK_INFO[code]['currency'] + '-usd'])
+
+  for currency in ['usd', 'cny']:
+    CAPITAL_INFO[currency]['SMA-ratio'] = 100.0 * CAPITAL_INFO[currency]['SMA'] / CAPITAL_INFO[currency]['market-value']
+
+  capital_table_map = [CAPITAL_INFO['usd'], CAPITAL_INFO['cny'], CAPITAL_INFO['all']]
+  capital_header = [
+    'currency',
+    'market-value',
+    'net',
+    'free-cash',
+    'txn-fee-ratio',
+    'IRR',
+    'SMA-ratio',
+  ]
+  PrintTableMap(capital_header, capital_table_map, set(), truncate_float = True)
   for col in ['Chg', 'Percent']:
     summation[col] = 0.0
   for record in stat_records_map:

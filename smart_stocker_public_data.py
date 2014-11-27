@@ -237,6 +237,7 @@ def PopulateFinancialData():
     data = FINANCAIL_DATA_BASE[code]
     adv_data = FINANCAIL_DATA_ADVANCE[code]
     mp = GetMarketPrice(code)
+    FINANCAIL_DATA_ADVANCE[code]['mp'] = mp
     for key in FINANCIAL_KEYS:
       if key.find('p/') != -1 and key[2:] in data:
         adv_data[key] = mp / data[key[2:]]
@@ -249,6 +250,7 @@ def PopulateFinancialData():
       hmp = GetMarketPrice(info['hcode'])
       adv_data['ah-ratio'] = mp / (EX_RATE['hkd-cny'] * hmp)
       h_adv_data = dict(adv_data)
+      h_adv_data['mp'] = hmp
       for key in h_adv_data:
         if key.find('p/') != -1:
           h_adv_data[key] /= adv_data['ah-ratio']

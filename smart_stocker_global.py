@@ -154,6 +154,8 @@ FINANCAIL_DATA_ADVANCE = collections.defaultdict(dict)
 
 STOCK_INFO = collections.defaultdict(dict)
 
+CAPITAL_INFO = collections.defaultdict(dict)
+
 #----------Begining of global variables------------------
 
 def IsLambda(v):

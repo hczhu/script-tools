@@ -133,5 +133,31 @@ def YahooAndAlibaba():
 
   return ''
 
+def KeepBanks():
+  banks = [
+           '建设银行', '建设银行H',
+           '招商银行', '招商银行H',
+           '中国银行', '中国银行H',
+           # '浦发银行',
+           # '兴业银行',
+          ]
+  banks = map(lambda name: NAME_TO_CODE[name], banks)
+  min_divd = 0.04
+  banks = filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['sdv/p'] > min_divd, banks)
+  delta = 0.05
+  banks.sort(key = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'])
+  if len(banks) == 0: return
+  min_p_dbv = FINANCAIL_DATA_ADVANCE[banks[0]]['p/dbv']
+  banks = filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < (1 + delta) * min_p_dbv, banks)
+  sys.stderr.write('Candidate banks: %s\n'%(', '.join((map(lambda code: CODE_TO_NAME[code], banks)))))
+  banks.sort(key = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/sbvadv'])
+  targetPercent = 0.8
+  maxSinglePercent = 0.3
+  currentPercent = sum(map(lambda code: HOLDING_PERCENT[code], banks))
+  for code in banks:
+    if currentPercent < targetPercent:
+      currency = STOCK_INFO[code]['currency']
+
 STRATEGY_FUNCS = [
+  KeepBanks,
 ]

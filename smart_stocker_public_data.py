@@ -236,13 +236,18 @@ def PopulateFinancialData():
     info = STOCK_INFO[code]
     data = FINANCAIL_DATA_BASE[code]
     adv_data = FINANCAIL_DATA_ADVANCE[code]
+    mp = GetMarketPrice(mp)
     for key in FINANCIAL_KEYS:
       if key.find('p/') != -1 and key[2:] in data:
-        adv_data[key] = GetMarketPrice(code) / data[key[2:]]
+        adv_data[key] = mp / data[key[2:]]
       elif key.find('/p') != -1 and key[0:-2] in data:
-        adv_data[key] = data[key[0:-2]] / GetMarketPrice(code)
+        adv_data[key] = data[key[0:-2]] / mp
+    if 'sbv' in data and 'sdv' in data:
+      adv_data['p/sbvadv'] = (mp - data['sdv']) / (data['sbv'] - data['sdv'])
+    # Populate corresponding h-share.
     if 'hcode' in info:
-      adv_data['ah-ratio'] = GetMarketPrice(code) / (EX_RATE['hkd-cny'] * GetMarketPrice(info['hcode']))
+      hmp = GetMarketPrice(info['hcode'])
+      adv_data['ah-ratio'] = mp / (EX_RATE['hkd-cny'] * hmp)
       h_adv_data = dict(adv_data)
       for key in h_adv_data:
         if key.find('p/') != -1:
@@ -250,4 +255,6 @@ def PopulateFinancialData():
         elif key.find('/p') != -1:
           h_adv_data[key] *= adv_data['ah-ratio']
       h_adv_data['ah-ratio'] = 1.0 / adv_data['ah-ratio']
+      if 'sbv' in data and 'sdv' in data:
+        h_adv_data['p/sbvadv'] = (hmp - data['sdv']) / (data['sbv'] - data['sdv'])
       FINANCAIL_DATA_ADVANCE[info['hcode']] = h_adv_data

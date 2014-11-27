@@ -143,6 +143,7 @@ FINANCIAL_KEYS = set([
   'ddv', # dynamic dividend yield
   'ddv/p',
   'ah-ratio',
+  'p/sbvadv', # p/sbv after dividend.
 ])
 
 GD_CLIENT = None

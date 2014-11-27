@@ -138,11 +138,11 @@ FINANCIAL_KEYS = set([
   'p/ttme',
   'dye', # dynamic yearly earning
   'p/dye',
-  's-divid', # static dividend yield
-  's-divid/p',
-  'd-divid', # dynamic dividend yield
-  'd-divid/p',
-  'h/a',
+  'sdv', # static dividend yield
+  'sdv/p',
+  'ddv', # dynamic dividend yield
+  'ddv/p',
+  'ah-ratio',
 ])
 
 GD_CLIENT = None

@@ -242,4 +242,12 @@ def PopulateFinancialData():
       elif key.find('/p') != -1 and key[0:-2] in data:
         adv_data[key] = data[key[0:-2]] / GetMarketPrice(code)
     if 'hcode' in info:
-      adv_data['h/a'] = EX_RATE['hkd-cny'] * GetMarketPrice(info['hcode']) / GetMarketPrice(code) 
+      adv_data['ah-ratio'] = GetMarketPrice(code) / (EX_RATE['hkd-cny'] * GetMarketPrice(info['hcode']))
+      h_adv_data = dict(adv_data)
+      for key in h_adv_data:
+        if key.find('p/') != -1:
+          h_adv_data[key] /= adv_data['ah-ratio']
+        elif key.find('/p') != -1:
+          h_adv_data[key] *= adv_data['ah-ratio']
+      h_adv_data['ah-ratio'] = 1.0 / adv_data['ah-ratio']
+      FINANCAIL_DATA_ADVANCE[info['hcode']] = h_adv_data

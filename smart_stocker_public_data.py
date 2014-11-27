@@ -236,7 +236,7 @@ def PopulateFinancialData():
     info = STOCK_INFO[code]
     data = FINANCAIL_DATA_BASE[code]
     adv_data = FINANCAIL_DATA_ADVANCE[code]
-    mp = GetMarketPrice(mp)
+    mp = GetMarketPrice(code)
     for key in FINANCIAL_KEYS:
       if key.find('p/') != -1 and key[2:] in data:
         adv_data[key] = mp / data[key[2:]]

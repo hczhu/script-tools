@@ -256,5 +256,5 @@ def PopulateFinancialData():
           h_adv_data[key] *= adv_data['ah-ratio']
       h_adv_data['ah-ratio'] = 1.0 / adv_data['ah-ratio']
       if 'sbv' in data and 'sdv' in data:
-        h_adv_data['p/sbvadv'] = (hmp - data['sdv']) / (data['sbv'] - data['sdv'])
+        h_adv_data['p/sbvadv'] = (1 - h_adv_data['sdv/p']) / (1.0 / h_adv_data['p/sbv'] - h_adv_data['sdv/p'])
       FINANCAIL_DATA_ADVANCE[info['hcode']] = h_adv_data

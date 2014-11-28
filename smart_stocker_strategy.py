@@ -21,92 +21,6 @@ def GiveTip(op, code, money):
                                      int(money / FINANCAIL_DATA_ADVANCE[code]['mp']),
                                      FINANCAIL_DATA_ADVANCE[code]['mp'])
 
-def GenericDynamicStrategy(name,
-                           indicator,
-                           buy_range,
-                           hold_percent_range,
-                           sell_point,
-                           percent_delta = 0.03,
-                           buy_condition = lambda code: True,
-                           sell_condition = lambda code: True):
-  code = NAME_TO_CODE[name]
-  mp = GetMarketPrice(code)
-  mp_base = GetMarketPriceInBase(code)
-  indicator_value = FINANCIAL_FUNC[indicator](code, mp)
-  if InBetween(buy_range, indicator_value):
-    target_percent = (hold_percent_range[1] - hold_percent_range[0]) * (indicator_value - buy_range[0]) / (
-                    buy_range[1] - buy_range[0]) + hold_percent_range[0]
-    target_percent = max(hold_percent_range[0], target_percent)
-    target_percent = min(hold_percent_range[1], target_percent)
-    current_percent = holding_percent[code]
-    percent = target_percent - current_percent
-    if percent >= percent_delta and buy_condition(code):
-      percent = percent_delta
-      return 'Buy %s(%s) %d units @%.2f change: %.1f%% due to %s = %.3f. Target: %.1f%% current: %.1f%%'%(
-          CODE_TO_NAME[code], code,
-          int(NET_ASSET * percent / mp_base),
-          mp,
-          GetMarketPriceChange(code), indicator, indicator_value,
-          target_percent * 100, current_percent * 100)
-  elif InBetween([buy_range[0], indicator_value], sell_point):
-    current_percent = holding_percent[code]
-    percent = min(current_percent, percent_delta)
-    if percent > 0.0 and sell_condition(code):
-      return 'Sell %s(%s) %d units @%.2f change: %.1f%% due to %s = %.3f.'%(
-          CODE_TO_NAME[code], code,
-          int(NET_ASSET * percent / mp_base),
-          mp,
-          GetMarketPriceChange(code), indicator, indicator_value)
-  elif InBetween([buy_range[0], indicator_value], buy_range[1]):
-    return 'Extreme price for %s(%s) @%.2f due to %s = %.3f.'%(
-      CODE_TO_NAME[code], code,
-      mp, indicator, indicator_value)
-  return ''
-
-def GenericSwapStrategy(name1, name2,
-                        indicator,
-                        zero1, fair,
-                        percent_delta = 0.05):
-  code1 = NAME_TO_CODE[name1]
-  code2 = NAME_TO_CODE[name2]
-  mp1 = GetMarketPrice(code1)
-  mp2 = GetMarketPrice(code2)
-  mp_base1 = GetMarketPriceInBase(code1)
-  mp_base2 = GetMarketPriceInBase(code2)
-  indicator_value = indicator() if IsLambda(indicator) else \
-    FINANCIAL_FUNC[indicator](code1, mp1) / FINANCIAL_FUNC[indicator](code2, mp2)
-  holding1 = holding_percent[code1]
-  holding2 = holding_percent[code2]
-  fair_percent = (holding1 + holding2) / 2
-  target1 = fair_percent * (indicator_value - zero1) / (fair - zero1)
-  target2 = holding2 + holding1 - target1
-  if abs(target1 - holding1) >= percent_delta:
-    money = NET_ASSET * percent_delta
-    if target1 > holding1:
-      code1, code2 = code2, code1
-      mp1, mp2 = mp2, mp1
-      mp_base1, mp_base2 = mp_base2, mp_base1 
-      target1, target2 = target2, target1
-    return '%s(%s)(target = %.1f%%) %d units @%.2f ==> %s(%s)(target = %.1f%%) %d units @%.2f due to %s ratio = %.3f.'%(
-          CODE_TO_NAME[code1], code1, target1 * 100, int(money / mp_base1), mp1,
-          CODE_TO_NAME[code2], code2, target2 * 100, int(money / mp_base2), mp2,
-          'Function' if IsLambda(indicator) else indicator, indicator_value)
-  return ''
-  
-def GenericChangeAH(name, adh_lower, adh_upper):
-  code = NAME_TO_CODE[name]
-  codeh = AH_PAIR[code]
-  adh = GetAHDiscount(code)
-  if adh >= adh_upper and holding_percent[codeh] > 0.0:
-    return '%s(%s) @%.3f --> %s(%s) @%.3f due to AHD = %.4f'%(
-      CODE_TO_NAME[codeh], codeh, GetMarketPrice(codeh),
-      CODE_TO_NAME[code], code, GetMarketPrice(code), adh)
-  if adh <= adh_lower and holding_percent[code] > 0.0:
-    return '%s(%s) @%.3f --> %s(%s) @%.3f due to AHD = %.4f'%(
-      CODE_TO_NAME[code], code, GetMarketPrice(code),
-      CODE_TO_NAME[codeh], codeh, GetMarketPrice(codeh), adh)
-  return ''
-  
 def YahooAndAlibaba():
   kUnit = 100
   ratio = 1.0 * CROSS_SHARE['Yahoo-Alibaba'] / SHARES['Yahoo'] * 0.72
@@ -192,6 +106,8 @@ def KeepBanks():
   banks, valuation = ScoreBanks(banks) 
 
   for code in banks:
+    if 'ah-ratio' in FINANCAIL_DATA_ADVANCE[code] and FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] > 1.05:
+      continue
     add_percent = min(targetPercent - currentPercent, bank_percent[code] - GetPercent(code))
     if add_percent < 0.01: continue
     currency = STOCK_INFO[code]['currency']
@@ -209,6 +125,8 @@ def KeepBanks():
 
   for worse in banks:
     for better in banks:
+      if 'ah-ratio' in FINANCAIL_DATA_ADVANCE[better] and FINANCAIL_DATA_ADVANCE[better]['ah-ratio'] > 1.05:
+        continue
       if valuation[worse] / valuation[better] < valuation_delta: continue
       swap_percent = min(HOLDING_PERCENT[worse], bank_percent[better] - GetPercent(better))
       worse_currency = STOCK_INFO[worse]['currency']
@@ -223,6 +141,21 @@ def KeepBanks():
               GiveTip('Buy', better, swap_cash, EX_RATE[CURRENCY + '-' + better_currency])
   return ''
 
+def ZhongxinBank():
+  code = NAME_TO_CODE['中信银行H']
+  data = FINANCAIL_DATA_ADVANCE[code]
+  currency = STOCK_INFO[code]['currency']
+  target_percent = 0.15
+  if HOLDING_PERCENT[code] < target_percent and data['ah-ratio'] < 0.8:
+    buying_power = GetBuyingPower(code)
+    add_percent = min(target_percent - HOLDING_PERCENT[code], 1.0 * buying_power / CAPITAL_INFO['all']['net'])
+    if add_percent > 0.01:
+      return GiveTip('Buy', code, add_percent * CAPITAL_INFO['all']['net'] * EX_RATE[CURRENCY + '-' + currency])
+  if data['ah-ratio'] > 0.9:
+    return 'Clear %s(%s)'%(CODE_TO_NAME[code], code)
+  return
+
 STRATEGY_FUNCS = [
   KeepBanks,
+  ZhongxinBank,
 ]

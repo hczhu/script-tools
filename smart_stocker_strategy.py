@@ -16,6 +16,11 @@ from smart_stocker_public_data import *
 def InBetween(value_range, x):
   return (x - value_range[0]) * (x - value_range[1]) <= 0.0
 
+def GiveTip(op, code, money):
+  return '%s %s(%s) %d units @%.3f'%(op, CODE_TO_NAME[code], code,
+                                     int(money / FINANCAIL_DATA_ADVANCE[code]['mp']),
+                                     FINANCAIL_DATA_ADVANCE[code]['mp'])
+
 def GenericDynamicStrategy(name,
                            indicator,
                            buy_range,
@@ -133,30 +138,88 @@ def YahooAndAlibaba():
 
   return ''
 
+def ScoreBanks(banks):
+  scores = {
+    code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] / (1.0 + FINANCAIL_DATA_ADVANCE[code]['sdv/p'])
+    for code in banks
+  }
+  banks.sort(key = lambda code: scores[code])
+  print scores
+  return banks, scores
+
+def FilterBanks(banks):
+  return filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/sbv'] < 1.5 and
+                FINANCAIL_DATA_ADVANCE['sdv/p'] > 0.03, banks)
+def GetPercent(code):
+  percent = HOLDING_PERCENT[code]
+  for key in ['hcode', 'acode']:
+    if key in STOCK_INFO[code]:
+      percent += HOLDING_PERCENT[STOCK_INFO[code][key]]
+  return percent
+
+def GetBuyingPower(code):
+  currency = STOCK_INFO[code]['currency']
+  cap_cur = 'cny' if currency == 'cny' else 'usd'
+  capital = CAPITAL_INFO[cap_cur]
+  return (capital['SMA-ratio'] / 100.0 - MIN_SMA_RATIO[cap_cur]) * capital['market-value'] * EX_RATE[cap_cur + '-' + CURRENCY]
+
 def KeepBanks():
-  banks = [
-           '建设银行', '建设银行H',
-           '招商银行', '招商银行H',
-           '中国银行', '中国银行H',
-           # '浦发银行',
-           # '兴业银行',
-          ]
-  banks = map(lambda name: NAME_TO_CODE[name], banks)
-  min_divd = 0.04
-  banks = filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['sdv/p'] > min_divd, banks)
-  delta = 0.05
-  banks.sort(key = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'])
-  if len(banks) == 0: return
-  min_p_dbv = FINANCAIL_DATA_ADVANCE[banks[0]]['p/dbv']
-  banks = filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < (1 + delta) * min_p_dbv, banks)
-  sys.stderr.write('Candidate banks: %s\n'%(', '.join((map(lambda code: CODE_TO_NAME[code], banks)))))
-  banks.sort(key = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/sbvadv'])
   targetPercent = 0.8
-  maxSinglePercent = 0.3
-  currentPercent = sum(map(lambda code: HOLDING_PERCENT[code], banks))
+  min_divd = 0.04
+  valuation_delta = 0.05
+  bank_percent = {
+    '建设银行': 0.3,
+    '建设银行H': 0.3,
+    '招商银行': 0.3,
+    '招商银行H': 0.3,
+    '中国银行': 0.25,
+    '中国银行H': 0.25,
+    '浦发银行': 0.15,
+    '兴业银行': 0.15,
+  }
+  bank_percent = {NAME_TO_CODE[name] : bank_percent[name] for name in bank_percent.keys()}
+  all_banks = bank_percent.keys()
+  currentPercent = sum(map(lambda code: HOLDING_PERCENT[code], all_banks))
+  banks = FilterBanks(all_banks)
+  drop_banks = set(all_banks) - set(banks)
+  for bank in drop_banks:
+    currency = STOCK_INFO[bank]['currency']
+    if HOLDING_PERCENT[bank] > 0.005:
+        return 'Clear %s(%s)'%(CODE_TO_NAME[bank], bank)
+
+  banks, valuation = ScoreBanks(banks) 
+
   for code in banks:
-    if currentPercent < targetPercent:
-      currency = STOCK_INFO[code]['currency']
+    add_percent = min(targetPercent - currentPercent, bank_percent[code] - GetPercent(code))
+    if add_percent < 0.01: continue
+    currency = STOCK_INFO[code]['currency']
+    buying_power = GetBuyingPower(code)
+    if buying_power < 0.01 * CAPITAL_INFO['all']['net']: continue
+    buy_cash = min(buying_power, CAPITAL_INFO['all']['net'] * add_percent) * EX_RATE[CURRENCY + '-' + currency]
+    return GiveTip('Buy', code, buy_cash)
+
+  banks.reverse()
+  for code in banks:
+    currency = STOCK_INFO[code]['currency']
+    sub_percent = min(currentPercent - targetPercent, HOLDING_PERCENT[code])
+    if sub_percent < 0.01: continue
+    return GiveTip('Sell', code, sub_percent * CAPITAL_INFO['all']['net'] * EX_RATE[CURRENCY + '-' + currency])
+
+  for worse in banks:
+    for better in banks:
+      if valuation[worse] / valuation[better] < valuation_delta: continue
+      swap_percent = min(HOLDING_PERCENT[worse], bank_percent[better] - GetPercent(better))
+      worse_currency = STOCK_INFO[worse]['currency']
+      better_currency = STOCK_INFO[better]['currency']
+      if worse_currency != better_currency:
+        buying_power = GetBuyingPower(better_currency)
+        swap_percent = min(swap_percent, buying_power / CAPITAL_INFO['all']['net'])
+      if swap_percent < 0.01: continue
+      swap_cash = swap_percent * CAPITAL_INFO['all']['net']
+      return GiveTip('Sell', worse, swap_cash * EX_RATE[CURRENCY + '-' + worse_currency]) +\
+              ' ==> ' +\
+              GiveTip('Buy', better, swap_cash, EX_RATE[CURRENCY + '-' + better_currency])
+  return ''
 
 STRATEGY_FUNCS = [
   KeepBanks,

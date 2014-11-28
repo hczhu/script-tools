@@ -144,6 +144,7 @@ FINANCIAL_KEYS = set([
   'ddv/p',
   'ah-ratio',
   'p/sbvadv', # p/sbv after dividend.
+  'p/dbvadv', # p/dbv after dividend.
 ])
 
 GD_CLIENT = None
@@ -155,6 +156,11 @@ FINANCAIL_DATA_ADVANCE = collections.defaultdict(dict)
 STOCK_INFO = collections.defaultdict(dict)
 
 CAPITAL_INFO = collections.defaultdict(dict)
+
+MIN_SMA_RATIO = {
+  'cny': 0.0,
+  'usd': 0.1,
+}
 
 #----------Begining of global variables------------------
 

@@ -272,7 +272,6 @@ def PrintHoldingSecurities(all_records):
         'txn-fee-ratio': 100.0 * TOTAL_TRANSACTION_FEE[currency] / TOTAL_MARKET_VALUE[currency],
         'IRR': GetIRR(TOTAL_MARKET_VALUE[currency], cash_flow[currency]) * 100,
     }
-  NET_ASSET = TOTAL_MARKET_VALUE['all'] + TOTAL_CAPITAL['all'] - TOTAL_INVESTMENT['all']
 
   CAPITAL_INFO['cny']['SMA'] = CAPITAL_INFO['cny']['free-cash']
   CAPITAL_INFO['usd']['SMA'] = CAPITAL_INFO['usd']['free-cash'] + CAPITAL_INFO['usd']['market-value'] / 2
@@ -297,7 +296,7 @@ def PrintHoldingSecurities(all_records):
   for col in ['Chg', 'Percent']:
     summation[col] = 0.0
   for record in stat_records_map:
-    HOLDING_PERCENT[record['Code']] = 1.0 * record['MV'] / NET_ASSET
+    HOLDING_PERCENT[record['Code']] = 1.0 * record['MV'] / CAPITAL_INFO['all']['net']
     summation['Percent'] += HOLDING_PERCENT[record['Code']]
     record['Percent'] = str(myround(HOLDING_PERCENT[record['Code']] * 100, 1)) + '%'
     currency = 'cny' if record['currency'] == 'cny' else 'usd'
@@ -317,7 +316,8 @@ def PrintHoldingSecurities(all_records):
 
 def RunStrategies():
   for strategy in STRATEGY_FUNCS:
-    strategy()
+    tip = strategy()
+    if tip != '': print tip
 
 def PrintStocks(names):
   tableMap = []
@@ -340,7 +340,7 @@ try:
     PrintStocks(names)
   else:
     PrintHoldingSecurities(ReadRecords())
-  RunStrategies()
+    RunStrategies()
 except Exception as ins:
   print 'Run time error: ', ins
   traceback.print_exc(file=sys.stdout)

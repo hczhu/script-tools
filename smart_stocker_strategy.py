@@ -144,12 +144,14 @@ def ScoreBanks(banks):
     for code in banks
   }
   banks.sort(key = lambda code: scores[code])
-  print scores
+  for bank in banks:
+    sys.stderr.write('%s: %f\n'%(CODE_TO_NAME[bank], scores[bank]))
   return banks, scores
 
 def FilterBanks(banks):
   return filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/sbv'] < 1.5 and
                 FINANCAIL_DATA_ADVANCE['sdv/p'] > 0.03, banks)
+
 def GetPercent(code):
   percent = HOLDING_PERCENT[code]
   for key in ['hcode', 'acode']:

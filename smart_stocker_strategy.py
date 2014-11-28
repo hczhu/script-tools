@@ -79,17 +79,21 @@ def GetBuyingPower(code):
   capital = CAPITAL_INFO[cap_cur]
   return (capital['SMA-ratio'] / 100.0 - MIN_SMA_RATIO[cap_cur]) * capital['market-value'] * EX_RATE[cap_cur + '-' + CURRENCY]
 
+def NoBuyBanks(banks):
+  return filter(lambda code: 1.0 / (1.0 / FINANCAIL_DATA_ADVANCE[code]['p/ttme'] +
+                                    1.0 / FINANCAIL_DATA_ADVANCE[code]['p/sbv']) > 1.0,
+                banks)
+
 def KeepBanks():
   targetPercent = 0.8
-  min_divd = 0.04
   valuation_delta = 0.05
   bank_percent = {
     '建设银行': 0.3,
     '建设银行H': 0.3,
     '招商银行': 0.3,
     '招商银行H': 0.3,
-    '中国银行': 0.25,
-    '中国银行H': 0.25,
+    '中国银行': 0.2,
+    '中国银行H': 0.2,
     '浦发银行': 0.15,
     '兴业银行': 0.15,
   }
@@ -97,11 +101,14 @@ def KeepBanks():
   all_banks = bank_percent.keys()
   currentPercent = sum(map(lambda code: HOLDING_PERCENT[code], all_banks))
   banks = FilterBanks(all_banks)
+
   drop_banks = set(all_banks) - set(banks)
   for bank in drop_banks:
     currency = STOCK_INFO[bank]['currency']
     if HOLDING_PERCENT[bank] > 0.005:
         return 'Clear %s(%s)'%(CODE_TO_NAME[bank], bank)
+  
+  no_buy_banks = set(NoBuyBanks(banks))
 
   banks, valuation = ScoreBanks(banks) 
 
@@ -113,6 +120,7 @@ def KeepBanks():
     currency = STOCK_INFO[code]['currency']
     buying_power = GetBuyingPower(code)
     if buying_power < 0.01 * CAPITAL_INFO['all']['net']: continue
+    if code in no_buy_banks: continue
     buy_cash = min(buying_power, CAPITAL_INFO['all']['net'] * add_percent) * EX_RATE[CURRENCY + '-' + currency]
     return GiveTip('Buy', code, buy_cash)
 
@@ -123,22 +131,24 @@ def KeepBanks():
     if sub_percent < 0.01: continue
     return GiveTip('Sell', code, sub_percent * CAPITAL_INFO['all']['net'] * EX_RATE[CURRENCY + '-' + currency])
 
-  for worse in banks:
-    for better in banks:
+  for a in range(len(banks)):
+    worse = banks[a]
+    for b in range(len(banks) - 1, a, -1):
+      better = banks[b]
       if 'ah-ratio' in FINANCAIL_DATA_ADVANCE[better] and FINANCAIL_DATA_ADVANCE[better]['ah-ratio'] > 1.05:
         continue
-      if valuation[worse] / valuation[better] < valuation_delta: continue
+      if valuation[worse] / valuation[better] < (1 + valuation_delta): continue
       swap_percent = min(HOLDING_PERCENT[worse], bank_percent[better] - GetPercent(better))
       worse_currency = STOCK_INFO[worse]['currency']
       better_currency = STOCK_INFO[better]['currency']
       if worse_currency != better_currency:
-        buying_power = GetBuyingPower(better_currency)
+        buying_power = GetBuyingPower(better)
         swap_percent = min(swap_percent, buying_power / CAPITAL_INFO['all']['net'])
       if swap_percent < 0.01: continue
       swap_cash = swap_percent * CAPITAL_INFO['all']['net']
       return GiveTip('Sell', worse, swap_cash * EX_RATE[CURRENCY + '-' + worse_currency]) +\
               ' ==> ' +\
-              GiveTip('Buy', better, swap_cash, EX_RATE[CURRENCY + '-' + better_currency])
+              GiveTip('Buy', better, swap_cash * EX_RATE[CURRENCY + '-' + better_currency])
   return ''
 
 def ZhongxinBank():

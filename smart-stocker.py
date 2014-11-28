@@ -162,7 +162,6 @@ def PrintHoldingSecurities(all_records):
                   'Percent',
                   'Percent1',
                   'MV(K)',
-                  'Chg',
                   'Stock name']
   silent_column = [
   ]

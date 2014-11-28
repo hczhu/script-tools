@@ -80,7 +80,7 @@ def GetBuyingPower(code):
   return (capital['SMA-ratio'] / 100.0 - MIN_SMA_RATIO[cap_cur]) * capital['market-value'] * EX_RATE[cap_cur + '-' + CURRENCY]
 
 def NoBuyBanks(banks):
-  return filter(lambda code: 1.0 / (1.0 / FINANCAIL_DATA_ADVANCE[code]['p/ttme'] +
+  return filter(lambda code: 1.0 / (0.75 / FINANCAIL_DATA_ADVANCE[code]['p/ttme'] +
                                     1.0 / FINANCAIL_DATA_ADVANCE[code]['p/sbv']) > 1.0,
                 banks)
 
@@ -109,6 +109,7 @@ def KeepBanks():
         return 'Clear %s(%s)'%(CODE_TO_NAME[bank], bank)
   
   no_buy_banks = set(NoBuyBanks(banks))
+  sys.stderr.write('No buy banks: %s \n'%(', '.join([CODE_TO_NAME[code] for code in no_buy_banks])))
 
   banks, valuation = ScoreBanks(banks) 
 

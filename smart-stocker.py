@@ -280,6 +280,11 @@ def PrintHoldingSecurities(all_records):
 
   for currency in ['usd', 'cny']:
     CAPITAL_INFO[currency]['SMA-ratio'] = 100.0 * CAPITAL_INFO[currency]['SMA'] / CAPITAL_INFO[currency]['market-value']
+    CAPITAL_INFO[currency]['buying-power'] = (CAPITAL_INFO[currency]['SMA-ratio'] / 100.0 - MIN_SMA_RATIO[currency]
+        ) * CAPITAL_INFO[currency]['market-value']
+  
+  for currency in set(CURRENCIES) - set(['usd', 'cny']):
+    CAPITAL_INFO[currency]['buying-power'] = EX_RATE['usd-' + currency] * CAPITAL_INFO['usd']['buying-power']
 
   capital_table_map = [CAPITAL_INFO['usd'], CAPITAL_INFO['cny'], CAPITAL_INFO['all']]
   capital_header = [

@@ -210,9 +210,8 @@ def GetMarketPriceInBase(code):
 #----------End of crawler util functions-----------------
 
 def InitExRate():
-  all_currencies = ['usd', 'cny', 'hkd', 'jpy']
   template_url = 'http://www.bloomberg.com/quote/%s%s:CUR'
-  for cur in all_currencies:
+  for cur in CURRENCIES:
     if CURRENCY == cur:
       EX_RATE[CURRENCY + '-' + cur] = 1.0
     else:
@@ -225,8 +224,8 @@ def InitExRate():
     currencies = pr.split('-')
     assert(len(currencies) == 2)
     EX_RATE[currencies[1] + '-' + currencies[0]] = 1.0 / EX_RATE[pr]
-  for a in all_currencies:
-    for b in all_currencies:
+  for a in CURRENCIES:
+    for b in CURRENCIES:
       EX_RATE[a + '-' + b] = EX_RATE[a + '-' + CURRENCY] * EX_RATE[CURRENCY + '-' + b]
     EX_RATE[a + '-' + b] = 1.0
   sys.stderr.write('%s\n'%(str(EX_RATE)))

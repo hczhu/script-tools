@@ -83,6 +83,8 @@ DIV_TEMPLATE = """
 
 EX_RATE = {
 }
+ 
+CURRENCIES = ['usd', 'cny', 'hkd', 'jpy']
 
 CURRENCY = 'usd'
 
@@ -123,8 +125,6 @@ TOTAL_MARKET_VALUE = collections.defaultdict(int)
 HOLDING_PERCENT = collections.defaultdict(float)
 
 HOLDING_SHARES = collections.defaultdict(int)
-
-NET_ASSET = 0.0
 
 FINANCIAL_KEYS = set([
   'a-shares',

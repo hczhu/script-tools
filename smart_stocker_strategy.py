@@ -22,7 +22,7 @@ def GiveTip(op, code, money):
                                      FINANCAIL_DATA_ADVANCE[code]['mp'])
 
 def KeepPercent(name, percent, delta = 0.01):
-  code = CODE_TO_NAME[name]
+  code = NAME_TO_CODE[name]
   currency = STOCK_INFO[code]['currency']
   if HOLDING_PERCENT[code] - percent > delta:
     return GiveTip('Sell', code, (HOLDING_PERCENT[code] - percent) * CAPITAL_INFO['all']['net'] * EX_RATE[CURRENCY + '-' + currency])

@@ -156,7 +156,7 @@ def ZhongxinBank():
   code = NAME_TO_CODE['中信银行H']
   data = FINANCAIL_DATA_ADVANCE[code]
   currency = STOCK_INFO[code]['currency']
-  target_percent = 0.15
+  target_percent = 0.1
   if HOLDING_PERCENT[code] < target_percent and data['ah-ratio'] < 0.8:
     buying_power = GetBuyingPower(code)
     add_percent = min(target_percent - HOLDING_PERCENT[code], 1.0 * buying_power / CAPITAL_INFO['all']['net'])

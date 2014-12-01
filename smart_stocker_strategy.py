@@ -166,7 +166,7 @@ def ZhongxinBank():
       return GiveTip('Buy', code, add_percent * CAPITAL_INFO['all']['net'] * EX_RATE[CURRENCY + '-' + currency])
   if data['ah-ratio'] > 0.9:
     return 'Clear %s(%s)'%(CODE_TO_NAME[code], code)
-  return
+  return ''
 
 STRATEGY_FUNCS = [
   KeepBanks,

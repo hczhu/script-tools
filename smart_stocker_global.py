@@ -159,7 +159,7 @@ CAPITAL_INFO = collections.defaultdict(dict)
 
 MIN_SMA_RATIO = {
   'cny': 0.0,
-  'usd': 0.1,
+  'usd': 0.15,
 }
 
 #----------Begining of global variables------------------

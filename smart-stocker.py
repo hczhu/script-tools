@@ -162,7 +162,9 @@ def PrintHoldingSecurities(all_records):
                   'Percent',
                   'Percent1',
                   'MV(K)',
-                  'Stock name']
+                  'Chg',
+                  'Stock name',
+                 ]
   silent_column = [
   ]
   for col in ['Price']:
@@ -285,7 +287,8 @@ def PrintHoldingSecurities(all_records):
   
   for currency in set(CURRENCIES) - set(['usd', 'cny']):
     CAPITAL_INFO[currency]['buying-power'] = EX_RATE['usd-' + currency] * CAPITAL_INFO['usd']['buying-power']
-
+  for currency in CURRENCIES:
+    CAPITAL_INFO[currency]['buying-power-ratio'] = CAPITAL_INFO[currency]['buying-power'] * EX_RATE[currency + '-' - CURRENCY] / CAPITAL_INFO['all']['net']
   capital_table_map = [CAPITAL_INFO['usd'], CAPITAL_INFO['cny'], CAPITAL_INFO['all']]
   capital_header = [
     'currency',

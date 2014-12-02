@@ -160,11 +160,11 @@ def ZhongxinBank():
   data = FINANCAIL_DATA_ADVANCE[code]
   currency = STOCK_INFO[code]['currency']
   target_percent = 0.07
-  if HOLDING_PERCENT[code] < target_percent and data['ah-ratio'] < 0.8:
+  if HOLDING_PERCENT[code] < target_percent and data['ah-ratio'] < 0.7:
     add_percent = min(target_percent - HOLDING_PERCENT[code], CAPITAL_INFO[currency]['buying-power-ratio'])
     if add_percent > 0.01:
       return GiveTip('Buy', code, add_percent * CAPITAL_INFO['all']['net'] * EX_RATE[CURRENCY + '-' + currency])
-  if data['ah-ratio'] > 0.9:
+  if data['ah-ratio'] > 0.85:
     return 'Clear %s(%s)'%(CODE_TO_NAME[code], code)
   return ''
 
@@ -172,5 +172,4 @@ STRATEGY_FUNCS = [
   KeepBanks,
   ZhongxinBank,
   lambda: KeepPercent('南方A50', 0.1),
-  lambda: KeepPercent('中信银行H', 0.07),
 ]

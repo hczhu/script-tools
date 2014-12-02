@@ -156,7 +156,7 @@ def ReadRecords():
       all_records[record['ticker']].append(record)
   return all_records
 
-def PrintHoldingSecurities(all_records):
+def PrintHoldingSecurities(all_records, charts = False):
   global NET_ASSET_BY_CURRENCY
   table_header = [
                   'Percent',
@@ -318,7 +318,7 @@ def PrintHoldingSecurities(all_records):
   stat_records_map.append(summation)
   stat_records_map.sort(reverse = True, key = lambda record: record.get('MV', 0))
   PrintTableMap(table_header, stat_records_map, silent_column, truncate_float = False)
-  if 'chart' in set(sys.argv):
+  if charts:
     open('/tmp/charts.html', 'w').write(
       HTML_TEMPLATE%(function_html, div_html) 
     )
@@ -344,12 +344,11 @@ try:
   GetStockPool(GD_CLIENT)
   GetFinancialData(GD_CLIENT) 
   PopulateFinancialData()
+  PrintHoldingSecurities(ReadRecords(), 'chart' in set(sys.argv[1:]))
+  RunStrategies()
   if len(sys.argv) > 1:
     names = ','.join(sys.argv[1:]).split(',')
     PrintStocks(names)
-  else:
-    PrintHoldingSecurities(ReadRecords())
-    RunStrategies()
 except Exception as ins:
   print 'Run time error: ', ins
   traceback.print_exc(file=sys.stdout)

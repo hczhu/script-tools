@@ -347,7 +347,7 @@ try:
   PrintHoldingSecurities(ReadRecords(), 'chart' in set(sys.argv[1:]))
   RunStrategies()
   if len(sys.argv) > 1:
-    names = ','.join(sys.argv[1:]).split(',')
+    names = ','.join(set(sys.argv[1:]) - set(['chart'])).split(',')
     PrintStocks(names)
 except Exception as ins:
   print 'Run time error: ', ins

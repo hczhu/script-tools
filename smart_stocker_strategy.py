@@ -90,7 +90,7 @@ def NoBuyBanks(banks):
 
 def KeepBanks():
   targetPercent = 0.8
-  valuation_delta = 0.08
+  valuation_delta = 0.06
   bank_percent = {
     '建设银行': 0.3,
     '建设银行H': 0.3,

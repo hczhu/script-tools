@@ -94,8 +94,8 @@ def KeepBanks():
   bank_percent = {
     '建设银行': 0.3,
     '建设银行H': 0.3,
-    '招商银行': 0.35,
-    '招商银行H': 0.35,
+    '招商银行': 0.4,
+    '招商银行H': 0.4,
     '中国银行': 0.2,
     '中国银行H': 0.2,
     '浦发银行': 0.15,
@@ -103,6 +103,12 @@ def KeepBanks():
   }
   bank_percent = {NAME_TO_CODE[name] : bank_percent[name] for name in bank_percent.keys()}
   all_banks = bank_percent.keys()
+  psbv = map(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/sbv'], all_banks)
+  psbv.sort()
+  average_psbv = sum(psbv[0 : 4]) / 4
+  if average_psbv < 0.9: targetPercent = 1.0
+  elif average_psbv < 0.95: targetPercent = 0.85
+  sys.stderr.write('Target percentage for banks = %.2f average psbv = %.3f\n'%(targetPercent, average_psbv))
   currentPercent = sum(map(lambda code: HOLDING_PERCENT[code], all_banks))
   banks = FilterBanks(all_banks)
 

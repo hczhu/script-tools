@@ -347,7 +347,7 @@ try:
   PrintHoldingSecurities(ReadRecords(), 'chart' in set(sys.argv[1:]))
   RunStrategies()
   target_names = set(sys.argv[1:]) - set(['chart'])
-  if len(target_names) > 1:
+  if len(target_names) > 0:
     names = ','.join(target_names).split(',')
     PrintStocks(names)
 except Exception as ins:

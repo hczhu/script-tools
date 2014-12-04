@@ -23,6 +23,7 @@ class bcolors:
   OKGREEN = '\033[92m'
   WARNING = '\033[93m'
   FAIL = '\033[91m'
+  RED = '\033[31m'
   ENDC = '\033[0m'
 
 def GetIRR(market_value, cash_flow_records):
@@ -335,7 +336,7 @@ def PrintHoldingSecurities(all_records, charts = False):
 def RunStrategies():
   for strategy in STRATEGY_FUNCS:
     tip = strategy()
-    if tip != '': print bcolors.FAIL + 'ACTION!!! ' + tip + bcolors.ENDC
+    if tip != '': print bcolors.RED + 'ACTION!!! ' + tip + bcolors.ENDC
 
 def PrintStocks(names):
   tableMap = []

@@ -115,6 +115,7 @@ def KeepBanks():
   banks = FilterBanks(all_banks)
 
   drop_banks = set(all_banks) - set(banks)
+  sys.stderr.write('Drop banks: %s \n'%(', '.join([CODE_TO_NAME[code] for code in drop_banks])))
   for bank in drop_banks:
     currency = STOCK_INFO[bank]['currency']
     if HOLDING_PERCENT[bank] > 0.005:

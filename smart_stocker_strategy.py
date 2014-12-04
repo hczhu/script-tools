@@ -20,9 +20,9 @@ def FinancialValue(name, key):
   return FINANCAIL_DATA_ADVANCE[NAME_TO_CODE[name]][key]
 
 def GiveTip(op, code, money):
-  return '%s %s(%s) %d units @%.3f cash %.0f'%(op, CODE_TO_NAME[code], code,
+  return '%s %s(%s) %d units @%.3f cash %.0f%s'%(op, CODE_TO_NAME[code], code,
                                      int(money / FINANCAIL_DATA_ADVANCE[code]['mp']),
-                                     FINANCAIL_DATA_ADVANCE[code]['mp'], money)
+                                     FINANCAIL_DATA_ADVANCE[code]['mp'], money, STOCK_INFO[code]['currency'])
 
 def KeepPercentIf(name, percent, hold_condition = None, buy_condition = None):
   delta = 0.01

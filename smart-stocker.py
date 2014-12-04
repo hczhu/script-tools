@@ -17,6 +17,14 @@ from smart_stocker_global import *
 from smart_stocker_strategy import *
 
 #--------------Beginning of logic util functions---------------
+class bcolors:
+  HEADER = '\033[95m'
+  OKBLUE = '\033[94m'
+  OKGREEN = '\033[92m'
+  WARNING = '\033[93m'
+  FAIL = '\033[91m'
+  ENDC = '\033[0m'
+
 def GetIRR(market_value, cash_flow_records):
   if len(cash_flow_records) == 0:
     return 0.0
@@ -327,7 +335,7 @@ def PrintHoldingSecurities(all_records, charts = False):
 def RunStrategies():
   for strategy in STRATEGY_FUNCS:
     tip = strategy()
-    if tip != '': print 'ACTION!!!',tip
+    if tip != '': print bcolors.FAIL + 'ACTION!!! ' + tip + bcolors.ENDC
 
 def PrintStocks(names):
   tableMap = []

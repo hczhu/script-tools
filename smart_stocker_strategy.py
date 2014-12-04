@@ -149,9 +149,9 @@ def KeepBanks():
     for b in range(len(banks) - 1, a, -1):
       better = banks[b]
       valuation_delta = valuation_delta_same
-      if STOCK_INFO[worse][currency] == 'hkd' and STOCK_INFO[worse]['acode'] == better:
+      if STOCK_INFO[worse]['currency'] == 'hkd' and STOCK_INFO[worse]['acode'] == better:
         valuation_delta = valuation_delta_h2a
-      if STOCK_INFO[worse][currency] == 'cny' and STOCK_INFO[worse]['hcode'] == better:
+      if STOCK_INFO[worse]['currency'] == 'cny' and STOCK_INFO[worse]['hcode'] == better:
         valuation_delta = valuation_delta_a2h
       sys.stderr.write('%s ==> %s with valuation delta = %2f\n'%(CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_delta))
       if valuation[worse] / valuation[better] < (1 + valuation_delta): continue

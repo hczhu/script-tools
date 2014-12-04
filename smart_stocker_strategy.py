@@ -16,17 +16,23 @@ from smart_stocker_public_data import *
 def InBetween(value_range, x):
   return (x - value_range[0]) * (x - value_range[1]) <= 0.0
 
+def FinancialValue(name, key):
+  return FINANCAIL_DATA_ADVANCE[NAME_TO_CODE[name]][key]
+
 def GiveTip(op, code, money):
   return '%s %s(%s) %d units @%.3f'%(op, CODE_TO_NAME[code], code,
                                      int(money / FINANCAIL_DATA_ADVANCE[code]['mp']),
                                      FINANCAIL_DATA_ADVANCE[code]['mp'])
 
-def KeepPercent(name, percent, delta = 0.01):
+def KeepPercentIf(name, percent, hold_condition = None, buy_condition = None):
+  delta = 0.01
   code = NAME_TO_CODE[name]
   currency = STOCK_INFO[code]['currency']
+  percent = percent if hold_condition is None or hold_condition() else 0
   if HOLDING_PERCENT[code] - percent > delta:
     return GiveTip('Sell', code, (HOLDING_PERCENT[code] - percent) * CAPITAL_INFO['all']['net'] * EX_RATE[CURRENCY + '-' + currency])
-  if percent - HOLDING_PERCENT[code] > delta and CAPITAL_INFO[currency]['buying-power-ratio'] > 0.01:
+  if percent - HOLDING_PERCENT[code] > delta and CAPITAL_INFO[currency]['buying-power-ratio'] > 0.01 and (
+        buy_condition is None or buy_condition()):
     return GiveTip('Buy', code, min(CAPITAL_INFO[currency]['buying-power-ratio'], percent - HOLDING_PERCENT[code]
                     ) * CAPITAL_INFO['all']['net'] * EX_RATE[CURRENCY + '-' + currency])
   return '' 
@@ -184,6 +190,16 @@ def ZhongxinBank():
 STRATEGY_FUNCS = [
   KeepBanks,
   ZhongxinBank,
-  lambda: KeepPercent('南方A50ETF', 0.1),
-  lambda: KeepPercent('上证红利ETF', 0.15),
+  lambda: KeepPercentIf('南方A50ETF', 0.1,
+                        hold_condition = lambda: FinancialValue('南方A50ETF', 'p/ttme') < 15,
+                        buy_condition = lambda: FinancialValue('南方A50ETF', 'p/ttme') < 10
+                       ),
+  lambda: KeepPercentIf('上证红利ETF', 0.15,
+                        hold_condition = lambda: FinancialValue('上证红利ETF', 'p/ttme') < 14,
+                        buy_condition = lambda: FinancialValue('上证红利ETF', 'p/ttme') < 9
+                       ),
+  lambda: KeepPercentIf('Yandex', 0.08,
+                        hold_condition = lambda: FinancialValue('Yandex', 'p/dbv') < 1.3,
+                        buy_condition = lambda: FinancialValue('Yandex', 'p/dbv') < 1.0
+                       ),
 ]

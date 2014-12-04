@@ -300,6 +300,7 @@ def PrintHoldingSecurities(all_records, charts = False):
     'txn-fee-ratio',
     'IRR',
     'SMA-ratio',
+    'buying-power-ratio',
   ]
   PrintTableMap(capital_header, capital_table_map, set(), truncate_float = True)
   for col in ['Chg', 'Percent']:

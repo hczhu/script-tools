@@ -184,5 +184,6 @@ def ZhongxinBank():
 STRATEGY_FUNCS = [
   KeepBanks,
   ZhongxinBank,
-  lambda: KeepPercent('南方A50', 0.1),
+  lambda: KeepPercent('南方A50ETF', 0.1),
+  lambda: KeepPercent('上证红利ETF', 0.15),
 ]

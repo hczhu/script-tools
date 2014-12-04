@@ -327,7 +327,7 @@ def PrintHoldingSecurities(all_records, charts = False):
 def RunStrategies():
   for strategy in STRATEGY_FUNCS:
     tip = strategy()
-    if tip != '': print tip
+    if tip != '': print 'ACTION!!!',tip
 
 def PrintStocks(names):
   tableMap = []

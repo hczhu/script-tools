@@ -164,6 +164,11 @@ MIN_SMA_RATIO = {
 
 MACRO_DATA = {}
 
+SMA_DISCOUNT = {
+  'cny': 0.0,
+  'usd': 0.5,
+}
+
 #----------Begining of global variables------------------
 
 def IsLambda(v):

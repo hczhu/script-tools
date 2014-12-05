@@ -282,9 +282,8 @@ def PrintHoldingSecurities(all_records, charts = False):
         'txn-fee-ratio': 100.0 * TOTAL_TRANSACTION_FEE[currency] / TOTAL_MARKET_VALUE[currency],
         'IRR': GetIRR(TOTAL_MARKET_VALUE[currency], cash_flow[currency]) * 100,
     }
-
-  CAPITAL_INFO['cny']['SMA'] = CAPITAL_INFO['cny']['free-cash']
-  CAPITAL_INFO['usd']['SMA'] = CAPITAL_INFO['usd']['free-cash'] + CAPITAL_INFO['usd']['market-value'] / 2
+  for currency in ['usd', 'cny']:
+    CAPITAL_INFO[currency]['SMA'] = CAPITAL_INFO[currency]['free-cash'] + CAPITAL_INFO[currency]['market-value'] * SMA_DISCOUNT[currency]
   for code in HOLDING_SHARES.keys():
     if HOLDING_SHARES[code] < 0:
       CAPITAL_INFO['usd']['SMA'] += int(HOLDING_SHARES[code] * GetMarketPrice(code) * EX_RATE[STOCK_INFO[code]['currency'] + '-usd'])
@@ -292,7 +291,7 @@ def PrintHoldingSecurities(all_records, charts = False):
   for currency in ['usd', 'cny']:
     CAPITAL_INFO[currency]['SMA-ratio'] = 100.0 * CAPITAL_INFO[currency]['SMA'] / CAPITAL_INFO[currency]['market-value']
     CAPITAL_INFO[currency]['buying-power'] = (CAPITAL_INFO[currency]['SMA-ratio'] / 100.0 - MIN_SMA_RATIO[currency]
-        ) * CAPITAL_INFO[currency]['market-value']
+        ) * CAPITAL_INFO[currency]['market-value'] / SMA_DISCOUNT[currency] if SMA_DISCOUNT[currency] > 0 else 1.0
   
   for currency in set(CURRENCIES) - set(['usd', 'cny']):
     CAPITAL_INFO[currency]['buying-power'] = EX_RATE['usd-' + currency] * CAPITAL_INFO['usd']['buying-power']

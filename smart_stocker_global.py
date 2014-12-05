@@ -162,6 +162,8 @@ MIN_SMA_RATIO = {
   'usd': 0.1,
 }
 
+MACRO_DATA = {}
+
 #----------Begining of global variables------------------
 
 def IsLambda(v):

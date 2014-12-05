@@ -336,7 +336,7 @@ def PrintHoldingSecurities(all_records, charts = False):
 def RunStrategies():
   for strategy in STRATEGY_FUNCS:
     tip = strategy()
-    if tip != '': print bcolors.RED + 'ACTION!!! ' + tip + bcolors.ENDC
+    if tip != '': print bcolors.FAIL + 'ACTION!!! ' + tip + bcolors.ENDC
 
 def PrintStocks(names):
   tableMap = []
@@ -354,6 +354,7 @@ try:
   GetStockPool(GD_CLIENT)
   GetFinancialData(GD_CLIENT) 
   PopulateFinancialData()
+  PopulateMacroData()
   PrintHoldingSecurities(ReadRecords(), 'chart' in set(sys.argv[1:]))
   target_names = set(sys.argv[1:]) - set(['chart'])
   if len(target_names) > 0:

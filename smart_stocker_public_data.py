@@ -261,3 +261,12 @@ def PopulateFinancialData():
         h_adv_data['p/sbvadv'] = (1 - h_adv_data['sdv/p']) / (1.0 / h_adv_data['p/sbv'] - h_adv_data['sdv/p'])
         h_adv_data['p/dbvadv'] = (1 - h_adv_data['sdv/p']) / (1.0 / h_adv_data['p/dbv'] - h_adv_data['sdv/p'])
       FINANCAIL_DATA_ADVANCE[info['hcode']] = h_adv_data
+
+def PopulateMacroData():
+  MACRO_DATA['ah-premium'] = GetValueFromUrl('http://markets.ft.com/research/Markets/Tearsheets/Summary?s=HSCAHPI:HKG',
+                                             ['<span class="formatIssueSymbol">HSCAHPI:HKG',
+                                              '<td class="text first">',
+                                              'data-stream-feed="rmds_streamer">'], '<', float, True) / 100.0 - 1.0
+  sys.stderr.write('macro data = %s\n'%(str(MACRO_DATA)))
+  
+

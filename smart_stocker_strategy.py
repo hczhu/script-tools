@@ -70,8 +70,7 @@ def YahooAndAlibaba():
 
 def ScoreBanks(banks):
   scores = {
-    code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] / (1.0 + FINANCAIL_DATA_ADVANCE[code]['sdv/p'])
-    for code in banks
+    code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] / (1.0 + FINANCAIL_DATA_ADVANCE[code]['sdv/p']) for code in banks
   }
   banks.sort(key = lambda code: scores[code])
   for bank in banks:
@@ -96,12 +95,12 @@ def NoBuyBanks(banks):
 
 def KeepBanks():
   targetPercent = 0.8
-  valuation_delta_a2h = 0.1
-  valuation_delta_h2a = 0.04
-  valuation_delta_same = 0.06
+  normal_valuation_delta = 0.06
+  a2h_discount = MACRO_DATA['ah-premium']
+  h2a_discount = 0.03
   bank_percent = {
-    '建设银行': 0.3,
-    '建设银行H': 0.3,
+    '建设银行': 0.35,
+    '建设银行H': 0.35,
     '招商银行': 0.4,
     '招商银行H': 0.4,
     '中国银行': 0.2,
@@ -150,21 +149,23 @@ def KeepBanks():
     sub_percent = min(currentPercent - targetPercent, HOLDING_PERCENT[code])
     if sub_percent < 0.01: continue
     return GiveTip('Sell', code, sub_percent * CAPITAL_INFO['all']['net'] * EX_RATE[CURRENCY + '-' + currency])
-
+  
+  valuation_delta = 100
   for a in range(len(banks)):
     worse = banks[a]
     for b in range(len(banks) - 1, a, -1):
       better = banks[b]
-      valuation_delta = valuation_delta_same
-      if STOCK_INFO[worse]['currency'] == 'hkd' and STOCK_INFO[worse].get('acode', '') == better:
-        valuation_delta = valuation_delta_h2a
-      if STOCK_INFO[worse]['currency'] == 'cny' and STOCK_INFO[worse].get('hcode', '') == better:
-        valuation_delta = valuation_delta_a2h
-      sys.stderr.write('%s ==> %s with valuation delta = %.2f\n'%(CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_delta))
-      if valuation[worse] / valuation[better] < (1 + valuation_delta): continue
-      swap_percent = min(HOLDING_PERCENT[worse], bank_percent[better] - GetPercent(better))
       worse_currency = STOCK_INFO[worse]['currency']
       better_currency = STOCK_INFO[better]['currency']
+      if worse_currency != better_currency:
+        valuation_delta = normal_valuation_delta
+      elif STOCK_INFO[worse].get('hcode', '') == better:
+        valuation_delta = a2h_discount
+      elif STOCK_INFO[worse].get('acode', '') == better:
+        valuation_delta = h2a_discount
+      sys.stderr.write('%s ==> %s delta = %.3f\n'%(CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_delta))
+      if valuation[worse] / valuation[better] < (1 + valuation_delta): continue
+      swap_percent = min(HOLDING_PERCENT[worse], bank_percent[better] - GetPercent(better))
       if worse_currency != better_currency:
         swap_percent = min(swap_percent, CAPITAL_INFO[better_currency]['buying-power-ratio'])
       if swap_percent < 0.01: continue

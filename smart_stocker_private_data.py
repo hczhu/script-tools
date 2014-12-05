@@ -74,6 +74,7 @@ def GetStockPool(client):
       STOCK_INFO[hcode] = {
         'name': CODE_TO_NAME[hcode],
         'currency': 'hkd',
+        'acode': code,
       }
     if 'cb' in info:
       cb = info['cb']

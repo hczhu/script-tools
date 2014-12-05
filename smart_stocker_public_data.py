@@ -266,9 +266,10 @@ def PopulateFinancialData():
 def PopulateMacroData():
   try:
     MACRO_DATA['ah-premium'] = GetValueFromUrl('http://markets.ft.com/research/Markets/Tearsheets/Summary?s=HSCAHPI:HKG',
-                                               ['<span class="formatIssueSymbol">HSCAHPI:HKG',
+                                               ['HANG SENG CHINA AH PREMIUM INDEX',
+                                                'HSCAHPI:HKG',
                                                 '<td class="text first">',
-                                                'data-stream-feed="rmds_streamer">'], '<', float, True) / 100.0 - 1.0
+                                                '>'], '<', float, True) / 100.0 - 1.0
   except Exception, e:
     MACRO_DATA['ah-premium'] = 0.1
     sys.stderr.write('Failed to get ah premium with exception [%s]\n'%(str(e)))

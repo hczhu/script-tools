@@ -94,17 +94,17 @@ def NoBuyBanks(banks):
                 banks)
 
 def KeepBanks():
-  targetPercent = 0.8
+  targetPercent = 1.0
   normal_valuation_delta = 0.06
   a2h_discount = MACRO_DATA['ah-premium'] * 0.8
   h2a_discount = 0.03
   bank_percent = {
     '建设银行': 0.35,
     '建设银行H': 0.35,
-    '招商银行': 0.4,
-    '招商银行H': 0.4,
-    '中国银行': 0.2,
-    '中国银行H': 0.2,
+    '招商银行': 0.35,
+    '招商银行H': 0.35,
+    '中国银行': 0.25,
+    '中国银行H': 0.25,
     '浦发银行': 0.15,
     '兴业银行': 0.15,
   }
@@ -113,8 +113,8 @@ def KeepBanks():
   psbv = map(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/sbv'], all_banks)
   psbv.sort()
   average_psbv = sum(psbv[0 : 4]) / 4
-  if average_psbv < 0.9: targetPercent = 1.0
-  elif average_psbv < 0.95: targetPercent = 0.85
+  if average_psbv < 0.9: targetPercent += 0.2
+  elif average_psbv < 0.95: targetPercent += 0.1
   sys.stderr.write('Target percentage for banks = %.2f average psbv = %.3f\n'%(targetPercent, average_psbv))
   currentPercent = sum(map(lambda code: HOLDING_PERCENT[code], all_banks))
   banks = FilterBanks(all_banks)

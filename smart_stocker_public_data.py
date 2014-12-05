@@ -269,8 +269,9 @@ def PopulateMacroData():
                                                ['<span class="formatIssueSymbol">HSCAHPI:HKG',
                                                 '<td class="text first">',
                                                 'data-stream-feed="rmds_streamer">'], '<', float, True) / 100.0 - 1.0
-  except:
+  except Exception, e:
     MACRO_DATA['ah-premium'] = 0.1
+    sys.stderr.write('Failed to get ah premium with exception [%s]\n'%(str(e)))
   sys.stderr.write('macro data = %s\n'%(str(MACRO_DATA)))
   
 

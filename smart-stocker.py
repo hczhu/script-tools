@@ -291,7 +291,7 @@ def PrintHoldingSecurities(all_records, charts = False):
   for currency in ['usd', 'cny']:
     CAPITAL_INFO[currency]['SMA-ratio'] = 100.0 * CAPITAL_INFO[currency]['SMA'] / CAPITAL_INFO[currency]['market-value']
     CAPITAL_INFO[currency]['buying-power'] = (CAPITAL_INFO[currency]['SMA-ratio'] / 100.0 - MIN_SMA_RATIO[currency]
-        ) * CAPITAL_INFO[currency]['market-value'] / SMA_DISCOUNT[currency] if SMA_DISCOUNT[currency] > 0 else 1.0
+        ) * CAPITAL_INFO[currency]['market-value'] / (SMA_DISCOUNT[currency] if SMA_DISCOUNT[currency] > 0 else 1.0)
   
   for currency in set(CURRENCIES) - set(['usd', 'cny']):
     CAPITAL_INFO[currency]['buying-power'] = EX_RATE['usd-' + currency] * CAPITAL_INFO['usd']['buying-power']

@@ -244,6 +244,7 @@ def PopulateFinancialData():
         adv_data[key] = data[key[0:-2]] / mp
     if 'sbv' in data and 'sdv' in data:
       adv_data['p/sbvadv'] = (mp - data['sdv']) / (data['sbv'] - data['sdv'])
+    if 'dbv' in data and 'sdv' in data:
       adv_data['p/dbvadv'] = (mp - data['sdv']) / (data['dbv'] - data['sdv'])
     # Populate corresponding h-share.
     if 'hcode' in info:

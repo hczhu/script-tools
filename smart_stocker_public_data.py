@@ -49,7 +49,7 @@ def AppannieScore(company, country = 'japan'):
       idx = content.find(company)
   return res
 
-def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True):
+def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True, reg_exp = '[0-9.]+'):
   try:
     if url not in URL_CONTENT_CACHE:
       request = urllib2.Request(url)
@@ -57,7 +57,10 @@ def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True):
     content = URL_CONTENT_CACHE[url]
     for fs in feature_str:
       content = content[len(fs) + content.find(fs):]
-    return func(content[0:content.find(end_str)])
+    pat = re.compile(reg_exp)
+    match = pat.search(content) 
+    if match is None: raise Exception('reg exp [%s] not found'%(reg_exp))
+    return func(match.group(0))
   except Exception, e:
     sys.stderr.write('Exception ' + str(e) +'\n')
     sys.stderr.write('Failed to open url: ' + url + '\n')
@@ -95,9 +98,13 @@ def GetCurrency(code):
   return STOCK_INFO[code]['currency'] if code in STOCK_INFO else 'cny'
 
 def GetXueqiuUrlPrefix(code):
-  currency = GetCurrency(code)
-  if currency == 'cny': return ['SH', 'SZ']
-  return ['']
+  market2prefix = {
+    'sz': ['sz'],
+    'sh': ['sh'],
+    'hk': [''],
+    'us': [''],
+  }
+  return market2prefix[STOCK_INFO[code]['market']]
 
 def GetXueqiuMarketPrice(code):
   url_prefix = 'http://xueqiu.com/S/'
@@ -123,11 +130,13 @@ def GetXueqiuMarketPrice(code):
   return [0.01, 0.0, 0.0, 1.0]
 
 def GetSinaUrlPrefix(code):
-  currency = GetCurrency(code)
-  if currency == 'cny': return ['sh', 'sz']
-  elif currency == 'hkd': return ['hk']
-  elif currency == 'usd': return ['gb_']
-  return ['']
+  market2prefix = {
+    'sz': ['sz'],
+    'sh': ['sh'],
+    'hk': ['hk'],
+    'us': ['gb_'],
+  }
+  return market2prefix[STOCK_INFO[code]['market']]
 
 def GetMarketPriceFromSina(code):
   url_prefix = 'http://hq.sinajs.cn/list='
@@ -136,7 +145,7 @@ def GetMarketPriceFromSina(code):
     suffix = pr + code.lower()
     url = url_prefix + suffix
     try:
-      values = GetValueFromUrl(url, 'hq_str_%s="'%(suffix), '"', str)
+      values = GetValueFromUrl(url, 'hq_str_%s="'%(suffix), '"', str, reg_exp = '[^"]+')
       sys.stderr.write('Get string for %s: [%s] from url: %s\n'%(code, [values], url))
       if len(values) == 0: continue
       values = values.split(',')

@@ -75,6 +75,7 @@ def GetStockPool(client):
         'name': CODE_TO_NAME[hcode],
         'currency': 'hkd',
         'acode': code,
+        'market': 'hk',
       }
     if 'cb' in info:
       cb = info['cb']
@@ -82,7 +83,8 @@ def GetStockPool(client):
       NAME_TO_CODE[CODE_TO_NAME[cb]] = cb
       STOCK_INFO[cb] = {
         'name': CODE_TO_NAME[cb],
-        'currency': info['currency']
+        'currency': info['currency'],
+        'market': info['market'],
       }
  
 def GetFinancialData(client):

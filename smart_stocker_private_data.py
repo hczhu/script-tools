@@ -107,8 +107,14 @@ def GetFinancialData(client):
         financial_key = row.title.text
         if financial_key not in FINANCIAL_KEYS: continue
         values = row.content.text.split(', ')
-        if len(values) > 0 and values[0].find(': ') != -1:
+        if financial_key == 'cross-share':
+          assert len(values) == 2
+          if 'cross-share' not in financial_data:
+            financial_data['cross-share'] = []
+          financial_data['cross-share'] += [(float(values[0].split(': ')[1]), NAME_TO_CODE[values[1].split(': ')[1]])]
+        elif len(values) > 0 and values[0].find(': ') != -1:
           financial_data[financial_key] = float(values[0].split(': ')[1].replace(',', ''))
+      sys.stderr.write('Basic financial data for %s:%s\n'%(name, str(financial_data)))
     except Exception, e:
       sys.stderr.write('Failed to get data from worksheet: %s with exception [%s]\n'%(ws.title.text, str(e)))
 

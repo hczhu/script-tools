@@ -145,6 +145,9 @@ FINANCIAL_KEYS = set([
   'ah-ratio',
   'p/sbvadv', # p/sbv after dividend.
   'p/dbvadv', # p/dbv after dividend.
+  'cross-share', # hold shares of other company in the format of 'stock / per self stock, name'
+  'p/cross-share', # hold shares of other company in the format of 'stock / per self stock, name'
+  'tax-rate',
 ])
 
 GD_CLIENT = None

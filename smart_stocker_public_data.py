@@ -71,9 +71,9 @@ def GetJapanStockPriceAndChange(code):
   url = 'http://jp.reuters.com/investing/quotes/quote?symbol=%s.T'%(str(code))
   try:
     return (GetValueFromUrl(url, ['<div id="priceQuote">', '<span class="valueContent">'],
-                            '</span>', lambda s: float(s.replace(',', ''))),
+                            '</span>', lambda s: float(s.replace(',', '')), reg_exp = '[0-9.,]+'),
             GetValueFromUrl(url, ['<div id="percentChange">', '<span class="valueContent"><span class="', '>'],
-                            '%', lambda s: float(s.replace(',', ''))))
+                            '%', lambda s: float(s.replace(',', '')), reg_exp = '[0-9.,]+'))
   except:
     return [float(0), 0.0]
 
@@ -87,7 +87,6 @@ def GetJapanStockBeta(code):
     return 0.0
 
 MARKET_PRICE_FUNC = {
-  '2432': lambda: GetJapanStockPriceAndChange('2432'),
   'ni225': lambda: [0,
                     GetValueFromUrl('http://www.bloomberg.com/quote/NKY:IND',
                                     ['<meta itemprop="priceChangePercent" content="'],
@@ -182,7 +181,7 @@ def GetMarketPrice(code):
   sys.stderr.write('Getting market price for ' + code + '\n')
   if code in MARKET_PRICE_CACHE:
     return MARKET_PRICE_CACHE[code][0]
-  func = lambda: GetMarketPriceFromSina(code)
+  func = lambda: GetMarketPriceFromSina(code) if STOCK_INFO[code]['market'] != 'jp' else GetJapanStockPriceAndChange(code)
   if code in MARKET_PRICE_FUNC:
     func = MARKET_PRICE_FUNC[code] 
   try:
@@ -246,6 +245,12 @@ def PopulateFinancialData():
     adv_data = FINANCAIL_DATA_ADVANCE[code]
     mp = GetMarketPrice(code)
     FINANCAIL_DATA_ADVANCE[code]['mp'] = mp
+    if 'cross-share' in data:
+      cross_value = 0.0
+      for pr in data['cross-share']:
+        cross_code = pr[1]
+        cross_value += EX_RATE[STOCK_INFO[cross_code]['currency'] + '-' + info['currency']] * GetMarketPrice(cross_code) * pr[0]
+      data['cross-share'] = cross_value
     for key in FINANCIAL_KEYS:
       if key.find('p/') != -1 and key[2:] in data:
         adv_data[key] = mp / data[key[2:]]

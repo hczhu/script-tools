@@ -212,10 +212,6 @@ def PrintHoldingSecurities(all_records, charts = False):
       chg = GetMarketPriceChange(key)
       mv = mp * remain_stock * ex_rate
     TOTAL_MARKET_VALUE[currency] += mv
-    sys.stderr.write('%s profit %.0f %s from %s\n'%(
-      'Realized' if remain_stock == 0 else 'Unrealized',
-      net_profit + mv,
-      CURRENCY, name))
     HOLDING_SHARES[key] = remain_stock
     record = {
         'Code': key,

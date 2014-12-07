@@ -79,7 +79,7 @@ def ScoreBanks(banks):
 
 def FilterBanks(banks):
   return filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/sbv'] < 1.5 and
-                FINANCAIL_DATA_ADVANCE[code]['sdv/p'] > 0.035, banks)
+                FINANCAIL_DATA_ADVANCE[code]['sdv/p'] > 0.04 * 0.75, banks)
 
 def GetPercent(code):
   percent = HOLDING_PERCENT[code]
@@ -89,8 +89,7 @@ def GetPercent(code):
   return percent
 
 def NoBuyBanks(banks):
-  return filter(lambda code: 1.0 / (0.75 / FINANCAIL_DATA_ADVANCE[code]['p/ttme'] +
-                                    1.0 / FINANCAIL_DATA_ADVANCE[code]['p/sbv']) > 1.0,
+  return filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/sbv'] > 1.5,
                 banks)
 
 def KeepBanks():
@@ -110,12 +109,6 @@ def KeepBanks():
   }
   bank_percent = {NAME_TO_CODE[name] : bank_percent[name] for name in bank_percent.keys()}
   all_banks = bank_percent.keys()
-  psbv = map(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/sbv'], all_banks)
-  psbv.sort()
-  average_psbv = sum(psbv[0 : 4]) / 4
-  if average_psbv < 0.9: targetPercent += 0.2
-  elif average_psbv < 0.95: targetPercent += 0.1
-  sys.stderr.write('Target percentage for banks = %.2f average psbv = %.3f\n'%(targetPercent, average_psbv))
   currentPercent = sum(map(lambda code: HOLDING_PERCENT[code], all_banks))
   banks = FilterBanks(all_banks)
 

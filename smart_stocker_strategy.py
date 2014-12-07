@@ -94,15 +94,15 @@ def NoBuyBanks(banks):
                 banks)
 
 def KeepBanks():
-  targetPercent = 0.9
+  targetPercent = 1.0
   normal_valuation_delta = 0.06
   a2h_discount = MACRO_DATA['ah-premium'] * 0.8
   h2a_discount = 0.03
   bank_percent = {
     '建设银行': 0.35,
     '建设银行H': 0.35,
-    '招商银行': 0.35,
-    '招商银行H': 0.35,
+    '招商银行': 0.4,
+    '招商银行H': 0.4,
     '中国银行': 0.25,
     '中国银行H': 0.25,
     '浦发银行': 0.15,
@@ -124,7 +124,7 @@ def KeepBanks():
   for bank in drop_banks:
     currency = STOCK_INFO[bank]['currency']
     if HOLDING_PERCENT[bank] > 0.005:
-        return 'Clear %s(%s)'%(CODE_TO_NAME[bank], bank)
+      return 'Clear %s(%s)'%(CODE_TO_NAME[bank], bank)
   
   no_buy_banks = set(NoBuyBanks(banks))
   sys.stderr.write('No buy banks: %s \n'%(', '.join([CODE_TO_NAME[code] for code in no_buy_banks])))
@@ -157,13 +157,11 @@ def KeepBanks():
       better = banks[b]
       worse_currency = STOCK_INFO[worse]['currency']
       better_currency = STOCK_INFO[better]['currency']
-      if worse_currency == better_currency:
-        valuation_delta = normal_valuation_delta
-      elif STOCK_INFO[worse].get('hcode', '') == better:
+      valuation_delta = normal_valuation_delta
+      if STOCK_INFO[worse]['currency'] == 'cny' and STOCK_INFO[better]['currency'] == 'hkd':
         valuation_delta = a2h_discount
-      elif STOCK_INFO[worse].get('acode', '') == better:
+      elif STOCK_INFO[worse]['currency'] == 'hkd' and STOCK_INFO[better]['currency'] == 'cny':
         valuation_delta = h2a_discount
-      else: continue
       sys.stderr.write('%s ==> %s delta = %.3f\n'%(CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_delta))
       if valuation[worse] / valuation[better] < (1 + valuation_delta): continue
       swap_percent = min(HOLDING_PERCENT[worse], bank_percent[better] - GetPercent(better))

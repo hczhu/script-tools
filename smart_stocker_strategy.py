@@ -182,9 +182,13 @@ def ZhongxinBank():
 
 STRATEGY_FUNCS = [
   KeepBanks,
-  ZhongxinBank,
-  lambda: KeepPercentIf('南方A50ETF', 0.1,
-                        hold_condition = lambda: FinancialValue('南方A50ETF', 'p/ttme') < 0.9 / MACRO_DATA['risk-free-rate'],
+  lambda: KeepPercentIf('中信银行H', 0.1,
+                        hold_condition = 
+                          lambda: 1.0 - FinancialValue('中信银行H', 'ah-ratio') > 1.5 * MACRO_DATA['ah-premium'],
+                        buy_condition = 
+                          lambda: 1.0 - FinancialValue('中信银行H', 'ah-ratio') > 2.0 * MACRO_DATA['ah-premium']),
+  lambda: KeepPercentIf('南方A50ETF', 0.3,
+                        hold_condition = lambda: FinancialValue('南方A50ETF', 'p/ttme') < 1.0 / MACRO_DATA['risk-free-rate'],
                         buy_condition = lambda: FinancialValue('南方A50ETF', 'p/ttme') < 10
                        ),
   lambda: KeepPercentIf('上证红利ETF', 0.15,

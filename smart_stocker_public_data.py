@@ -256,8 +256,6 @@ def PopulateFinancialData():
         adv_data[key] = mp / data[key[2:]]
       elif key.find('/p') != -1 and key[0:-2] in data:
         adv_data[key] = data[key[0:-2]] / mp
-    if 'sbv' in data and 'sdv' in data:
-      adv_data['p/sbvadv'] = (mp - data['sdv']) / (data['sbv'] - data['sdv'])
     # Populate corresponding h-share.
     if 'hcode' in info:
       hmp = GetMarketPrice(info['hcode'])
@@ -270,8 +268,6 @@ def PopulateFinancialData():
         elif key.find('/p') != -1:
           h_adv_data[key] *= adv_data['ah-ratio']
       h_adv_data['ah-ratio'] = 1.0 / adv_data['ah-ratio']
-      if 'p/sbv' in h_adv_data and 'sdv/p' in h_adv_data:
-        h_adv_data['p/sbvadv'] = (1 - h_adv_data['sdv/p']) / (1.0 / h_adv_data['p/sbv'] - h_adv_data['sdv/p'])
       FINANCAIL_DATA_ADVANCE[info['hcode']] = h_adv_data
 
 def PopulateMacroData():

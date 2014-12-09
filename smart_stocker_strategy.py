@@ -179,7 +179,18 @@ def ZhongxinBank():
     return 'Clear %s(%s)'%(CODE_TO_NAME[code], code)
   return ''
 
+def QuanShangA():
+  code = NAME_TO_CODE['券商A']
+  data = FINANCAIL_DATA_ADVANCE[code]
+  currency = STOCK_INFO[code]['currency']
+  if data['sdb/p'] * 100 < 6.9:
+    return GiveTip('Sell', code, HOLDING_PERCENT[code]  * CAPITAL_INFO['all']['net'] * EX_RATE[CURRENCY + '-' + currency])
+  if data['sdb/p'] * 100 > 7.5:
+    return GiveTip('Buy', code, 30000)
+  return ''
+
 STRATEGY_FUNCS = [
+  QuanShangA,
   KeepBanks,
   lambda: KeepPercentIf('中信银行H', 0.1,
                         hold_condition = 

@@ -94,6 +94,7 @@ def NoBuyBanks(banks):
 
 def KeepBanks():
   targetPercent = 0.9
+  overflow_percent = 1.0
   normal_valuation_delta = 0.06
   a2h_discount = MACRO_DATA['ah-premium'] * 0.8
   h2a_discount = 0.03
@@ -125,8 +126,6 @@ def KeepBanks():
   banks, valuation = ScoreBanks(banks) 
 
   for code in banks:
-    if 'ah-ratio' in FINANCAIL_DATA_ADVANCE[code] and FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] > 1.05:
-      continue
     if code in no_buy_banks: continue
     add_percent = min(targetPercent - currentPercent, bank_percent[code] - GetPercent(code))
     if add_percent < 0.01: continue
@@ -139,7 +138,7 @@ def KeepBanks():
   banks.reverse()
   for code in banks:
     currency = STOCK_INFO[code]['currency']
-    sub_percent = min(currentPercent - targetPercent, HOLDING_PERCENT[code])
+    sub_percent = min(currentPercent - overflow_percent, HOLDING_PERCENT[code])
     if sub_percent < 0.01: continue
     return GiveTip('Sell', code, sub_percent * CAPITAL_INFO['all']['net'] * EX_RATE[CURRENCY + '-' + currency])
   

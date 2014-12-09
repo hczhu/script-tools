@@ -94,9 +94,9 @@ def NoBuyBanks(banks):
 def KeepBanks():
   targetPercent = 1.0
   overflow_percent = 1.05
-  normal_valuation_delta = 0.06
-  a2h_discount = MACRO_DATA['ah-premium'] * 0.8
-  h2a_discount = 0.03
+  normal_valuation_delta = 0.08
+  a2h_discount = MACRO_DATA['ah-premium'] * 0.9
+  h2a_discount = 0.05
   bank_percent = {
     '建设银行': 0.4,
     '建设银行H': 0.4,

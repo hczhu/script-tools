@@ -88,7 +88,7 @@ def GetPercent(code):
   return percent
 
 def NoBuyBanks(banks):
-  return filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/sbv'] > 1.0,
+  return filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/sbv'] > 1.05,
                 banks)
 
 def KeepBanks():

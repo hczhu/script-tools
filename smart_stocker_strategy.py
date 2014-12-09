@@ -93,8 +93,8 @@ def NoBuyBanks(banks):
                 banks)
 
 def KeepBanks():
-  targetPercent = 0.9
-  overflow_percent = 1.0
+  targetPercent = 1.0
+  overflow_percent = 1.05
   normal_valuation_delta = 0.06
   a2h_discount = MACRO_DATA['ah-premium'] * 0.8
   h2a_discount = 0.03
@@ -184,9 +184,9 @@ def QuanShangA():
   data = FINANCAIL_DATA_ADVANCE[code]
   currency = STOCK_INFO[code]['currency']
   if data['sdv/p'] * 100 < 6.9:
-    return GiveTip('Sell', code, HOLDING_PERCENT[code]  * CAPITAL_INFO['all']['net'] * EX_RATE[CURRENCY + '-' + currency])
-  if data['sdv/p'] * 100 > 7.5:
-    return GiveTip('Buy', code, 30000)
+    return GiveTip('Sell(sdv/p = %.3f)'%(data['sdv/p']), code, HOLDING_PERCENT[code]  * CAPITAL_INFO['all']['net'] * EX_RATE[CURRENCY + '-' + currency])
+  if data['sdv/p'] * 100 > 7.65:
+    return GiveTip('Buy(sdv/p = %.3f)'%(data['sdv/p']), code, 30000)
   return ''
 
 STRATEGY_FUNCS = [
@@ -194,17 +194,22 @@ STRATEGY_FUNCS = [
   KeepBanks,
   lambda: KeepPercentIf('中信银行H', 0.1,
                         hold_condition = 
-                          lambda: 1.0 - FinancialValue('中信银行H', 'ah-ratio') > 1.5 * MACRO_DATA['ah-premium'],
+                          lambda: 1.0 - FinancialValue('中信银行H', 'ah-ratio') > 1.5 * (
+                                    1.0 - FinancialValue('建设银行H', 'ah-ratio')),
                         buy_condition = 
-                          lambda: 1.0 - FinancialValue('中信银行H', 'ah-ratio') > 2.0 * MACRO_DATA['ah-premium']),
+                          lambda: 1.0 - FinancialValue('中信银行H', 'ah-ratio') > max(
+                            2.0 * MACRO_DATA['ah-premium'], 1.0 - FinancialValue('建设银行H', 'ah-ratio')),
+
   lambda: KeepPercentIf('南方A50ETF', 0.3,
                         hold_condition = lambda: FinancialValue('南方A50ETF', 'p/ttme') < 1.0 / MACRO_DATA['risk-free-rate'],
                         buy_condition = lambda: FinancialValue('南方A50ETF', 'p/ttme') < 10
                        ),
+
   lambda: KeepPercentIf('上证红利ETF', 0.15,
                         hold_condition = lambda: FinancialValue('上证红利ETF', 'p/ttme') < 0.9 / MACRO_DATA['risk-free-rate'],
                         buy_condition = lambda: FinancialValue('上证红利ETF', 'p/ttme') < 9
                        ),
+
   lambda: KeepPercentIf('Yandex', 0.08,
                         hold_condition = lambda: FinancialValue('Yandex', 'p/dbv') < 1.3,
                         buy_condition = lambda: FinancialValue('Yandex', 'p/dbv') < 1.0

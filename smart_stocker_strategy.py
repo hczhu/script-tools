@@ -183,9 +183,9 @@ def QuanShangA():
   code = NAME_TO_CODE['券商A']
   data = FINANCAIL_DATA_ADVANCE[code]
   currency = STOCK_INFO[code]['currency']
-  if data['sdb/p'] * 100 < 6.9:
+  if data['sdv/p'] * 100 < 6.9:
     return GiveTip('Sell', code, HOLDING_PERCENT[code]  * CAPITAL_INFO['all']['net'] * EX_RATE[CURRENCY + '-' + currency])
-  if data['sdb/p'] * 100 > 7.5:
+  if data['sdv/p'] * 100 > 7.5:
     return GiveTip('Buy', code, 30000)
   return ''
 

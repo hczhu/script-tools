@@ -198,7 +198,7 @@ STRATEGY_FUNCS = [
                                     1.0 - FinancialValue('建设银行H', 'ah-ratio')),
                         buy_condition = 
                           lambda: 1.0 - FinancialValue('中信银行H', 'ah-ratio') > max(
-                            2.0 * MACRO_DATA['ah-premium'], 1.0 - FinancialValue('建设银行H', 'ah-ratio')),
+                            2.0 * MACRO_DATA['ah-premium'], 1.0 - FinancialValue('建设银行H', 'ah-ratio'))),
 
   lambda: KeepPercentIf('南方A50ETF', 0.3,
                         hold_condition = lambda: FinancialValue('南方A50ETF', 'p/ttme') < 1.0 / MACRO_DATA['risk-free-rate'],

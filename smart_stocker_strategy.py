@@ -79,7 +79,7 @@ def ScoreBanks(banks):
 
 def FilterBanks(banks):
   return filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/sbv'] < 1.5 and
-                FINANCAIL_DATA_ADVANCE[code]['sdv/p'] > 0.04 * 0.75, banks)
+                FINANCAIL_DATA_ADVANCE[code]['sdv/p'] > 0.04, banks)
 
 def GetPercent(code):
   percent = HOLDING_PERCENT[code]

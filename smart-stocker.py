@@ -167,13 +167,6 @@ def ReadRecords():
 
 def PrintHoldingSecurities(all_records, charts = False):
   global NET_ASSET_BY_CURRENCY
-  table_header = [
-                  'Percent',
-                  'Percent1',
-                  'MV(K)',
-                  'Chg',
-                  'Stock name',
-                 ]
   silent_column = [
   ]
   for col in ['Price']:
@@ -288,6 +281,8 @@ def PrintHoldingSecurities(all_records, charts = False):
     CAPITAL_INFO[currency]['SMA-ratio'] = 100.0 * CAPITAL_INFO[currency]['SMA'] / CAPITAL_INFO[currency]['market-value']
     CAPITAL_INFO[currency]['buying-power'] = (CAPITAL_INFO[currency]['SMA-ratio'] / 100.0 - MIN_SMA_RATIO[currency]
         ) * CAPITAL_INFO[currency]['market-value'] / (SMA_DISCOUNT[currency] if SMA_DISCOUNT[currency] > 0 else 1.0)
+
+  CAPITAL_INFO['all']['buying-power'] = CAPITAL_INFO['usd']['buying-power'] * EX_RATE['usd-' + CURRENCY] + CAPITAL_INFO['cny']['buying-power'] * EX_RATE['cny-' + CURRENCY]
   
   for currency in set(CURRENCIES) - set(['usd', 'cny']):
     CAPITAL_INFO[currency]['buying-power'] = EX_RATE['usd-' + currency] * CAPITAL_INFO['usd']['buying-power']
@@ -322,11 +317,74 @@ def PrintHoldingSecurities(all_records, charts = False):
   summation['Percent'] = str(round(summation['Percent'] * 100, 0)) + '%'
   stat_records_map.append(summation)
   stat_records_map.sort(reverse = True, key = lambda record: record.get('MV', 0))
-  PrintTableMap(table_header, stat_records_map, silent_column, truncate_float = False)
+  # PrintTableMap(table_header, stat_records_map, silent_column, truncate_float = False)
   if charts:
     open('/tmp/charts.html', 'w').write(
       HTML_TEMPLATE%(function_html, div_html) 
     )
+
+  for code in HOLDING_PERCENT:
+    asset_info = ASSET_INFO[code]
+    asset_info['market-value'] = HOLDING_SHARES[code] * GetMarketPrice(code)
+    asset_info['currency'] = STOCK_INFO[code]['currency']
+  for currency in ['usd', 'cny']:
+    ASSET_INFO['buying-power-' + currency]['market-value'] = CAPITAL_INFO[currency]['buying-power']
+    ASSET_INFO['buying-power-' + currency]['currency'] = currency if currency != 'all' else CURRENCY
+
+  for currency in CURRENCIES:
+    CAPITAL_INFO[currency]['asset'] = 0.0
+  
+  for code in ASSET_INFO:
+    asset_info = ASSET_INFO[code]
+    currency = asset_info['currency']
+    if currency == 'cny':
+      CAPITAL_INFO[currency]['asset'] += ASSET_INFO[code]['market-value']
+    else:
+      CAPITAL_INFO['usd']['asset'] += ASSET_INFO[code]['market-value'] * EX_RATE[currency + '-usd']
+
+  CAPITAL_INFO['all']['asset'] = CAPITAL_INFO['usd']['asset'] * EX_RATE['usd-' + CURRENCY] + CAPITAL_INFO['cny']['asset'] * EX_RATE['cny-' + CURRENCY]
+
+  for currency in set(CURRENCIES) - set(['usd', 'cny']):
+    CAPITAL_INFO[currency]['asset'] = EX_RATE['usd-' + currency] * CAPITAL_INFO['usd']['asset']
+    CAPITAL_INFO[currency]['net'] = EX_RATE['usd-' + currency] * CAPITAL_INFO['usd']['net']
+
+  asset_record_map = []
+
+  for code in ASSET_INFO.keys():
+    asset_info = ASSET_INFO[code]
+    currency = asset_info['currency']
+    asset_info['net-percent'] = EX_RATE[currency + '-' + CURRENCY] * asset_info['market-value'] / CAPITAL_INFO['all']['net']
+    asset_info['net-currency-percent'] = asset_info['market-value'] / CAPITAL_INFO[currency]['net']
+    asset_info['asset-percent'] = EX_RATE[currency + '-' + CURRENCY] * asset_info['market-value'] / CAPITAL_INFO['all']['asset']
+    asset_info['asset-currency-percent'] = asset_info['market-value'] / CAPITAL_INFO[currency]['asset']
+    asset_record_map.append({
+      'net-percent': myround(asset_info['net-percent'] * 100, 1),
+      'net-currency-percent': myround(asset_info['net-currency-percent'] * 100, 1),
+      'asset-percent': myround(asset_info['asset-percent'] * 100, 1),
+      'asset-currency-percent': myround(asset_info['asset-currency-percent'] * 100, 1),
+      'chg': GetMarketPriceChange(code) if code in CODE_TO_NAME else 0.0,
+      'stock name': (CODE_TO_NAME[code] + '(' + code +')') if code in CODE_TO_NAME else code,
+    })
+  asset_summary = {}
+  for key in ['net-percent', 'asset-percent']:
+    asset_summary[key] = sum([record[key] for record in asset_record_map])
+  asset_summary['chg'] = sum(record['chg'] * record['net-percent'] / 100 for record in asset_record_map)
+
+  asset_record_map.sort(key = lambda record: record['net-percent'], reverse = True)
+
+  asset_record_map = [asset_summary] + asset_record_map
+  table_header = [
+                  'net-percent',
+                  'net-currency-percent',
+                  'asset-percent',
+                  'asset-currency-percent',
+                  'chg',
+                  'stock name',
+                 ]
+  PrintTableMap(table_header, asset_record_map, silent_column, truncate_float = False)
+
+  
+
 
 def RunStrategies():
   for strategy in STRATEGY_FUNCS:

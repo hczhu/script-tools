@@ -167,6 +167,8 @@ SMA_DISCOUNT = {
   'usd': 0.5,
 }
 
+ASSET_INFO = collections.defaultdict(dict)
+
 #----------Begining of global variables------------------
 
 def IsLambda(v):

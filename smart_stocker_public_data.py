@@ -260,6 +260,7 @@ def PopulateFinancialData():
     if 'hcode' in info:
       hmp = GetMarketPrice(info['hcode'])
       adv_data['ah-ratio'] = mp / (EX_RATE['hkd-cny'] * hmp)
+      print adv_data
       h_adv_data = dict(adv_data)
       h_adv_data['mp'] = hmp
       for key in h_adv_data:

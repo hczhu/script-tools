@@ -382,9 +382,8 @@ def PrintHoldingSecurities(all_records, charts = False):
                   'stock name',
                  ]
   PrintTableMap(table_header, asset_record_map, silent_column, truncate_float = False)
-
-  
-
+  for currency in set(CURRENCIES) - set(['usd', 'cny']):
+    ASSET_INFO['buying-power-' + currency]['asset-percent'] = ASSET_INFO['buying-power-usd']['asset-percent']
 
 def RunStrategies():
   for strategy in STRATEGY_FUNCS:

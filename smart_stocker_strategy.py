@@ -121,10 +121,10 @@ def KeepBanks():
     '建设银行H': 0.3,
     '招商银行': 0.3,
     '招商银行H': 0.3,
-    '中国银行': 0.25,
-    '中国银行H': 0.25,
-    '浦发银行': 0.15,
-    '兴业银行': 0.15,
+    '中国银行': 0.20,
+    '中国银行H': 0.2,
+    '浦发银行': 0.1,
+    '兴业银行': 0.1,
   }
   backup = ['券商A', '中信银行H']
   bank_percent = {NAME_TO_CODE[name] : bank_percent[name] for name in bank_percent.keys()}

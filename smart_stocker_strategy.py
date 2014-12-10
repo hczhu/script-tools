@@ -112,7 +112,7 @@ def NoBuyBanks(banks):
 
 def KeepBanks():
   targetPercent = 0.7
-  overflow_percent = 0.75
+  overflow_percent = targetPercent + 0.05
   normal_valuation_delta = 0.08
   a2h_discount = max(MACRO_DATA['ah-premium'], normal_valuation_delta)
   h2a_discount = 0.05

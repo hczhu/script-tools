@@ -368,7 +368,7 @@ def PrintHoldingSecurities(all_records, charts = False):
   asset_summary = {}
   for key in ['net-percent', 'asset-percent']:
     asset_summary[key] = sum([record[key] for record in asset_record_map])
-  asset_summary['chg'] = sum(record['chg'] * record['net-percent'] / 100 for record in asset_record_map)
+  asset_summary['chg'] = myround(sum(record['chg'] * record['net-percent'] / 100 for record in asset_record_map), 1)
 
   asset_record_map.sort(key = lambda record: record['net-percent'], reverse = True)
 
@@ -381,7 +381,7 @@ def PrintHoldingSecurities(all_records, charts = False):
                   'chg',
                   'stock name',
                  ]
-  PrintTableMap(table_header, asset_record_map, silent_column, truncate_float = False)
+  PrintTableMap(table_header, asset_record_map, silent_column, truncate_float = False, header_transformer = lambda name: name.replace('-percent', ''))
   for currency in set(CURRENCIES) - set(['usd', 'cny']):
     ASSET_INFO['buying-power-' + currency]['asset-percent'] = ASSET_INFO['buying-power-usd']['asset-percent']
 

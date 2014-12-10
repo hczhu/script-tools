@@ -23,7 +23,7 @@ def PrintTable(table_header, records, silent_column = [], truncate_float = True,
   line = PrintOneLine(map(header_transformer, table_header), col_len, silent_column)
   header = '+' + line[1:len(line) - 1] + '+'
   print header
-  records.insert(0, table_header)
+  records.insert(0, map(header_transformer, table_header))
   first = True
   for cells in records:
     assert len(cells) == len(records[0])

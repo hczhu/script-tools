@@ -199,7 +199,7 @@ def QuanShangA():
 STRATEGY_FUNCS = [
   QuanShangA,
   KeepBanks,
-  lambda: KeepPercentIf('中信银行H', 0.08,
+  lambda: KeepPercentIf('中信银行H', 0.07,
                         hold_condition = 
                           lambda: 1.0 - FinancialValue('中信银行H', 'ah-ratio') > 1.5 * (
                                     1.0 - FinancialValue('建设银行H', 'ah-ratio')),

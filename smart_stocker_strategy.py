@@ -133,6 +133,7 @@ def KeepBanks():
     bank: ASSET_INFO[bank]['net-percent'] if bank in ASSET_INFO else 0 for bank in all_banks
   }
   currentPercent = sum(map(lambda code: holding_asset_percent[code], all_banks))
+  sys.stderr.write('total bank percent = %.3f\n'%(currentPercent))
   banks = FilterBanks(all_banks)
 
   drop_banks = set(all_banks) - set(banks)

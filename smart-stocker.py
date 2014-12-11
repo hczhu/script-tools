@@ -359,6 +359,7 @@ def PrintHoldingSecurities(all_records, charts = False):
     asset_info['asset-percent'] = EX_RATE[currency + '-' + CURRENCY] * asset_info['market-value'] / CAPITAL_INFO['all']['asset']
     asset_info['asset-currency-percent'] = asset_info['market-value'] / CAPITAL_INFO[currency]['asset']
     asset_record_map.append({
+      'market-value': myround(asset_info['market-value'] / 1000, 0),
       'net-percent': myround(asset_info['net-percent'] * 100, 1),
       'net-currency-percent': myround(asset_info['net-currency-percent'] * 100, 1),
       'asset-percent': myround(asset_info['asset-percent'] * 100, 1),
@@ -367,7 +368,7 @@ def PrintHoldingSecurities(all_records, charts = False):
       'stock name': (CODE_TO_NAME[code] + '(' + code +')') if code in CODE_TO_NAME else code,
     })
   asset_summary = {}
-  for key in ['net-percent', 'asset-percent']:
+  for key in ['net-percent', 'asset-percent', 'market-value']:
     asset_summary[key] = sum([record[key] for record in asset_record_map])
   asset_summary['chg'] = myround(sum(record['chg'] * record['net-percent'] / 100 for record in asset_record_map), 1)
 

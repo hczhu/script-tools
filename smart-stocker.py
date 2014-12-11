@@ -408,8 +408,13 @@ try:
   GetFinancialData(GD_CLIENT) 
   PopulateFinancialData()
   PopulateMacroData()
-  PrintHoldingSecurities(ReadRecords(), 'chart' in set(sys.argv[1:]))
-  target_names = set(sys.argv[1:]) - set(['chart'])
+  args = set(sys.argv[1:])
+  PrintHoldingSecurities(ReadRecords(), 'chart' in args)
+  prices = filter(lambda arg: arg.find('=') != -1, args)
+  for pr in prices:
+    info = pr.split('=')
+    MARKET_PRICE_CACHE[NAME_TO_CODE[info[0]]] = (info[1], 0, 0)
+  target_names = args - set(prices)
   if len(target_names) > 0:
     names = ','.join(target_names).split(',')
     PrintStocks(names)

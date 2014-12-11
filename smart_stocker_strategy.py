@@ -30,8 +30,8 @@ def GetCashAndOp(backup, currency, max_percent):
   cash_percent = min(max_percent, buying_power['asset-percent'])
   if cash_percent > 0.01:
     return (cash_percent * CAPITAL_INFO['all']['asset'] * EX_RATE[CURRENCY + '-' + currency], '')
+  backup = filter(lambda code: code in ASSET_INFO, [NAME_TO_CODE[name] for name in backup])
   if len(backup) == 0: return (0, '')
-  backup = [NAME_TO_CODE[name] for name in backup]
   backup.sort(key = lambda code: (1 if currency == ASSET_INFO[code]['currency'] else 0,
                                   ASSET_INFO[code]['asset-percent']), reverse = True)
   backup_code = backup[0]
@@ -174,11 +174,13 @@ def KeepBanks():
         valuation_delta = a2h_discount
       elif STOCK_INFO[worse]['currency'] == 'hkd' and STOCK_INFO[better]['currency'] == 'cny':
         valuation_delta = h2a_discount
-      sys.stderr.write('%s ==> %s delta = %.3f\n'%(CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_delta))
+      sys.stderr.write('%s ==> %s delta = %.3f valuation ratio = %.2f\n'%(
+                       CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_delta,
+                       valuation[worse] / valuation[better]))
       if valuation[worse] / valuation[better] < (1 + valuation_delta): continue
       swap_percent = min(holding_asset_percent[worse], bank_percent[better] - GetPercent(better, holding_asset_percent))
       if worse_currency != better_currency:
-        swap_percent = min(swap_percent, ASSET_INFO['buying-power-ratio-' + better_currency]['asset-percent'])
+        swap_percent = min(swap_percent, ASSET_INFO['buying-power-' + better_currency]['asset-percent'])
       swap_cash = swap_percent * CAPITAL_INFO['all']['asset']
       if swap_percent > 0.01:
         return GiveTip('Sell', worse, swap_cash * EX_RATE[CURRENCY + '-' + worse_currency]) +\

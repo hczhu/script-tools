@@ -408,12 +408,14 @@ try:
   target_names = args - set(prices)
   InitAll()
   GetStockPool(GD_CLIENT)
-  GetFinancialData(GD_CLIENT) 
+
   if len(prices) > 0:
     for pr in prices:
       info = pr.split('=')
       MARKET_PRICE_CACHE[NAME_TO_CODE[info[0]]] = (float(info[1]), 0, 0)
     sys.stderr.write('market data cache = %s\n'%(str(MARKET_PRICE_CACHE)))
+
+  GetFinancialData(GD_CLIENT) 
   PopulateFinancialData()
   PopulateMacroData()
   PrintHoldingSecurities(ReadRecords(), 'chart' in args)

@@ -112,7 +112,7 @@ def NoBuyBanks(banks):
 
 def KeepBanks():
   targetPercent = 0.7
-  overflow_percent = targetPercent + 0.05
+  overflow_percent = targetPercent
   normal_valuation_delta = 0.08
   a2h_discount = max(MACRO_DATA['ah-premium'], normal_valuation_delta)
   h2a_discount = 0.05
@@ -126,7 +126,7 @@ def KeepBanks():
     '浦发银行': 0.1,
     '兴业银行': 0.1,
   }
-  backup = ['券商A', '中信银行H']
+  backup = ['券商A', '中信银行H', '南方A50ETF']
   bank_percent = {NAME_TO_CODE[name] : bank_percent[name] for name in bank_percent.keys()}
   all_banks = bank_percent.keys()
   holding_asset_percent = {

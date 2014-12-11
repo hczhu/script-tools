@@ -413,7 +413,8 @@ try:
   prices = filter(lambda arg: arg.find('=') != -1, args)
   for pr in prices:
     info = pr.split('=')
-    MARKET_PRICE_CACHE[NAME_TO_CODE[info[0]]] = (info[1], 0, 0)
+    MARKET_PRICE_CACHE[NAME_TO_CODE[info[0]]] = (float(info[1]), 0, 0)
+  sys.stderr.write('market data cache = %s\n'%(str(MARKET_PRICE_CACHE)))
   target_names = args - set(prices)
   if len(target_names) > 0:
     names = ','.join(target_names).split(',')

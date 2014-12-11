@@ -403,19 +403,20 @@ def PrintStocks(names):
   PrintTableMap(header, tableMap)
 
 try:
+  args = set(sys.argv[1:])
+  prices = filter(lambda arg: arg.find('=') != -1, args)
+  target_names = args - set(prices)
   InitAll()
   GetStockPool(GD_CLIENT)
   GetFinancialData(GD_CLIENT) 
+  if len(prices) > 0:
+    for pr in prices:
+      info = pr.split('=')
+      MARKET_PRICE_CACHE[NAME_TO_CODE[info[0]]] = (float(info[1]), 0, 0)
+    sys.stderr.write('market data cache = %s\n'%(str(MARKET_PRICE_CACHE)))
   PopulateFinancialData()
   PopulateMacroData()
-  args = set(sys.argv[1:])
   PrintHoldingSecurities(ReadRecords(), 'chart' in args)
-  prices = filter(lambda arg: arg.find('=') != -1, args)
-  for pr in prices:
-    info = pr.split('=')
-    MARKET_PRICE_CACHE[NAME_TO_CODE[info[0]]] = (float(info[1]), 0, 0)
-  sys.stderr.write('market data cache = %s\n'%(str(MARKET_PRICE_CACHE)))
-  target_names = args - set(prices)
   if len(target_names) > 0:
     names = ','.join(target_names).split(',')
     PrintStocks(names)

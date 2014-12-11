@@ -166,6 +166,7 @@ def KeepBanks():
   for a in range(len(banks)):
     worse = banks[a]
     worse_currency = STOCK_INFO[worse]['currency']
+    if worse not in ASSET_INFO: continue
     for b in range(len(banks) - 1, a, -1):
       better = banks[b]
       better_currency = STOCK_INFO[better]['currency']

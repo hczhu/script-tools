@@ -387,8 +387,6 @@ def PrintHoldingSecurities(all_records, charts = False):
   for currency in set(CURRENCIES) - set(['usd', 'cny']):
     for key in ['asset-percent', 'net-percent']:
       ASSET_INFO['buying-power-' + currency][key] = ASSET_INFO['buying-power-usd'][key]
-    for key in ['asset', 'net']:
-      ASSET_INFO['buying-power-' + currency][key] = ASSET_INFO['buying-power-usd'][key] * EX_RATE['usd-' + currency]
 
 def RunStrategies():
   for strategy in STRATEGY_FUNCS:

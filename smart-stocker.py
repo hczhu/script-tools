@@ -377,8 +377,9 @@ def PrintHoldingSecurities(all_records, charts = False):
   table_header = [
                   'net-percent',
                   'net-currency-percent',
-                  'asset-percent',
-                  'asset-currency-percent',
+                  'market-value',
+                  # 'asset-percent',
+                  # 'asset-currency-percent',
                   'chg',
                   'stock name',
                  ]

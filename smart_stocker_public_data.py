@@ -269,6 +269,9 @@ def PopulateFinancialData():
           h_adv_data[key] *= adv_data['ah-ratio']
       h_adv_data['ah-ratio'] = 1.0 / adv_data['ah-ratio']
       FINANCAIL_DATA_ADVANCE[info['hcode']] = h_adv_data
+    if 'start-date' in data and 'interest-rate' in data:
+      adv_data['sbv'] = 1.0 + (datetime.date.today() - data['start-date']).days / 365.0 * data['interest-rate']
+      adv_data['sdv/p'] = data['interest-rate'] / (mp - (adv_data['sbv'] - 1.0))
 
 def PopulateMacroData():
   try:

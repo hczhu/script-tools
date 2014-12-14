@@ -143,6 +143,8 @@ FINANCIAL_KEYS = set([
   'cross-share', # hold shares of other company in the format of 'stock / per self stock, name'
   'p/cross-share', # hold shares of other company in the format of 'stock / per self stock, name'
   'tax-rate',
+  'start-date', # 固定收益类本周起计息日
+  'interest-rate', # 固定收益类年华利率
 ])
 
 GD_CLIENT = None

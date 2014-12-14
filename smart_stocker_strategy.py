@@ -198,6 +198,8 @@ def QuanShangA():
     return GiveTip('Sell', NAME_TO_CODE['招商银行'], money) +\
              GiveTip(' ==> Buy(sdv/p = %.3f)'%(data['sdv/p']), code, money) +\
              GiveTip(' Buy', NAME_TO_CODE['招商银行H'], money * EX_RATE['cny-hkd'])
+  if data['sdv/p'] * 100 < 6.7:
+    return GiveTip('Sell', code, ASSET_INFO[code]['market-value'])
   return ''
 
 STRATEGY_FUNCS = [

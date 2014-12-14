@@ -9,6 +9,8 @@ import sys
 import datetime
 import time
 import os.path
+import re
+import dateutil.parser
 
 from table_printer import *
 from smart_stocker_global import *
@@ -41,6 +43,21 @@ def GetTransectionRecords(gd_client):
   except Exception, e:
     sys.stderr.write('Failed to read transection sheet. Exception ' + str(e) +'\n')
   return []
+
+def GetFinancialValue(value_str):
+  integer_re = '0|([1-9][0-9]*)'
+  float_re = '(%s)|((%s)?\.[0-9]+)'%(integer_re, integer_re)
+  try:
+    if re.match('[1-9][0-9]{0,2}(,[0-9]{3})*$', value_str) is not None:
+      return float(value_str.replace(',', ''))
+    elif re.match(float_re + '$', value_str) is not None:
+      return float(value_str)
+    elif re.match(float_re + '%$', value_str) is not None:
+      return float(value_str[0:-1]) / 100.0
+    else:
+      return dateutil.parser.parse(value_str).date()
+  except Exception, e:
+    raise Exception('Failed to parse financial value [%s]'%(value_str))
 
 def LoginMyGoogleWithFiles():
  home = os.path.expanduser("~")
@@ -107,13 +124,14 @@ def GetFinancialData(client):
         financial_key = row.title.text
         if financial_key not in FINANCIAL_KEYS: continue
         values = row.content.text.split(', ')
+        financial_value = GetFinancialValue(values[0].split(': ')[1])
         if financial_key == 'cross-share':
           assert len(values) == 2
           if 'cross-share' not in financial_data:
             financial_data['cross-share'] = []
-          financial_data['cross-share'] += [(float(values[0].split(': ')[1]), NAME_TO_CODE[values[1].split(': ')[1]])]
-        elif len(values) > 0 and values[0].find(': ') != -1:
-          financial_data[financial_key] = float(values[0].split(': ')[1].replace(',', ''))
+          financial_data['cross-share'] += [(financial_value, NAME_TO_CODE[values[1].split(': ')[1]])]
+        else:
+          financial_data[financial_key] = financial_value
       sys.stderr.write('Basic financial data for %s:%s\n'%(name, str(financial_data)))
     except Exception, e:
       sys.stderr.write('Failed to get data from worksheet: %s with exception [%s]\n'%(ws.title.text, str(e)))

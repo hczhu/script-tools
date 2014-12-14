@@ -202,20 +202,19 @@ def FenJiClassA():
     sbv = FINANCAIL_DATA_ADVANCE[code]['sbv']
     rate = FINANCAIL_DATA_BASE[code]['interest-rate']
     price = sbv - 1.0 + rate / want_rate
-    print 'Buy %s(%s) @%.3f'%(CODE_TO_NAME[code], code, price)
+    print 'Buy %s(%s) @%.3f down %.2f%%'%(CODE_TO_NAME[code], code, price, (GetMarketPrice(code) - price) / GetMarketPrice(code) * 100)
 
   codes.sort(key = lambda code: FINANCAIL_DATA_ADVANCE[code]['sdv/p']) 
   for code in codes:
     adv_data = FINANCAIL_DATA_ADVANCE[code]
     if adv_data['sdv/p'] < 6.6 / 100:
       return GiveTip('Sell', code, holding_market_value[code]) + ' due to interest rate drops to %.4f'%(adv_data['sdv/p'])
-
+  best = codes[-1]
   for worse in range(len(codes)):
-    for better in range(len(codes) - 1, better, -1):
-      if FINANCAIL_DATA_ADVANCE[codes[better]]['sdv/p'] / FINANCAIL_DATA_ADVANCE[codes[worse]]['sdv/p'] > 1.05 and \
-          ASSET_INFO[codes[worse]]['market-value'] > 0:
-        return GiveTip('Sell', codes[worse], holding_market_value[codes[worse]]) + \
-                  ' due to interest rate drops to %.4f'%(FINANCAIL_DATA_ADVANCE[codes[worse]]['sdv/p'])
+    if FINANCAIL_DATA_ADVANCE[best]['sdv/p'] / FINANCAIL_DATA_ADVANCE[codes[worse]]['sdv/p'] > 1.05 and \
+        holding_market_value[codes[worse]] > 0:
+      return GiveTip('Sell', codes[worse], holding_market_value[codes[worse]]) + \
+                ' due to interest rate drops to %.4f'%(FINANCAIL_DATA_ADVANCE[codes[worse]]['sdv/p'])
   return ''
 
 STRATEGY_FUNCS = [

@@ -55,7 +55,7 @@ def GetFinancialValue(value_str):
     elif re.match('(%s)$'%(float_re), value_str) is not None:
       type_str = 'float'
       return float(value_str)
-    elif re.match('(%s)%$'%(float_re), value_str) is not None:
+    elif re.match('(%s)%%$'%(float_re), value_str) is not None:
       type_str = 'percent'
       return float(value_str[0:-1]) / 100.0
     else:

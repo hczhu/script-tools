@@ -52,7 +52,7 @@ def GetFinancialValue(value_str):
     if re.match('[1-9][0-9]{0,2}(,[0-9]{3})*$', value_str) is not None:
       type_str = 'deciml'
       return float(value_str.replace(',', ''))
-    elif re.match('(%s)%'%(float_re), value_str) is not None:
+    elif re.match('(%s)$'%(float_re), value_str) is not None:
       type_str = 'float'
       return float(value_str)
     elif re.match('(%s)%$'%(float_re), value_str) is not None:

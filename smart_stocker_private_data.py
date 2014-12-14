@@ -47,17 +47,22 @@ def GetTransectionRecords(gd_client):
 def GetFinancialValue(value_str):
   integer_re = '0|([1-9][0-9]*)'
   float_re = '(%s)|((%s)?\.[0-9]+)'%(integer_re, integer_re)
+  type_str = ''
   try:
     if re.match('[1-9][0-9]{0,2}(,[0-9]{3})*$', value_str) is not None:
+      type_str = 'deciml'
       return float(value_str.replace(',', ''))
-    elif re.match(float_re + '$', value_str) is not None:
+    elif re.match('(%s)%'%(float_re), value_str) is not None:
+      type_str = 'float'
       return float(value_str)
-    elif re.match(float_re + '%$', value_str) is not None:
+    elif re.match('(%s)%$'%(float_re), value_str) is not None:
+      type_str = 'percent'
       return float(value_str[0:-1]) / 100.0
     else:
+      type_str = 'date'
       return dateutil.parser.parse(value_str).date()
   except Exception, e:
-    raise Exception('Failed to parse financial value [%s]'%(value_str))
+    raise Exception('Failed to parse financial value [%s] by type [%s] with exception %s'%(value_str, type_str, str(e)))
 
 def LoginMyGoogleWithFiles():
  home = os.path.expanduser("~")

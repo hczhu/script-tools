@@ -194,7 +194,7 @@ def FenJiClassA():
 
   want_rate = 7.3
   for code in codes:
-    sbv = FINANCAIL_DATA_BASE[code]['sbv']
+    sbv = FINANCAIL_DATA_ADVANCE[code]['sbv']
     rate = FINANCAIL_DATA_BASE[code]['interest-rate']
     price = sbv - 1.0 + rate / want_rate
     print 'Buy %s(%s) @%.3f'%(CODE_TO_NAME[code], code, price)

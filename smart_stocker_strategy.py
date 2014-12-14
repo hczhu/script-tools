@@ -192,7 +192,12 @@ def KeepBanks():
 def FenJiClassA():
   codes = [NAME_TO_CODE[name] for name in ['券商A', '证券A', '军工A']]
 
-  want_rate = 7.3
+  holding_market_value = {
+    code : ASSET_INFO[code]['market-value'] if code in ASSET_INFO else 0 \
+      for code in codes
+  }
+
+  want_rate = 7.3 / 100
   for code in codes:
     sbv = FINANCAIL_DATA_ADVANCE[code]['sbv']
     rate = FINANCAIL_DATA_BASE[code]['interest-rate']
@@ -202,14 +207,14 @@ def FenJiClassA():
   codes.sort(key = lambda code: FINANCAIL_DATA_ADVANCE[code]['sdv/p']) 
   for code in codes:
     adv_data = FINANCAIL_DATA_ADVANCE[code]
-    if adv_data['sdv/p'] < 6.6:
-      return GiveTip('Sell', code, ASSET_INFO[code]['market-value']) + ' due to interest rate drops to %.4f'%(adv_data['sdv/p'])
+    if adv_data['sdv/p'] < 6.6 / 100:
+      return GiveTip('Sell', code, holding_market_value[code]) + ' due to interest rate drops to %.4f'%(adv_data['sdv/p'])
 
   for worse in range(len(codes)):
     for better in range(len(codes) - 1, better, -1):
       if FINANCAIL_DATA_ADVANCE[codes[better]]['sdv/p'] / FINANCAIL_DATA_ADVANCE[codes[worse]]['sdv/p'] > 1.05 and \
           ASSET_INFO[codes[worse]]['market-value'] > 0:
-        return GiveTip('Sell', codes[worse], ASSET_INFO[codes[worse]]['market-value']) + \
+        return GiveTip('Sell', codes[worse], holding_market_value[codes[worse]]) + \
                   ' due to interest rate drops to %.4f'%(FINANCAIL_DATA_ADVANCE[codes[worse]]['sdv/p'])
   return ''
 

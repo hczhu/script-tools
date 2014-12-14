@@ -403,7 +403,7 @@ def PrintStocks(names):
       data = dict(FINANCAIL_DATA_ADVANCE[code])
       data['name'] = CODE_TO_NAME[code]
       tableMap.append(data)
-  PrintTableMap(header, tableMap)
+  PrintTableMap(header, tableMap, float_precision = 5)
 
 try:
   args = set(sys.argv[1:])

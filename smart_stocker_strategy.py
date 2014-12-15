@@ -115,7 +115,7 @@ def KeepBanks():
   normal_valuation_delta = 0.08
   a2h_discount = max(MACRO_DATA['ah-premium'], normal_valuation_delta)
   h2a_discount = 0.05
-  bank_percent = {
+  max_bank_percent = {
     '建设银行': 0.3,
     '建设银行H': 0.3,
     '招商银行': 0.3,
@@ -126,8 +126,8 @@ def KeepBanks():
     '兴业银行': 0.15,
   }
   backup = ['券商A', '中信银行H', '南方A50ETF']
-  bank_percent = {NAME_TO_CODE[name] : bank_percent[name] for name in bank_percent.keys()}
-  all_banks = bank_percent.keys()
+  max_bank_percent = {NAME_TO_CODE[name] : max_bank_percent[name] for name in max_bank_percent.keys()}
+  all_banks = max_bank_percent.keys()
   holding_asset_percent = {
     bank: ASSET_INFO[bank]['net-percent'] if bank in ASSET_INFO else 0 for bank in all_banks
   }
@@ -150,7 +150,7 @@ def KeepBanks():
   for code in banks:
     if code in no_buy_banks: continue
     currency = STOCK_INFO[code]['currency']
-    add_percent = min(targetPercent - currentPercent, bank_percent[code] - GetPercent(code, holding_asset_percent))
+    add_percent = min(targetPercent - currentPercent, max_bank_percent[code] - GetPercent(code, holding_asset_percent))
     cash, op = GetCashAndOp(backup, currency, add_percent)
     if cash > 0:
       return op + GiveTip(' ==> Buy', code, cash)
@@ -175,11 +175,12 @@ def KeepBanks():
         valuation_delta = a2h_discount
       elif STOCK_INFO[worse]['currency'] == 'hkd' and STOCK_INFO[better]['currency'] == 'cny':
         valuation_delta = h2a_discount
+      if holding_asset_percent[worse] > max_bank_percent[worse]: valuation_delta = 0.02
       sys.stderr.write('%s ==> %s delta = %.3f valuation ratio = %.2f\n'%(
                        CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_delta,
                        valuation[worse] / valuation[better]))
       if valuation[worse] / valuation[better] < (1 + valuation_delta): continue
-      swap_percent = min(holding_asset_percent[worse], bank_percent[better] - GetPercent(better, holding_asset_percent))
+      swap_percent = min(holding_asset_percent[worse], max_bank_percent[better] - GetPercent(better, holding_asset_percent))
       if worse_currency != better_currency:
         swap_percent = min(swap_percent, ASSET_INFO['buying-power-' + better_currency]['net-percent'])
       swap_cash = swap_percent * CAPITAL_INFO['all']['net']

@@ -186,6 +186,7 @@ def GetMarketPrice(code):
     func = MARKET_PRICE_FUNC[code] 
   try:
     data = func()
+    data[0] = max(data[0], MIN_MP)
     MARKET_PRICE_CACHE[code] = data
     return data[0]
   except:

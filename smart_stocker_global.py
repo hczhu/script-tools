@@ -88,6 +88,8 @@ CURRENCIES = ['usd', 'cny', 'hkd', 'jpy']
 
 CURRENCY = 'usd'
 
+MIN_MP = 0.001
+
 ETF_BOOK_VALUE_FUNC = {
   # 南方A50 ETF
   # http://www.csopasset.com/tchi/products/china_A50_etf.php

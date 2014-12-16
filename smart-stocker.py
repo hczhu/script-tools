@@ -263,6 +263,7 @@ def PrintHoldingSecurities(all_records, charts = False):
   for currency in ['usd', 'cny', 'all']:
     NET_ASSET_BY_CURRENCY[currency] = TOTAL_MARKET_VALUE[currency] + TOTAL_CAPITAL[currency] - TOTAL_INVESTMENT[currency]
     CAPITAL_INFO[currency] = {
+        'cash': TOTAL_CAPITAL[currency],
         'currency': currency,
         'net': int(TOTAL_MARKET_VALUE[currency] + TOTAL_CAPITAL[currency] - TOTAL_INVESTMENT[currency]),
         'market-value': int(TOTAL_MARKET_VALUE[currency]),
@@ -295,6 +296,7 @@ def PrintHoldingSecurities(all_records, charts = False):
     'currency',
     'market-value',
     'net',
+    'cash',
     'free-cash',
     'txn-fee-ratio',
     'IRR',

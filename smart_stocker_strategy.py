@@ -42,6 +42,36 @@ def GetCashAndOp(backup, currency, max_percent):
   return (cash * EX_RATE[CURRENCY + '-' + currency], 
           GiveTip('Sell', backup_code, cash * EX_RATE[CURRENCY + '-' + STOCK_INFO[backup_code]['currency']]))
 
+def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_conditions = {}):
+  codes = [NAME_TO_CODE[name] for name in names]
+  hold_cond = {
+    NAME_TO_CODE[name]: hold_conditions[name] if name in hold_conditions else lambda: True for name in names
+  }
+  buy_cond = {
+    NAME_TO_CODE[name]: buy_conditions[name] if name in buy_conditions else lambda: True for name in names
+  }
+  for code in codes:
+    if not hold_cond[code]():
+      return 'Clear %s(%s)'%(CODE_TO_NAME[code], code)
+  holding_percent = {
+    code : ASSET_INFO[code]['net-percent'] if code in ASSET_INFO else 0
+  }
+  codes.sort(key = lambda code: ASSET_INFO['buying-power-'+STOCK_INFO[code]['currency']]['net-percent'])
+  codes.reverse()
+  sum_percent = sum(holding_percent.values())
+  if sum_percent + 0.01 < percent:
+    for code in codes:
+      cash, op = GetCashAndOp([], STOCK_INFO[code]['currency'], percent - sum_percent)
+      if cash > 0 and buy_cond[code]():
+        return GiveTip('Buy', code, cash)
+  codes.reverse()
+  if sum_percent > percent + 0.01:
+    for code in codes:
+      if holding_percent[code] > 0.01:
+        cash, op = GetCashAndOp([CODE_TO_NAME[code]], STOCK_INFO[code]['currency'], min(sum_percent - percent, holding_percent[code]))
+        return GiveTip('Sell', code, cash)
+  return ''
+
 def KeepPercentIf(name, percent, backup = [], hold_condition = None, buy_condition = None):
   delta = 0.01
   code = NAME_TO_CODE[name]
@@ -222,24 +252,18 @@ def FenJiClassA():
 STRATEGY_FUNCS = [
   FenJiClassA,
   KeepBanks,
-  lambda: KeepPercentIf('中信银行H', 0.1,
-                        hold_condition = 
-                          lambda: 1.0 - FinancialValue('中信银行H', 'ah-ratio') > 1.5 * (
-                                    1.0 - FinancialValue('建设银行H', 'ah-ratio')),
-                        buy_condition = 
-                          lambda: 1.0 - FinancialValue('中信银行H', 'ah-ratio') > max(
-                            2.0 * MACRO_DATA['ah-premium'], 1.0 - FinancialValue('建设银行H', 'ah-ratio'))),
 
-  lambda: KeepPercentIf('南方A50ETF', 0.3,
-                        backup = ['中信银行H'],
-                        hold_condition = lambda: FinancialValue('南方A50ETF', 'p/ttme') < 1.0 / MACRO_DATA['risk-free-rate'],
-                        buy_condition = lambda: FinancialValue('南方A50ETF', 'p/ttme') < 10
-                       ),
-
-  lambda: KeepPercentIf('上证红利ETF', 0.20,
-                        backup = ['券商A'],
-                        hold_condition = lambda: FinancialValue('上证红利ETF', 'p/ttme') < 0.9 / MACRO_DATA['risk-free-rate'],
-                        buy_condition = lambda: FinancialValue('上证红利ETF', 'p/ttme') < 9
+  lambda: KeepGroupPercentIf(['南方A50ETF', '上证红利ETF', '上证50ETF'], 0.5,
+                             hold_conditions = {
+                               '南方A50ETF': lambda: FinancialValue('南方A50ETF', 'p/ttme') < 1.0 / MACRO_DATA['risk-free-rate'],
+                               '上证红利ETF': lambda: FinancialValue('上证红利ETF', 'p/ttme') < 0.9 / MACRO_DATA['risk-free-rate'],
+                               '上证50ETF': lambda: FinancialValue('上证50ETF', 'p/ttme') < 1.0 / MACRO_DATA['risk-free-rate'],
+                             },
+                             buy_conditions = {
+                               '南方A50ETF': lambda: FinancialValue('南方A50ETF', 'p/ttme') < 10,
+                               '上证红利ETF': lambda: FinancialValue('上证红利ETF', 'p/ttme') < 9,
+                               '上证50ETF': lambda: FinancialValue('上证50ETF', 'p/ttme') < 10,
+                             }
                        ),
 
   lambda: KeepPercentIf('Yandex', 0.08,

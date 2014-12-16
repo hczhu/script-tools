@@ -111,7 +111,7 @@ def NoBuyBanks(banks):
                 banks)
 
 def KeepBanks():
-  targetPercent = 0.8
+  targetPercent = 0.7
   normal_valuation_delta = 0.08
   a2h_discount = max(MACRO_DATA['ah-premium'], normal_valuation_delta)
   h2a_discount = 0.05
@@ -236,7 +236,7 @@ STRATEGY_FUNCS = [
                         buy_condition = lambda: FinancialValue('南方A50ETF', 'p/ttme') < 10
                        ),
 
-  lambda: KeepPercentIf('上证红利ETF', 0.15,
+  lambda: KeepPercentIf('上证红利ETF', 0.20,
                         backup = ['券商A'],
                         hold_condition = lambda: FinancialValue('上证红利ETF', 'p/ttme') < 0.9 / MACRO_DATA['risk-free-rate'],
                         buy_condition = lambda: FinancialValue('上证红利ETF', 'p/ttme') < 9

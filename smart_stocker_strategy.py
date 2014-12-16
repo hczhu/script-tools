@@ -208,8 +208,9 @@ def FenJiClassA():
   codes.sort(key = lambda code: FINANCAIL_DATA_ADVANCE[code]['sdv/p']) 
   for code in codes:
     adv_data = FINANCAIL_DATA_ADVANCE[code]
-    if adv_data['sdv/p'] < 6.6 / 100:
+    if adv_data['sdv/p'] < 6.6 / 100 and holding_market_value[code] > 0:
       return GiveTip('Sell', code, holding_market_value[code]) + ' due to interest rate drops to %.4f'%(adv_data['sdv/p'])
+
   best = codes[-1]
   for worse in range(len(codes)):
     if FINANCAIL_DATA_ADVANCE[best]['sdv/p'] / FINANCAIL_DATA_ADVANCE[codes[worse]]['sdv/p'] > 1.05 and \

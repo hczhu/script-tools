@@ -253,7 +253,7 @@ STRATEGY_FUNCS = [
   FenJiClassA,
   KeepBanks,
 
-  lambda: KeepGroupPercentIf(['南方A50ETF', '上证红利ETF', '上证50ETF'], 0.5,
+  lambda: KeepGroupPercentIf(['南方A50ETF', '上证红利ETF', '上证50ETF'], 0.4,
                              hold_conditions = {
                                '南方A50ETF': lambda: FinancialValue('南方A50ETF', 'p/ttme') < 1.0 / MACRO_DATA['risk-free-rate'],
                                '上证红利ETF': lambda: FinancialValue('上证红利ETF', 'p/ttme') < 0.9 / MACRO_DATA['risk-free-rate'],
@@ -269,5 +269,14 @@ STRATEGY_FUNCS = [
   lambda: KeepPercentIf('Yandex', 0.08,
                         hold_condition = lambda: FinancialValue('Yandex', 'p/dbv') < 1.3,
                         buy_condition = lambda: FinancialValue('Yandex', 'p/dbv') < 1.0
+                       ),
+
+  lambda: KeepPercentIf('Weibo', 0.15,
+                        hold_condition = lambda: FinancialValue('Weibo', 'p/dbv') < 1.5,
+                        buy_condition = lambda: FinancialValue('Weibo', 'p/dbv') < 1.0
+                       ),
+  lambda: KeepPercentIf('中海油服H', 0.8,
+                        hold_condition = lambda: FinancialValue('中海油服H', 'ah-ratio') < 0.8,
+                        buy_condition = lambda: FinancialValue('中海油服H', 'ah-ratio') < 0.6
                        ),
 ]

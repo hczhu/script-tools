@@ -42,7 +42,8 @@ def GetCashAndOp(backup, currency, max_percent):
   return (cash * EX_RATE[CURRENCY + '-' + currency], 
           GiveTip('Sell', backup_code, cash * EX_RATE[CURRENCY + '-' + STOCK_INFO[backup_code]['currency']]))
 
-def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_conditions = {}):
+def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_conditions = {},
+                       sort_key = lambda code: -ASSET_INFO['buying-power-'+STOCK_INFO[code]['currency']]['net-percent']):
   codes = [NAME_TO_CODE[name] for name in names]
   hold_cond = {
     NAME_TO_CODE[name]: hold_conditions[name] if name in hold_conditions else lambda: True for name in names
@@ -56,8 +57,7 @@ def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_co
   holding_percent = {
     code : ASSET_INFO[code]['net-percent'] if code in ASSET_INFO else 0
   }
-  codes.sort(key = lambda code: ASSET_INFO['buying-power-'+STOCK_INFO[code]['currency']]['net-percent'])
-  codes.reverse()
+  codes.sort(key = sort_key)
   sum_percent = sum(holding_percent.values())
   if sum_percent + 0.01 < percent:
     for code in codes:
@@ -263,7 +263,8 @@ STRATEGY_FUNCS = [
                                '南方A50ETF': lambda: FinancialValue('南方A50ETF', 'p/ttme') < 10,
                                '上证红利ETF': lambda: FinancialValue('上证红利ETF', 'p/ttme') < 9,
                                '上证50ETF': lambda: FinancialValue('上证50ETF', 'p/ttme') < 10,
-                             }
+                             },
+                             sort_key = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/ttme']
                        ),
 
   lambda: KeepPercentIf('Yandex', 0.08,

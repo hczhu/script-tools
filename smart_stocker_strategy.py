@@ -32,8 +32,8 @@ def GetCashAndOp(backup, currency, max_percent):
     return (cash_percent * CAPITAL_INFO['all']['net'] * EX_RATE[CURRENCY + '-' + currency], '')
   backup = filter(lambda code: code in ASSET_INFO, [NAME_TO_CODE[name] for name in backup])
   if len(backup) == 0: return (0, '')
-  backup.sort(key = lambda code: (1 if currency == ASSET_INFO[code]['currency'] else 0,
-                                  ASSET_INFO[code]['net-percent']), reverse = True)
+  backup.sort(key = lambda code: (0 if currency == ASSET_INFO[code]['currency'] else 1,
+                                  ASSET_INFO[code]['net-percent']))
   backup_code = backup[0]
   backup_name = CODE_TO_NAME[backup_code]
   if ASSET_INFO[backup_code]['net-percent'] < 0.01: return (0, '')
@@ -141,7 +141,7 @@ def NoBuyBanks(banks):
                 banks)
 
 def KeepBanks():
-  targetPercent = 0.9
+  targetPercent = 0.85
   normal_valuation_delta = 0.06
   a2h_discount = max(0.9 * MACRO_DATA['ah-premium'], normal_valuation_delta)
   h2a_discount = 0.03

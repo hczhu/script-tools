@@ -133,10 +133,14 @@ FINANCIAL_KEYS = set([
   'p/dbv',
   'ttme', # trailing twelve month earning
   'p/ttme',
+  'f-ttme', # forward trailing twelve month earning
+  'p/f-ttme',
   'dye', # dynamic yearly earning
   'p/dye',
   'sdv', # static dividend yield
   'sdv/p',
+  'ddv', # dynamic dividend yield
+  'ddv/p',
   'ddv', # dynamic dividend yield
   'ddv/p',
   'ah-ratio',

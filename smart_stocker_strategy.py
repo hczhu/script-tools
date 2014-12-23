@@ -155,7 +155,7 @@ def KeepBanks():
     '浦发银行': 0.15,
     '兴业银行': 0.15,
   }
-  backup = ['券商A', '中信银行H', '南方A50ETF']
+  backup = ['券商A', '中信银行H', '中海油服H', '南方A50ETF']
   max_bank_percent = {NAME_TO_CODE[name] : max_bank_percent[name] for name in max_bank_percent.keys()}
   all_banks = max_bank_percent.keys()
   holding_asset_percent = {

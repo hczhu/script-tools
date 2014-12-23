@@ -146,14 +146,14 @@ def KeepBanks():
   a2h_discount = max(0.9 * MACRO_DATA['ah-premium'], normal_valuation_delta)
   h2a_discount = 0.03
   max_bank_percent = {
-    '建设银行': 0.5,
-    '建设银行H': 0.5,
-    '招商银行': 0.5,
-    '招商银行H': 0.5,
-    '中国银行': 0.2,
-    '中国银行H': 0.2,
-    '浦发银行': 0.15,
-    '兴业银行': 0.15,
+    '建设银行': 0.6,
+    '建设银行H': 0.6,
+    '招商银行': 0.6,
+    '招商银行H': 0.6,
+    '中国银行': 0.3,
+    '中国银行H': 0.3,
+    '浦发银行': 0.2,
+    '兴业银行': 0.2,
   }
   backup = ['券商A', '中信银行H', '中海油服H', '南方A50ETF']
   max_bank_percent = {NAME_TO_CODE[name] : max_bank_percent[name] for name in max_bank_percent.keys()}

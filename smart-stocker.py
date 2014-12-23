@@ -369,6 +369,7 @@ def PrintHoldingSecurities(all_records, charts = False):
       'asset-currency-percent': myround(asset_info['asset-currency-percent'] * 100, 1),
       'chg': GetMarketPriceChange(code) if code in CODE_TO_NAME else 0.0,
       'stock name': (CODE_TO_NAME[code] + '(' + code +')') if code in CODE_TO_NAME else code,
+      'shares': HOLDING_SHARES[code] if code in HOLDING_SHARES else 0,
     })
   asset_summary = {}
   for key in ['net-percent', 'asset-percent', 'market-value']:
@@ -382,6 +383,7 @@ def PrintHoldingSecurities(all_records, charts = False):
                   'net-percent',
                   'net-currency-percent',
                   'market-value',
+                  'shares',
                   # 'asset-percent',
                   # 'asset-currency-percent',
                   'chg',

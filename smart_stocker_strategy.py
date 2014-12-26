@@ -233,7 +233,7 @@ def FenJiClassA():
       for code in codes
   }
 
-  want_rate = 7.3 / 100
+  want_rate = 7.2 / 100
   for code in codes:
     sbv = FINANCAIL_DATA_ADVANCE[code]['sbv']
     rate = FINANCAIL_DATA_BASE[code]['interest-rate']

@@ -55,7 +55,7 @@ def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_co
     if not hold_cond[code]():
       return 'Clear %s(%s)'%(CODE_TO_NAME[code], code)
   holding_percent = {
-    code : ASSET_INFO[code]['net-percent'] if code in ASSET_INFO else 0
+    code : ASSET_INFO[code]['net-percent'] if code in ASSET_INFO else 0 for code in codes
   }
   codes.sort(key = sort_key)
   sum_percent = sum(holding_percent.values())

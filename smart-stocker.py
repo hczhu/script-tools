@@ -206,7 +206,7 @@ def PrintHoldingSecurities(all_records, charts = False):
       mv = mp * remain_stock * ex_rate
     TOTAL_MARKET_VALUE[currency] += mv
     HOLDING_SHARES[key] = remain_stock
-    # sys.stderr.write('Profit %.0f from %s shares %d\n'%(net_profit + mv, CODE_TO_NAME[key] if key in CODE_TO_NAME else key, remain_stock))
+    sys.stderr.write('Profit %.0f from %s shares %d\n'%(net_profit + mv, CODE_TO_NAME[key] if key in CODE_TO_NAME else key, remain_stock))
     record = {
         'Code': key,
         'HS': remain_stock,

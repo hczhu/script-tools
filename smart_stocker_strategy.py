@@ -142,9 +142,9 @@ def NoBuyBanks(banks):
 
 def KeepBanks():
   targetPercent = 0.9
-  normal_valuation_delta = 0.1
-  a2h_discount = max(0.9 * MACRO_DATA['ah-premium'], normal_valuation_delta)
-  h2a_discount = 0.05
+  normal_valuation_delta = 0.08
+  a2h_discount = max(0.8 * MACRO_DATA['ah-premium'], normal_valuation_delta)
+  h2a_discount = 0.08
   max_bank_percent = {
     '建设银行': 0.5,
     '建设银行H': 0.5,
@@ -156,15 +156,15 @@ def KeepBanks():
     '兴业银行': 0.2,
   }
   backup = [
-            '券商A',
-            '医药A',
-            '军工A',
-            '证券A',
-            '中信银行H',
-            '中海油服H',
-            '上证红利ETF',
-            #'南方A50ETF',
-            ]
+    '券商A',
+    '医药A',
+    '军工A',
+    '证券A',
+    '中信银行H',
+    '中海油服H',
+    '上证红利ETF',
+    '南方A50ETF',
+  ]
   max_bank_percent = {NAME_TO_CODE[name] : max_bank_percent[name] for name in max_bank_percent.keys()}
   all_banks = max_bank_percent.keys()
   holding_asset_percent = {
@@ -262,7 +262,7 @@ STRATEGY_FUNCS = [
   FenJiClassA,
   KeepBanks,
 
-  lambda: KeepGroupPercentIf(['南方A50ETF', '上证红利ETF', '上证50ETF'], 0.4,
+  lambda: KeepGroupPercentIf(['南方A50ETF', '上证红利ETF', '上证50ETF'], 0.3,
                              hold_conditions = {
                                '南方A50ETF': lambda: FinancialValue('南方A50ETF', 'p/ttme') < 1.0 / MACRO_DATA['risk-free-rate'],
                                '上证红利ETF': lambda: FinancialValue('上证红利ETF', 'p/ttme') < 0.9 / MACRO_DATA['risk-free-rate'],

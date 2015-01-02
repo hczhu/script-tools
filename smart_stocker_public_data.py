@@ -105,7 +105,14 @@ def GetXueqiuUrlPrefix(code):
   }
   return market2prefix[STOCK_INFO[code]['market']]
 
-def GetXueqiuMarketPrice(code):
+def GetXueqiuInfo(code, market):
+  url_prefix = 'http://xueqiu.com/S/'
+  market2prefix = {
+    'sz': ['sz'],
+    'sh': ['sh'],
+    'hk': [''],
+    'us': [''],
+  }
   url_prefix = 'http://xueqiu.com/S/'
   price_feature_str = ['<div class="currentInfo"><strong data-current="']
   price_end_str = '"'
@@ -115,7 +122,10 @@ def GetXueqiuMarketPrice(code):
   cap_end_str = '<'
   book_value_str = ['单位净值', '<span>']
   book_value_end_str = '<'
-  for pr in GetXueqiuUrlPrefix(code):
+  ttmpe_begin_str= ['LYR', 'TTM', '/']
+  ttmpe_end_str= '<'
+  
+  for pr in (market2prefix[market] if market in market2prefix else GetXueqiuUrlPrefix(code)):
     url = url_prefix + pr + code
     try:
       price = GetValueFromUrl(url, price_feature_str, price_end_str, float)
@@ -123,10 +133,30 @@ def GetXueqiuMarketPrice(code):
       cap = GetValueFromUrl(url, cap_feature_str, cap_end_str,
                             lambda s: float(s.replace('亿', '')) * 10**8, False)
       book_value = GetValueFromUrl(url, book_value_str, book_value_end_str, float, False)
-      return [price, change, cap, book_value]
+      ttmpe = GetValueFromUrl(url, ttmpe_begin_str, ttmpe_end_str, float, False)
+      return {
+        'price': price,
+        'change': change,
+        'cap': cap,
+        'bv': book_value,
+        'pe-ttm': ttmpe,
+      }
     except:
       continue
-  return [0.01, 0.0, 0.0, 1.0]
+  return {}
+
+def GetEasyMoneyInfo(code, market):
+  url = 'http://quote.eastmoney.com/%s.html'%(market+code)
+  try:
+    return {
+      'dynamic-pe': GetValueFromUrl(
+                      url,
+                      ['PE(', ')', '<', '>'],
+                      '<', float, False),
+    }
+  except:
+    return {}
+  return {}
 
 def GetSinaUrlPrefix(code):
   market2prefix = {
@@ -166,10 +196,6 @@ def GetMarketPriceFromSina(code):
       time.sleep(3)
       continue
   return [0.0, 0.0, 0.0, 0.0]
-
-def GetXueqiuETFBookValue(code):
-  code = NAME_TO_CODE[code] if code in NAME_TO_CODE else code
-  return GetXueqiuMarketPrice(code)[3]
 
 def GetMarketPrice(code):
   if code.find('@') != -1:

@@ -28,21 +28,27 @@ def LoginMyGoogle(email_file, password_file):
     sys.stderr.write('Failed to login google account. Exception ' + str(e) +'\n')
   return None
     
-def GetTransectionRecords(gd_client):
+def GetTable(gd_client, table_key, worksheet_key = 'od6'):
   if gd_client is None:
     return []
   try:
-    feeds = gd_client.GetListFeed('0Akv9eeSdKMP0dHBzeVIzWTY1VUlQcFVKOWFBZkdDeWc', 'od6').entry
+    feeds = gd_client.GetListFeed(table_key, worksheet_key)
+    title= feeds.title.text
+    entries = feeds.entry
     rows = []
-    for row in feeds:
+    for row in entries:
       rows.append({key : row.custom[key].text for key in row.custom.keys()})
       for key in rows[-1].keys():
         if rows[-1][key] is not None:
           rows[-1][key] = rows[-1][key].encode('utf-8')
     return rows
   except Exception, e:
-    sys.stderr.write('Failed to read transection sheet. Exception ' + str(e) +'\n')
+    sys.stderr.write('Failed to read worksheet [%s] with exception [%s]\n'%(title, str(e)))
   return []
+
+def GetTransectionRecords(gd_client):
+  table_key, worksheet_key = '0Akv9eeSdKMP0dHBzeVIzWTY1VUlQcFVKOWFBZkdDeWc', 'od6'
+  return GetTable(gd_client, table_key, worksheet_key)
 
 def GetFinancialValue(value_str):
   integer_re = '0|([1-9][0-9]*)'

@@ -25,7 +25,7 @@ key_values = collections.defaultdict(list)
 
 for company in table:
   info = GetEasyMoneyInfo(company['code'], company['market'])
-  weights.append(company['weight'])
+  weights.append(float(company['weight']))
   for key in info.keys():
     key_values[key].append(info[key])
   sys.stderr.write('%s: %s\n%s\n'%(company['name'], str(company), str(info)))
@@ -33,7 +33,7 @@ for company in table:
 
 weights = numpy.array(weights)
 key_values = {
-  key: sum(weights) / sum(weight / numpy.array(key_values[key])) for key in key_values.keys()
+  key: sum(weights) / sum(weights / numpy.array(key_values[key])) for key in key_values.keys()
 }
 
 print key_values

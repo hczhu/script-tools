@@ -296,9 +296,9 @@ def PopulateFinancialData():
           h_adv_data[key] *= adv_data['ah-ratio']
       h_adv_data['ah-ratio'] = 1.0 / adv_data['ah-ratio']
       FINANCAIL_DATA_ADVANCE[info['hcode']] = h_adv_data
-    if 'start-date' in data and 'interest-rate' in data and 'old-rate' in data:
-      data['sbv'] = adv_data['sbv'] = 1.0 + (datetime.date.today() - data['start-date']).days / 365.0 * data['old-rate']
-      adv_data['sdv/p'] = data['interest-rate'] / (mp - (adv_data['sbv'] - 1.0))
+    if 'class-b' in data:
+      data['sbv'] = adv_data['sbv'] = 1.0 + (datetime.date.today() - data['last-date']).days / 365.0 * data['last-rate']
+      adv_data['sdv/p'] = data['next-rate'] / (1.0 - (adv_data['sbv'] - mp))
 
 def PopulateMacroData():
   try:
@@ -310,7 +310,8 @@ def PopulateMacroData():
   except Exception, e:
     MACRO_DATA['ah-premium'] = 0.1
     sys.stderr.write('Failed to get ah premium with exception [%s]\n'%(str(e)))
-  MACRO_DATA['risk-free-rate'] = 0.077
+  MACRO_DATA['risk-free-rate'] = 0.0735
+  MACRO_DATA['official-rate'] = 0.0275
   sys.stderr.write('macro data = %s\n'%(str(MACRO_DATA)))
   
 

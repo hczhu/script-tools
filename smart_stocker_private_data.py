@@ -64,16 +64,19 @@ def GetFinancialValue(value_str):
     elif re.match('(%s)%%$'%(float_re), value_str) is not None:
       type_str = 'percent'
       return float(value_str[0:-1]) / 100.0
-    else:
+    elif re.match('[0-9]{1,2}/[0-9]{1,2}/20[0-9]{2,2}%$', value_str) is not None:
       type_str = 'date'
       return dateutil.parser.parse(value_str).date()
+    else:
+      type_str = 'string'
+      return value_str
   except Exception, e:
     raise Exception('Failed to parse financial value [%s] by type [%s] with exception %s'%(value_str, type_str, str(e)))
 
 def LoginMyGoogleWithFiles():
- home = os.path.expanduser("~")
- return LoginMyGoogle(home + '/.smart-stocker-google-email.txt',
-                      home + '/.smart-stocker-google-password.txt')
+  home = os.path.expanduser("~")
+  return LoginMyGoogle(home + '/.smart-stocker-google-email.txt',
+                       home + '/.smart-stocker-google-password.txt')
 
 def GetStockPool(client):
   ws_key = '1Ita0nLCH5zpt6FgpZwOshZFXwIcNeOFvJ3ObGze2UBs'
@@ -90,6 +93,7 @@ def GetStockPool(client):
       STOCK_INFO[info['code']] = info
   except Exception, e:
     sys.stderr.write('Failed to read stock pool worksheet. Exception ' + str(e) +'\n')
+  GetClassA(client)
   all_code = STOCK_INFO.keys()
   for code in all_code:
     info = STOCK_INFO[code]
@@ -115,6 +119,16 @@ def GetStockPool(client):
         'market': info['market'],
       }
  
+def GetClassA(client):
+  table_key = '1ER4HZD-_UUZF7ph5RkgPu8JftY9jwFVJtpd2tUwz_ac'
+  sys.stderr.write('Reading class A table.\n')
+  table = GetTable(client, table_key)
+  for row in table:
+    code = row['code']
+    STOCK_INFO[code] = row
+    for key in STOCK_INFO[code].keys():
+      STOCK_INFO[code][key] = GetFinancialValue(STOCK_INFO[code][key])
+
 def GetFinancialData(client):
   ws_key = '14pJTivMAHd-Gqpc9xboV4Kl7WbK51TrOc9QzgXBFRgw'
   worksheets = client.GetWorksheetsFeed(ws_key).entry

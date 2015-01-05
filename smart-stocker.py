@@ -423,9 +423,9 @@ try:
       MARKET_PRICE_CACHE[NAME_TO_CODE[info[0]]] = (float(info[1]), 0, 0)
     sys.stderr.write('market data cache = %s\n'%(str(MARKET_PRICE_CACHE)))
 
+  PopulateMacroData()
   GetFinancialData(GD_CLIENT) 
   PopulateFinancialData()
-  PopulateMacroData()
   PrintHoldingSecurities(ReadRecords(), 'chart' in args)
   if len(target_names) > 0:
     names = ','.join(target_names).split(',')

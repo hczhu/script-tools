@@ -232,7 +232,7 @@ def KeepBanks():
   return ''
 
 def FenJiClassA():
-  codes = [NAME_TO_CODE[name] for name in ['券商A', '证券A', '军工A', '医药A']]
+  codes = [NAME_TO_CODE[name] for name in ['券商A', '证券A', '军工A', '医药A', '国企改A']]
 
   holding_market_value = {
     code : ASSET_INFO[code]['market-value'] if code in ASSET_INFO else 0 \

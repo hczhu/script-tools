@@ -64,7 +64,7 @@ def GetFinancialValue(value_str):
     elif re.match('(%s)%%$'%(float_re), value_str) is not None:
       type_str = 'percent'
       return float(value_str[0:-1]) / 100.0
-    elif re.match('[0-9]{1,2}/[0-9]{1,2}/20[0-9]{2,2}%$', value_str) is not None:
+    elif re.match('[0-9]{1,2}/[0-9]{1,2}/20[0-9]{2,2}$', value_str) is not None:
       type_str = 'date'
       return dateutil.parser.parse(value_str).date()
     else:
@@ -129,6 +129,7 @@ def GetClassA(client):
     for key in STOCK_INFO[code].keys():
       STOCK_INFO[code][key] = GetFinancialValue(STOCK_INFO[code][key])
     FINANCAIL_DATA_BASE[code] = STOCK_INFO[code]
+    sys.stderr.write('Class A %s data: %s\n'%(STOCK_INFO[code]['name'], str(FINANCAIL_DATA_BASE[code])))
 
 def GetFinancialData(client):
   ws_key = '14pJTivMAHd-Gqpc9xboV4Kl7WbK51TrOc9QzgXBFRgw'

@@ -128,6 +128,7 @@ def GetClassA(client):
     STOCK_INFO[code] = row
     for key in STOCK_INFO[code].keys():
       STOCK_INFO[code][key] = GetFinancialValue(STOCK_INFO[code][key])
+    FINANCAIL_DATA_BASE[code] = STOCK_INFO[code]
 
 def GetFinancialData(client):
   ws_key = '14pJTivMAHd-Gqpc9xboV4Kl7WbK51TrOc9QzgXBFRgw'

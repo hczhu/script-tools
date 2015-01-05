@@ -141,6 +141,8 @@ def NoBuyBanks(banks):
                 banks)
 
 def KeepBanks():
+  percent_delta = 0.04
+  swap_percent_delta = 0.02
   targetPercent = 0.9
   normal_valuation_delta = 0.1
   a2h_discount = max(0.9 * MACRO_DATA['ah-premium'], normal_valuation_delta)
@@ -191,14 +193,14 @@ def KeepBanks():
     currency = STOCK_INFO[code]['currency']
     add_percent = min(targetPercent - currentPercent, max_bank_percent[code] - GetPercent(code, holding_asset_percent))
     cash, op = GetCashAndOp(backup, currency, add_percent)
-    if cash > 0:
+    if add_percent > percent_delta and cash > 0:
       return op + GiveTip(' ==> Buy', code, cash)
 
   banks.reverse()
   for code in banks:
     currency = STOCK_INFO[code]['currency']
     sub_percent = min(currentPercent - targetPercent, holding_asset_percent[code])
-    if sub_percent > 0.01:
+    if sub_percent > percent_delta:
       return GiveTip('Sell', code, sub_percent * CAPITAL_INFO['all']['net'] * EX_RATE[CURRENCY + '-' + currency])
   
   valuation_delta = 100
@@ -223,7 +225,7 @@ def KeepBanks():
       if worse_currency != better_currency:
         swap_percent = min(swap_percent, ASSET_INFO['buying-power-' + better_currency]['net-percent'])
       swap_cash = swap_percent * CAPITAL_INFO['all']['net']
-      if swap_percent > 0.01:
+      if swap_percent > swap_percent_delta:
         return GiveTip('Sell', worse, swap_cash * EX_RATE[CURRENCY + '-' + worse_currency]) +\
                  ' ==> ' +\
                GiveTip('Buy', better, swap_cash * EX_RATE[CURRENCY + '-' + better_currency])

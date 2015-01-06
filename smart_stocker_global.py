@@ -83,13 +83,12 @@ DIV_TEMPLATE = """
 
 EX_RATE = {
 }
+ 
+CURRENCIES = ['usd', 'cny', 'hkd', 'jpy']
 
 CURRENCY = 'usd'
 
-CROSS_SHARE = {
-  # The amount of Alibaba stocks Yahoo holds
-  'Yahoo-Alibaba': 384 * 10**6,
-}
+MIN_MP = 0.001
 
 ETF_BOOK_VALUE_FUNC = {
   # 南方A50 ETF
@@ -124,8 +123,6 @@ HOLDING_PERCENT = collections.defaultdict(float)
 
 HOLDING_SHARES = collections.defaultdict(int)
 
-NET_ASSET = 0.0
-
 FINANCIAL_KEYS = set([
   'a-shares',
   'h-shares',
@@ -136,13 +133,25 @@ FINANCIAL_KEYS = set([
   'p/dbv',
   'ttme', # trailing twelve month earning
   'p/ttme',
+  'f-ttme', # forward trailing twelve month earning
+  'p/f-ttme',
   'dye', # dynamic yearly earning
   'p/dye',
-  's-divid', # static dividend yield
-  's-divid/p',
-  'd-divid', # dynamic dividend yield
-  'd-divid/p',
-  'h/a',
+  'sdv', # static dividend yield
+  'sdv/p',
+  'ddv', # dynamic dividend yield
+  'ddv/p',
+  'ddv', # dynamic dividend yield
+  'ddv/p',
+  'ah-ratio',
+  'p/sbvadv', # p/sbv after dividend.
+  'p/dbvadv', # p/dbv after dividend.
+  'cross-share', # hold shares of other company in the format of 'stock / per self stock, name'
+  'p/cross-share', # hold shares of other company in the format of 'stock / per self stock, name'
+  'tax-rate',
+  'start-date', # 固定收益类本周起计息日
+  'interest-rate', # 固定收益类年化利率
+  'old-rate', # 固定收益类当前年化利率
 ])
 
 GD_CLIENT = None
@@ -152,6 +161,22 @@ FINANCAIL_DATA_BASE = collections.defaultdict(dict)
 FINANCAIL_DATA_ADVANCE = collections.defaultdict(dict)
 
 STOCK_INFO = collections.defaultdict(dict)
+
+CAPITAL_INFO = collections.defaultdict(dict)
+
+MIN_SMA_RATIO = {
+  'cny': 0.0,
+  'usd': 0.1,
+}
+
+MACRO_DATA = {}
+
+SMA_DISCOUNT = {
+  'cny': 0.0,
+  'usd': 0.5,
+}
+
+ASSET_INFO = collections.defaultdict(dict)
 
 #----------Begining of global variables------------------
 

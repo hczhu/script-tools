@@ -49,7 +49,7 @@ def AppannieScore(company, country = 'japan'):
       idx = content.find(company)
   return res
 
-def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True):
+def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True, reg_exp = '[0-9.]+'):
   try:
     if url not in URL_CONTENT_CACHE:
       request = urllib2.Request(url)
@@ -57,7 +57,10 @@ def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True):
     content = URL_CONTENT_CACHE[url]
     for fs in feature_str:
       content = content[len(fs) + content.find(fs):]
-    return func(content[0:content.find(end_str)])
+    pat = re.compile(reg_exp)
+    match = pat.search(content) 
+    if match is None: raise Exception('reg exp [%s] not found'%(reg_exp))
+    return func(match.group(0))
   except Exception, e:
     sys.stderr.write('Exception ' + str(e) +'\n')
     sys.stderr.write('Failed to open url: ' + url + '\n')
@@ -68,9 +71,9 @@ def GetJapanStockPriceAndChange(code):
   url = 'http://jp.reuters.com/investing/quotes/quote?symbol=%s.T'%(str(code))
   try:
     return (GetValueFromUrl(url, ['<div id="priceQuote">', '<span class="valueContent">'],
-                            '</span>', lambda s: float(s.replace(',', ''))),
+                            '</span>', lambda s: float(s.replace(',', '')), reg_exp = '[0-9.,]+'),
             GetValueFromUrl(url, ['<div id="percentChange">', '<span class="valueContent"><span class="', '>'],
-                            '%', lambda s: float(s.replace(',', ''))))
+                            '%', lambda s: float(s.replace(',', '')), reg_exp = '[0-9.,]+'))
   except:
     return [float(0), 0.0]
 
@@ -84,7 +87,6 @@ def GetJapanStockBeta(code):
     return 0.0
 
 MARKET_PRICE_FUNC = {
-  '2432': lambda: GetJapanStockPriceAndChange('2432'),
   'ni225': lambda: [0,
                     GetValueFromUrl('http://www.bloomberg.com/quote/NKY:IND',
                                     ['<meta itemprop="priceChangePercent" content="'],
@@ -95,11 +97,22 @@ def GetCurrency(code):
   return STOCK_INFO[code]['currency'] if code in STOCK_INFO else 'cny'
 
 def GetXueqiuUrlPrefix(code):
-  currency = GetCurrency(code)
-  if currency == 'cny': return ['SH', 'SZ']
-  return ['']
+  market2prefix = {
+    'sz': ['sz'],
+    'sh': ['sh'],
+    'hk': [''],
+    'us': [''],
+  }
+  return market2prefix[STOCK_INFO[code]['market']]
 
-def GetXueqiuMarketPrice(code):
+def GetXueqiuInfo(code, market):
+  url_prefix = 'http://xueqiu.com/S/'
+  market2prefix = {
+    'sz': ['sz'],
+    'sh': ['sh'],
+    'hk': [''],
+    'us': [''],
+  }
   url_prefix = 'http://xueqiu.com/S/'
   price_feature_str = ['<div class="currentInfo"><strong data-current="']
   price_end_str = '"'
@@ -109,7 +122,10 @@ def GetXueqiuMarketPrice(code):
   cap_end_str = '<'
   book_value_str = ['单位净值', '<span>']
   book_value_end_str = '<'
-  for pr in GetXueqiuUrlPrefix(code):
+  ttmpe_begin_str= ['LYR', 'TTM', '/']
+  ttmpe_end_str= '<'
+  
+  for pr in (market2prefix[market] if market in market2prefix else GetXueqiuUrlPrefix(code)):
     url = url_prefix + pr + code
     try:
       price = GetValueFromUrl(url, price_feature_str, price_end_str, float)
@@ -117,17 +133,39 @@ def GetXueqiuMarketPrice(code):
       cap = GetValueFromUrl(url, cap_feature_str, cap_end_str,
                             lambda s: float(s.replace('亿', '')) * 10**8, False)
       book_value = GetValueFromUrl(url, book_value_str, book_value_end_str, float, False)
-      return [price, change, cap, book_value]
+      ttmpe = GetValueFromUrl(url, ttmpe_begin_str, ttmpe_end_str, float, False)
+      return {
+        'price': price,
+        'change': change,
+        'cap': cap,
+        'bv': book_value,
+        'pe-ttm': ttmpe,
+      }
     except:
       continue
-  return [0.01, 0.0, 0.0, 1.0]
+  return {}
+
+def GetEasyMoneyInfo(code, market):
+  url = 'http://quote.eastmoney.com/%s.html'%(market+code)
+  try:
+    return {
+      'dynamic-pe': GetValueFromUrl(
+                      url,
+                      ['PE(', ')', '<', '>'],
+                      '<', float, False),
+    }
+  except:
+    return {}
+  return {}
 
 def GetSinaUrlPrefix(code):
-  currency = GetCurrency(code)
-  if currency == 'cny': return ['sh', 'sz']
-  elif currency == 'hkd': return ['hk']
-  elif currency == 'usd': return ['gb_']
-  return ['']
+  market2prefix = {
+    'sz': ['sz'],
+    'sh': ['sh'],
+    'hk': ['hk'],
+    'us': ['gb_'],
+  }
+  return market2prefix[STOCK_INFO[code]['market']]
 
 def GetMarketPriceFromSina(code):
   url_prefix = 'http://hq.sinajs.cn/list='
@@ -136,7 +174,7 @@ def GetMarketPriceFromSina(code):
     suffix = pr + code.lower()
     url = url_prefix + suffix
     try:
-      values = GetValueFromUrl(url, 'hq_str_%s="'%(suffix), '"', str)
+      values = GetValueFromUrl(url, 'hq_str_%s="'%(suffix), '"', str, reg_exp = '[^"]+')
       sys.stderr.write('Get string for %s: [%s] from url: %s\n'%(code, [values], url))
       if len(values) == 0: continue
       values = values.split(',')
@@ -159,10 +197,6 @@ def GetMarketPriceFromSina(code):
       continue
   return [0.0, 0.0, 0.0, 0.0]
 
-def GetXueqiuETFBookValue(code):
-  code = NAME_TO_CODE[code] if code in NAME_TO_CODE else code
-  return GetXueqiuMarketPrice(code)[3]
-
 def GetMarketPrice(code):
   if code.find('@') != -1:
     tokens = re.split('[-@]', code)
@@ -173,11 +207,12 @@ def GetMarketPrice(code):
   sys.stderr.write('Getting market price for ' + code + '\n')
   if code in MARKET_PRICE_CACHE:
     return MARKET_PRICE_CACHE[code][0]
-  func = lambda: GetMarketPriceFromSina(code)
+  func = lambda: GetMarketPriceFromSina(code) if STOCK_INFO[code]['market'] != 'jp' else GetJapanStockPriceAndChange(code)
   if code in MARKET_PRICE_FUNC:
     func = MARKET_PRICE_FUNC[code] 
   try:
     data = func()
+    data[0] = max(data[0], MIN_MP)
     MARKET_PRICE_CACHE[code] = data
     return data[0]
   except:
@@ -210,9 +245,8 @@ def GetMarketPriceInBase(code):
 #----------End of crawler util functions-----------------
 
 def InitExRate():
-  all_currencies = ['usd', 'cny', 'hkd', 'jpy']
   template_url = 'http://www.bloomberg.com/quote/%s%s:CUR'
-  for cur in all_currencies:
+  for cur in CURRENCIES:
     if CURRENCY == cur:
       EX_RATE[CURRENCY + '-' + cur] = 1.0
     else:
@@ -225,8 +259,8 @@ def InitExRate():
     currencies = pr.split('-')
     assert(len(currencies) == 2)
     EX_RATE[currencies[1] + '-' + currencies[0]] = 1.0 / EX_RATE[pr]
-  for a in all_currencies:
-    for b in all_currencies:
+  for a in CURRENCIES:
+    for b in CURRENCIES:
       EX_RATE[a + '-' + b] = EX_RATE[a + '-' + CURRENCY] * EX_RATE[CURRENCY + '-' + b]
     EX_RATE[a + '-' + b] = 1.0
   sys.stderr.write('%s\n'%(str(EX_RATE)))
@@ -236,10 +270,48 @@ def PopulateFinancialData():
     info = STOCK_INFO[code]
     data = FINANCAIL_DATA_BASE[code]
     adv_data = FINANCAIL_DATA_ADVANCE[code]
+    mp = GetMarketPrice(code)
+    FINANCAIL_DATA_ADVANCE[code]['mp'] = mp
+    if 'cross-share' in data:
+      cross_value = 0.0
+      for pr in data['cross-share']:
+        cross_code = pr[1]
+        cross_value += EX_RATE[STOCK_INFO[cross_code]['currency'] + '-' + info['currency']] * GetMarketPrice(cross_code) * pr[0]
+      data['cross-share'] = cross_value
     for key in FINANCIAL_KEYS:
       if key.find('p/') != -1 and key[2:] in data:
-        adv_data[key] = GetMarketPrice(code) / data[key[2:]]
+        adv_data[key] = mp / data[key[2:]]
       elif key.find('/p') != -1 and key[0:-2] in data:
-        adv_data[key] = data[key[0:-2]] / GetMarketPrice(code)
+        adv_data[key] = data[key[0:-2]] / mp
+    # Populate corresponding h-share.
     if 'hcode' in info:
-      adv_data['h/a'] = EX_RATE['hkd-cny'] * GetMarketPrice(info['hcode']) / GetMarketPrice(code) 
+      hmp = GetMarketPrice(info['hcode'])
+      adv_data['ah-ratio'] = mp / (EX_RATE['hkd-cny'] * hmp)
+      h_adv_data = dict(adv_data)
+      h_adv_data['mp'] = hmp
+      for key in h_adv_data:
+        if key.find('p/') != -1:
+          h_adv_data[key] /= adv_data['ah-ratio']
+        elif key.find('/p') != -1:
+          h_adv_data[key] *= adv_data['ah-ratio']
+      h_adv_data['ah-ratio'] = 1.0 / adv_data['ah-ratio']
+      FINANCAIL_DATA_ADVANCE[info['hcode']] = h_adv_data
+    if 'class-b' in data:
+      data['sbv'] = adv_data['sbv'] = 1.0 + (datetime.date.today() - data['last-date']).days / 365.0 * data['last-rate']
+      adv_data['sdv/p'] = data['next-rate'] / (1.0 - (adv_data['sbv'] - mp))
+
+def PopulateMacroData():
+  try:
+    MACRO_DATA['ah-premium'] = GetValueFromUrl('http://markets.ft.com/research/Markets/Tearsheets/Summary?s=HSCAHPI:HKG',
+                                               ['HANG SENG CHINA AH PREMIUM INDEX',
+                                                'HSCAHPI:HKG',
+                                                '<td class="text first">',
+                                                '>'], '<', float, True) / 100.0 - 1.0
+  except Exception, e:
+    MACRO_DATA['ah-premium'] = 0.1
+    sys.stderr.write('Failed to get ah premium with exception [%s]\n'%(str(e)))
+  MACRO_DATA['risk-free-rate'] = 0.0735
+  MACRO_DATA['official-rate'] = 0.0275
+  sys.stderr.write('macro data = %s\n'%(str(MACRO_DATA)))
+  
+

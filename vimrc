@@ -56,6 +56,8 @@ au FileType php,java map <F6> :!java -enableassertions -Xmx1024M %:r
 "au FileType php,tex imap $$ $$<Esc>ha
 "au FileType php,tex set spell
 autocmd BufNewFile,BufRead *.html,*htm set spell
+command Sb vert sb
+command Target vs %:h/TARGETS
 command Cs !look <cword>
 command Fl !grep "^DEFINE_[a-zA-Z0-9]\+($(echo <cword> | sed 's/FLAGS_//')" % -A 3
 " Create a variable name for type: AaaBbbCaa ===> aaa_bbb_ccc

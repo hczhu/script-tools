@@ -53,3 +53,6 @@ if [[ -e workrave && $(pgrep workrave | wc -l) = "0" ]]
 then
   workrave &
 fi
+
+# access the last output by $(L)
+alias L='tmux capture-pane; tmux showb -b 0 | tail -n 3 | head -n 1'

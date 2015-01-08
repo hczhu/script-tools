@@ -232,7 +232,7 @@ def KeepBanks():
   return ''
 
 def FenJiClassA():
-  codes = [NAME_TO_CODE[name] for name in ['券商A', '证券A', '军工A', '医药A', '国企改A']]
+  codes = [NAME_TO_CODE[name] for name in ['券商A', '证券A', '军工A', '医药A', '国企改A', '地产A', '建信50A']]
 
   holding_market_value = {
     code : ASSET_INFO[code]['market-value'] if code in ASSET_INFO else 0 \
@@ -264,7 +264,7 @@ STRATEGY_FUNCS = [
   FenJiClassA,
   KeepBanks,
 
-  lambda: KeepGroupPercentIf(['南方A50ETF', '上证红利ETF', '上证50ETF'], 0.38,
+  lambda: KeepGroupPercentIf(['南方A50ETF', '上证红利ETF', '上证50ETF'], 0.39,
                              hold_conditions = {
                                '南方A50ETF': lambda: FinancialValue('南方A50ETF', 'p/ttme') < 1.0 / MACRO_DATA['risk-free-rate'],
                                '上证红利ETF': lambda: FinancialValue('上证红利ETF', 'p/ttme') < 0.9 / MACRO_DATA['risk-free-rate'],

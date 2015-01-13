@@ -42,6 +42,18 @@ def GetCashAndOp(backup, currency, max_percent):
   return (cash * EX_RATE[CURRENCY + '-' + currency], 
           GiveTip('Sell', backup_code, cash * EX_RATE[CURRENCY + '-' + STOCK_INFO[backup_code]['currency']]))
 
+def GetClassA():
+  codes = []
+  for code in STOCK_INFO.keys():
+    if 'class-b'  in STOCK_INFO[code]:
+      codes.append(code)
+  return codes
+
+def GetCashEquivalence():
+  codes = GetClassA()
+  map(lambda code: CODE_TO_NAME[code], codes)
+  return codes
+
 def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_conditions = {},
                        sort_key = lambda code: -ASSET_INFO['buying-power-'+STOCK_INFO[code]['currency']]['net-percent']):
   codes = [NAME_TO_CODE[name] for name in names]
@@ -127,7 +139,7 @@ def ScoreBanks(banks):
   return banks, scores
 
 def FilterBanks(banks):
-  return filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/sbv'] < 2.0, banks)
+  return filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/sbv'] < 1.8, banks)
 
 def GetPercent(code,holding_asset_percent):
   percent = holding_asset_percent[code]
@@ -137,7 +149,7 @@ def GetPercent(code,holding_asset_percent):
   return percent
 
 def NoBuyBanks(banks):
-  return filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/sbv'] > 1.5,
+  return filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/sbv'] > 1.2,
                 banks)
 
 def KeepBanks():
@@ -158,15 +170,11 @@ def KeepBanks():
     '兴业银行': 0.2,
   }
   backup = [
-    '券商A',
-    '医药A',
-    '军工A',
-    '证券A',
     '中信银行H',
     '中海油服H',
     '上证红利ETF',
     '南方A50ETF',
-  ]
+  ] + GetCashEquivalence()
   max_bank_percent = {NAME_TO_CODE[name] : max_bank_percent[name] for name in max_bank_percent.keys()}
   all_banks = max_bank_percent.keys()
   holding_asset_percent = {
@@ -232,14 +240,15 @@ def KeepBanks():
   return ''
 
 def FenJiClassA():
-  codes = [NAME_TO_CODE[name] for name in ['券商A', '证券A', '军工A', '医药A', '国企改A', '地产A', '建信50A']]
+  codes = GetClassA()
 
   holding_market_value = {
     code : ASSET_INFO[code]['market-value'] if code in ASSET_INFO else 0 \
       for code in codes
   }
 
-  want_rate = 7.2 / 100
+  want_rate = 7.1 / 100
+  sell_rate = 6.5 / 100
   for code in codes:
     sbv = FINANCAIL_DATA_ADVANCE[code]['sbv']
     rate = FINANCAIL_DATA_BASE[code]['next-rate']
@@ -249,7 +258,7 @@ def FenJiClassA():
   codes.sort(key = lambda code: FINANCAIL_DATA_ADVANCE[code]['sdv/p']) 
   for code in codes:
     adv_data = FINANCAIL_DATA_ADVANCE[code]
-    if adv_data['sdv/p'] < 6.6 / 100 and holding_market_value[code] > 0:
+    if adv_data['sdv/p'] < sell_rate and holding_market_value[code] > 0:
       return GiveTip('Sell', code, holding_market_value[code]) + ' due to interest rate drops to %.4f'%(adv_data['sdv/p'])
 
   best = codes[-1]
@@ -264,7 +273,7 @@ STRATEGY_FUNCS = [
   FenJiClassA,
   KeepBanks,
 
-  lambda: KeepGroupPercentIf(['南方A50ETF', '上证红利ETF', '上证50ETF'], 0.39,
+  lambda: KeepGroupPercentIf(['南方A50ETF'], 0.2,
                              hold_conditions = {
                                '南方A50ETF': lambda: FinancialValue('南方A50ETF', 'p/ttme') < 1.0 / MACRO_DATA['risk-free-rate'],
                                '上证红利ETF': lambda: FinancialValue('上证红利ETF', 'p/ttme') < 0.9 / MACRO_DATA['risk-free-rate'],

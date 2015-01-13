@@ -372,8 +372,9 @@ def PrintHoldingSecurities(all_records, charts = False):
       'shares': HOLDING_SHARES[code] if code in HOLDING_SHARES else 0,
     })
   asset_summary = {}
-  for key in ['net-percent', 'asset-percent', 'market-value']:
-    asset_summary[key] = sum([record[key] for record in asset_record_map])
+  for key in ['net-percent', 'asset-percent']:
+    asset_summary[key] = sum([record[key] if record['stock name'].find('buying-power') == -1 else 0 for record in asset_record_map])
+
   asset_summary['chg'] = myround(sum(record['chg'] * record['net-percent'] / 100 for record in asset_record_map), 1)
 
   asset_record_map.sort(key = lambda record: record['net-percent'], reverse = True)

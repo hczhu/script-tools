@@ -273,6 +273,7 @@ def PrintHoldingSecurities(all_records, charts = False):
         'txn-fee-ratio': 100.0 * TOTAL_TRANSACTION_FEE[currency] / TOTAL_MARKET_VALUE[currency],
         'IRR': GetIRR(TOTAL_MARKET_VALUE[currency], cash_flow[currency]) * 100,
     }
+    CAPITAL_INFO[currency]['leverage'] = 1.0 * CAPITAL_INFO[currency]['market-value'] / CAPITAL_INFO[currency]['net']
   for currency in ['usd', 'cny']:
     CAPITAL_INFO[currency]['SMA'] = CAPITAL_INFO[currency]['free-cash'] + CAPITAL_INFO[currency]['market-value'] * SMA_DISCOUNT[currency]
   for code in HOLDING_SHARES.keys():
@@ -297,13 +298,12 @@ def PrintHoldingSecurities(all_records, charts = False):
     'currency',
     'market-value',
     'net',
-    'cash',
+    'leverage',
     'free-cash',
     'txn-fee-ratio',
-    'IRR',
     'SMA',
     'SMA-ratio',
-    'buying-power',
+    'IRR',
   ]
   PrintTableMap(capital_header, capital_table_map, set(), truncate_float = True)
   for col in ['Chg', 'Percent']:

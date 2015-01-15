@@ -155,9 +155,9 @@ def NoBuyBanks(banks):
 def KeepBanks():
   percent_delta = 0.04
   swap_percent_delta = 0.02
-  targetPercent = 0.89
+  targetPercent = 1.0
   normal_valuation_delta = 0.08
-  a2h_discount = max(0.8 * MACRO_DATA['ah-premium'], normal_valuation_delta)
+  a2h_discount = max(0.6 * MACRO_DATA['ah-premium'], normal_valuation_delta)
   h2a_discount = 0.08
   max_bank_percent = {
     '建设银行': 0.5,
@@ -304,6 +304,6 @@ STRATEGY_FUNCS = [
 
   lambda: KeepPercentIf('中海油服H', 0.15,
                         hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.7,
-                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.6 and FINANCAIL_DATA_ADVANCE[code]['sdv'] > 0.38,
+                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.6 and FINANCAIL_DATA_ADVANCE[code]['sdv/p'] > 0.38,
                        ),
 ]

@@ -58,13 +58,13 @@ def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_co
                        sort_key = lambda code: -ASSET_INFO['buying-power-'+STOCK_INFO[code]['currency']]['net-percent']):
   codes = [NAME_TO_CODE[name] for name in names]
   hold_cond = {
-    NAME_TO_CODE[name]: hold_conditions[name] if name in hold_conditions else lambda: True for name in names
+    NAME_TO_CODE[name]: hold_conditions[name] if name in hold_conditions else lambda code: True for name in names
   }
   buy_cond = {
-    NAME_TO_CODE[name]: buy_conditions[name] if name in buy_conditions else lambda: True for name in names
+    NAME_TO_CODE[name]: buy_conditions[name] if name in buy_conditions else lambda code: True for name in names
   }
   for code in codes:
-    if not hold_cond[code]():
+    if not hold_cond[code](code):
       return 'Clear %s(%s)'%(CODE_TO_NAME[code], code)
   holding_percent = {
     code : ASSET_INFO[code]['net-percent'] if code in ASSET_INFO else 0 for code in codes
@@ -74,7 +74,7 @@ def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_co
   if sum_percent + 0.01 < percent:
     for code in codes:
       cash, op = GetCashAndOp([], STOCK_INFO[code]['currency'], percent - sum_percent)
-      if cash > 0 and buy_cond[code]():
+      if cash > 0 and buy_cond[code](code):
         return GiveTip('Buy', code, cash)
   codes.reverse()
   if sum_percent > percent + 0.01:
@@ -84,17 +84,17 @@ def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_co
         return GiveTip('Sell', code, cash)
   return ''
 
-def KeepPercentIf(name, percent, backup = [], hold_condition = None, buy_condition = None):
+def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True, buy_condition = lambda code: True):
   delta = 0.01
   code = NAME_TO_CODE[name]
   currency = STOCK_INFO[code]['currency']
-  percent = percent if hold_condition is None or hold_condition() else 0
+  percent = percent if hold_condition(code) else 0
   holding_asset_percent = ASSET_INFO[code]['net-percent'] if code in ASSET_INFO else 0
   if holding_asset_percent - percent > delta:
     return GiveTip('Sell', code,
         (holding_asset_percent - percent) * CAPITAL_INFO['all']['net'] * EX_RATE[CURRENCY + '-' + currency])
   cash, op = GetCashAndOp(backup, currency, percent - holding_asset_percent)
-  if percent - holding_asset_percent > delta and cash > 0 and (buy_condition is None or buy_condition()):
+  if percent - holding_asset_percent > delta and cash > 0 and buy_condition(code):
     return op + GiveTip(' ==> Buy', code, cash)
   return '' 
 
@@ -241,6 +241,13 @@ def KeepBanks():
 
 def FenJiClassA():
   codes = GetClassA()
+  discount_ones = [NAME_TO_CODE[name] for name in ['德信A']]
+  codes = filter(lambda code: code not in set(discount_ones), codes)
+  
+  lowest_discount = 0.99
+  for code in discount_ones:
+    if FINANCAIL_DATA_ADVANCE[code]['p/sbv'] > lowest_discount:
+      print 'Sell %s(%s) @%.3f due to discount = %.3f'%(code, CODE_TO_NAME[code], GetMarketPrice(code), FINANCAIL_DATA_ADVANCE[code]['p/sbv'])
 
   holding_market_value = {
     code : ASSET_INFO[code]['market-value'] if code in ASSET_INFO else 0 \
@@ -253,7 +260,9 @@ def FenJiClassA():
     sbv = FINANCAIL_DATA_ADVANCE[code]['sbv']
     rate = FINANCAIL_DATA_BASE[code]['next-rate']
     price = sbv - 1.0 + rate / want_rate
-    print 'Buy %s(%s) @%.3f down %.2f%%'%(CODE_TO_NAME[code], code, price, (GetMarketPrice(code) - price) / max(0.10, GetMarketPrice(code)) * 100)
+    down_percent = (GetMarketPrice(code) - price) / max(0.10, GetMarketPrice(code)) * 100
+    if down_percent < 2.0:
+      print 'Buy %s(%s) @%.3f down %.2f%%'%(CODE_TO_NAME[code], code, price, down_percent)
 
   codes.sort(key = lambda code: FINANCAIL_DATA_ADVANCE[code]['sdv/p']) 
   for code in codes:
@@ -273,31 +282,28 @@ STRATEGY_FUNCS = [
   FenJiClassA,
   KeepBanks,
 
-  lambda: KeepGroupPercentIf(['南方A50ETF'], 0.2,
+  lambda: KeepGroupPercentIf(['南方A50ETF'], 0.24,
                              hold_conditions = {
-                               '南方A50ETF': lambda: FinancialValue('南方A50ETF', 'p/ttme') < 1.0 / MACRO_DATA['risk-free-rate'],
-                               '上证红利ETF': lambda: FinancialValue('上证红利ETF', 'p/ttme') < 0.9 / MACRO_DATA['risk-free-rate'],
-                               '上证50ETF': lambda: FinancialValue('上证50ETF', 'p/ttme') < 1.0 / MACRO_DATA['risk-free-rate'],
+                               '南方A50ETF': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/ttme'] < .9 / MACRO_DATA['risk-free-rate'],
                              },
                              buy_conditions = {
-                               '南方A50ETF': lambda: FinancialValue('南方A50ETF', 'p/ttme') < 10,
-                               '上证红利ETF': lambda: FinancialValue('上证红利ETF', 'p/ttme') < 9,
-                               '上证50ETF': lambda: FinancialValue('上证50ETF', 'p/ttme') < 10,
+                               '南方A50ETF': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/ttme'] < 10,
                              },
                              sort_key = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/ttme']
                        ),
 
   lambda: KeepPercentIf('Yandex', 0.08,
-                        hold_condition = lambda: FinancialValue('Yandex', 'p/dbv') < 1.3,
-                        buy_condition = lambda: FinancialValue('Yandex', 'p/dbv') < 1.0
+                        hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.3,
+                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.0
                        ),
 
-  lambda: KeepPercentIf('Weibo', 0.15,
-                        hold_condition = lambda: FinancialValue('Weibo', 'p/dbv') < 1.5,
-                        buy_condition = lambda: FinancialValue('Weibo', 'p/dbv') < 1.0
+  lambda: KeepPercentIf('Weibo', 0.12,
+                        hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.5,
+                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.0
                        ),
-  lambda: KeepPercentIf('中海油服H', 0.8,
-                        hold_condition = lambda: FinancialValue('中海油服H', 'ah-ratio') < 0.8,
-                        buy_condition = lambda: FinancialValue('中海油服H', 'ah-ratio') < 0.6
+
+  lambda: KeepPercentIf('中海油服H', 0.15,
+                        hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.7,
+                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.6 and FINANCAIL_DATA_ADVANCE[code]['sdv'] > 0.38,
                        ),
 ]

@@ -37,6 +37,7 @@ def GetTable(gd_client, table_key, worksheet_key = 'od6'):
     entries = feeds.entry
     rows = []
     for row in entries:
+      if 'disabled' in row.custom and row.custom['disabled'].text is not None: continue
       rows.append({key : row.custom[key].text for key in row.custom.keys()})
       for key in rows[-1].keys():
         if rows[-1][key] is not None:

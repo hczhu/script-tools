@@ -278,6 +278,12 @@ def FenJiClassA():
                 ' due to interest rate drops to %.4f'%(FINANCAIL_DATA_ADVANCE[codes[worse]]['sdv/p'])
   return ''
 
+def KeepCnyCapital():
+  target = 500000
+  if CAPITAL_INFO['cny']['net'] < target:
+    print 'Need %d cny to reach %d cny asset'%(target - CAPITAL_INFO['cny']['net'], target)
+  return ''
+
 STRATEGY_FUNCS = [
   FenJiClassA,
   KeepBanks,
@@ -304,6 +310,8 @@ STRATEGY_FUNCS = [
 
   lambda: KeepPercentIf('中海油服H', 0.15,
                         hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.7,
-                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.6 and FINANCAIL_DATA_ADVANCE[code]['sdv/p'] > 0.38,
+                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.6 and FINANCAIL_DATA_ADVANCE[code]['sdv/p'] > 0.35,
                        ),
+
+  KeepCnyCapital,
 ]

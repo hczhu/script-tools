@@ -318,7 +318,7 @@ def PopulateMacroData():
   except Exception, e:
     MACRO_DATA['ah-premium'] = 0.1
     sys.stderr.write('Failed to get ah premium with exception [%s]\n'%(str(e)))
-  MACRO_DATA['risk-free-rate'] = 0.072
+  MACRO_DATA['risk-free-rate'] = 0.07
   MACRO_DATA['official-rate'] = 0.0275
   sys.stderr.write('macro data = %s\n'%(str(MACRO_DATA)))
   

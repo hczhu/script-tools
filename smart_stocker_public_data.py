@@ -49,7 +49,7 @@ def AppannieScore(company, country = 'japan'):
       idx = content.find(company)
   return res
 
-def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True, reg_exp = '[0-9.]+'):
+def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True, reg_exp = '[0-9.]+', default_value = None):
   try:
     if url not in URL_CONTENT_CACHE:
       request = urllib2.Request(url)
@@ -65,7 +65,7 @@ def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True, reg_exp =
     sys.stderr.write('Exception ' + str(e) +'\n')
     sys.stderr.write('Failed to open url: ' + url + '\n')
     if throw_exp: raise
-    return func('0.0')
+    return (default_value if default_value is not None else func('0.0'))
 
 def GetJapanStockPriceAndChange(code):
   url = 'http://jp.reuters.com/investing/quotes/quote?symbol=%s.T'%(str(code))
@@ -91,6 +91,11 @@ MARKET_PRICE_FUNC = {
                     GetValueFromUrl('http://www.bloomberg.com/quote/NKY:IND',
                                     ['<meta itemprop="priceChangePercent" content="'],
                                     '"', lambda s: float(s.replace(',', '')))]
+}
+
+NAV_FUNC = {
+  '02822': lambda: GetValueFromUrl('http://www.csop.mdgms.com/iopv/nav.html?l=tc',
+                                   ['即日估計每基金單位資產淨值', 'nIopvPriceHKD', '>'], '<', float, False, default_value = 1.0),
 }
 
 def GetCurrency(code):
@@ -272,6 +277,8 @@ def PopulateFinancialData():
     adv_data = FINANCAIL_DATA_ADVANCE[code]
     mp = GetMarketPrice(code)
     FINANCAIL_DATA_ADVANCE[code]['mp'] = mp
+    if code in NAV_FUNC:
+      adv_data['sbv'] = data['sbv'] = NAV_FUNC[code]()
     if 'cross-share' in data:
       cross_value = 0.0
       for pr in data['cross-share']:

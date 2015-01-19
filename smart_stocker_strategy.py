@@ -290,7 +290,7 @@ STRATEGY_FUNCS = [
   FenJiClassA,
   KeepBanks,
 
-  lambda: KeepGroupPercentIf(['南方A50ETF'], 0.32,
+  lambda: KeepGroupPercentIf(['南方A50ETF'], 0.40,
                              hold_conditions = {
                                '南方A50ETF': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/ttme'] < .9 / MACRO_DATA['risk-free-rate'],
                              },

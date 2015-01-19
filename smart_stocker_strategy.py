@@ -162,12 +162,14 @@ def KeepBanks():
   max_bank_percent = {
     '建设银行': 0.5,
     '建设银行H': 0.5,
-    '招商银行': 0.55,
-    '招商银行H': 0.55,
+    '招商银行': 0.5,
+    '招商银行H': 0.5,
     '中国银行': 0.3,
     '中国银行H': 0.3,
     '浦发银行': 0.2,
     '兴业银行': 0.2,
+    '交通银行': 0.25,
+    '交通银行H': 0.25,
   }
   backup = [
     '中信银行H',
@@ -288,7 +290,7 @@ STRATEGY_FUNCS = [
   FenJiClassA,
   KeepBanks,
 
-  lambda: KeepGroupPercentIf(['南方A50ETF'], 0.24,
+  lambda: KeepGroupPercentIf(['南方A50ETF'], 0.32,
                              hold_conditions = {
                                '南方A50ETF': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/ttme'] < .9 / MACRO_DATA['risk-free-rate'],
                              },

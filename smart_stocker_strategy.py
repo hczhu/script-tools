@@ -131,7 +131,9 @@ def YahooAndAlibaba():
 
 def ScoreBanks(banks):
   scores = {
-    code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] / (1.0 + FINANCAIL_DATA_ADVANCE[code]['sdv/p']) for code in banks
+    code: GetMarketPrice(code) / ((GetMarketPrice(code) / FINANCAIL_DATA_ADVANCE[code]['p/ttme'] +
+                                   GetMarketPrice(code) / FINANCAIL_DATA_ADVANCE[code]['p/dbv']) *
+                                   (1.0 + FINANCAIL_DATA_ADVANCE[code]['sdv/p'])) for code in banks
   }
   banks.sort(key = lambda code: scores[code])
   for bank in banks:

@@ -229,10 +229,10 @@ def KeepBanks():
       elif STOCK_INFO[worse]['currency'] == 'hkd' and STOCK_INFO[better]['currency'] == 'cny':
         valuation_delta = h2a_discount
       if holding_asset_percent[worse] > max_bank_percent[worse]: valuation_delta = 0.02
+      valuation_ratio = valuation[worse] / valuation[better]
       sys.stderr.write('%s ==> %s delta = %.3f valuation ratio = %.2f\n'%(
-                       CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_delta,
-                       valuation[worse] / valuation[better]))
-      if valuation[worse] / valuation[better] < (1 + valuation_delta): continue
+                       CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_delta, valuation_ratio))
+      if valuation_ratio < (1 + valuation_delta): continue
       swap_percent = min(holding_asset_percent[worse], max_bank_percent[better] - GetPercent(better, holding_asset_percent))
       if worse_currency != better_currency:
         swap_percent = min(swap_percent, ASSET_INFO['buying-power-' + better_currency]['net-percent'])
@@ -240,7 +240,8 @@ def KeepBanks():
       if swap_percent > swap_percent_delta:
         return GiveTip('Sell', worse, swap_cash * EX_RATE[CURRENCY + '-' + worse_currency]) +\
                  ' ==> ' +\
-               GiveTip('Buy', better, swap_cash * EX_RATE[CURRENCY + '-' + better_currency])
+               GiveTip('Buy', better, swap_cash * EX_RATE[CURRENCY + '-' + better_currency]) +\
+               'due to valuation ratio = %.3f'%(valuation_ratio)
   return ''
 
 def FenJiClassA():

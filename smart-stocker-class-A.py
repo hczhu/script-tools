@@ -29,7 +29,7 @@ for row in table:
   code = row['code']
   nav = row['nav'] = GetNAV(code)
   last_rate = GetFinancialValue(row['last-rate'])
-  last_date = datetime.date.today() + datetime.timedelta(
+  last_date = datetime.date.today() - datetime.timedelta(
                 days = int((nav - 1.0) / last_rate * 365))
   row['last-date'] = last_date.strftime('%m/%d/%Y')
 

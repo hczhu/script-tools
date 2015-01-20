@@ -286,9 +286,16 @@ def KeepCnyCapital():
     print 'Need %d cny to reach %d cny asset'%(target - CAPITAL_INFO['cny']['net'], target)
   return ''
 
+def BuyETFDiscount(name):
+  code = NAME_TO_CODE[name]
+  if FINANCAIL_DATA_ADVANCE[code]['p/sbv'] < 0.97:
+    return GiveTip('Buy', code, 200000)
+  return ''
+
 STRATEGY_FUNCS = [
   FenJiClassA,
   KeepBanks,
+  lambda: BuyETFDiscount('南方A50ETF'),
 
   lambda: KeepGroupPercentIf(['南方A50ETF'], 0.40,
                              hold_conditions = {

@@ -266,7 +266,7 @@ def FenJiClassA():
     rate = FINANCAIL_DATA_BASE[code]['next-rate']
     price = sbv - 1.0 + rate / want_rate
     down_percent = (GetMarketPrice(code) - price) / max(0.10, GetMarketPrice(code)) * 100
-    if down_percent < 2.0:
+    if down_percent < 5.0:
       print 'Buy %s(%s) @%.3f down %.2f%%'%(CODE_TO_NAME[code], code, price, down_percent)
 
   codes.sort(key = lambda code: FINANCAIL_DATA_ADVANCE[code]['sdv/p']) 

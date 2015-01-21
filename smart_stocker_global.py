@@ -166,7 +166,7 @@ CAPITAL_INFO = collections.defaultdict(dict)
 
 MIN_SMA_RATIO = {
   'cny': 0.0,
-  'usd': 0.15,
+  'usd': 0.2,
 }
 
 MACRO_DATA = {}

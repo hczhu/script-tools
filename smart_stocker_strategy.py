@@ -300,7 +300,7 @@ STRATEGY_FUNCS = [
   KeepBanks,
   lambda: BuyETFDiscount('南方A50ETF'),
 
-  lambda: KeepGroupPercentIf(['南方A50ETF'], 0.40,
+  lambda: KeepGroupPercentIf(['南方A50ETF'], 0.30,
                              hold_conditions = {
                                '南方A50ETF': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/ttme'] < 1.0 / (MACRO_DATA['risk-free-rate'] * 1.2),
                              },

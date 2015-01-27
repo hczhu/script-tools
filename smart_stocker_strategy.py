@@ -310,11 +310,6 @@ STRATEGY_FUNCS = [
                              sort_key = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/ttme']
                        ),
 
-  lambda: KeepPercentIf('Yandex', 0.05,
-                        hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.3,
-                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.0
-                       ),
-
   lambda: KeepPercentIf('Weibo', 0.12,
                         hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.5,
                         buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.0

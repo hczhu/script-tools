@@ -272,6 +272,7 @@ def InitExRate():
 
 def PopulateFinancialData():
   for code in FINANCAIL_DATA_BASE.keys():
+    sys.stderr.write('Populating date for %s\n'%(CODE_TO_NAME[code]))
     info = STOCK_INFO[code]
     data = FINANCAIL_DATA_BASE[code]
     adv_data = FINANCAIL_DATA_ADVANCE[code]
@@ -279,12 +280,6 @@ def PopulateFinancialData():
     FINANCAIL_DATA_ADVANCE[code]['mp'] = mp
     if code in NAV_FUNC:
       adv_data['sbv'] = data['sbv'] = NAV_FUNC[code]()
-    if 'cross-share' in data:
-      cross_value = 0.0
-      for pr in data['cross-share']:
-        cross_code = pr[1]
-        cross_value += EX_RATE[STOCK_INFO[cross_code]['currency'] + '-' + info['currency']] * GetMarketPrice(cross_code) * pr[0]
-      data['cross-share'] = cross_value
     for key in FINANCIAL_KEYS:
       if key.find('p/') != -1 and key[2:] in data:
         adv_data[key] = mp / data[key[2:]]

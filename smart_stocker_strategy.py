@@ -98,37 +98,6 @@ def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True
     return op + GiveTip(' ==> Buy', code, cash)
   return '' 
 
-def YahooAndAlibaba():
-  kUnit = 100
-  ratio = 1.0 * CROSS_SHARE['Yahoo-Alibaba'] / SHARES['Yahoo'] * 0.72
-  mp = GetMarketPrice('Yahoo') - ratio * GetMarketPrice('Alibaba')
-  YahooJapanPerShare = 2.3 * 10**12 * EX_RATE['jpy-uSD'] * 0.35 * 0.72 / SHARES['Yahoo']
-  net_money = 7209 * 10**6 / SHARES['Yahoo']
-  PB = mp / (YahooJapanPerShare + net_money)
-  imbalance = HOLDING_SHARES['Yahoo'] * ratio + HOLDING_SHARES['Alibaba']
-  if imbalance / ratio < -50:
-    print 'Buy Yahoo %d unit @%.2f for portfolio parity.' % (-imbalance / ratio, GetMarketPrice('Yahoo'))
-  elif imbalance > 10:
-    print 'Sell Alibaba %d units @%.2f for portfolio parity.' % (imbalance, GetMarketPrice('Alibaba'))
-
-  best_tax_rate = 0.2
-  upper_PB = GetMarketPrice('Yahoo') *SHARES['Yahoo'] / (
-               GetMarketPrice('Yahoo') / GetPB0('Yahoo', GetMarketPrice('Yahoo')) * SHARES['Yahoo'] +
-               CROSS_SHARE['Yahoo-Alibaba'] * GetMarketPrice('Alibaba') * (0.38 - best_tax_rate))
-  if holding_percent['Yahoo'] + holding_percent['Alibaba'] < 0.15 and (PB < 1.4 or upper_PB < 0.95):
-    return 'Long Yahoo @%.2f %d units short Alibaba @%.2f %.0f units with PB = %.2f upper_PB = %.2f' % (
-        GetMarketPrice('Yahoo'), kUnit,
-        GetMarketPrice('Alibaba'), kUnit * ratio,
-        PB, upper_PB
-        )
-  if PB > 2.0:
-    return 'Sell Yahoo @%.2f %d units Buy Alibaba @%.2f %.0f units with upper PB = %.2f' % (
-        GetMarketPrice('Yahoo'), HOLDING_SHARES['Yahoo'],
-        GetMarketPrice('Alibaba'), HOLDING_SHARES['Alibaba'],
-        upper_PB)
-
-  return ''
-
 def ScoreBanks(banks):
   scores = {
     code: GetMarketPrice(code) / ((GetMarketPrice(code) / FINANCAIL_DATA_ADVANCE[code]['p/ttme'] +
@@ -295,6 +264,47 @@ def BuyETFDiscount(name):
     return GiveTip('Buy', code, 200000)
   return ''
 
+def YahooAndAlibaba():
+  codeY = NAME_TO_CODE['Yahoo']
+  codeA = NAME_TO_CODE['Alibaba']
+  value = STOCK_INFO[codeY]['sbv']
+  
+  kUnit = 50
+  ratio = 0
+  for cross in STOCK_INFO[codeY]['cross-share']:
+    name = cross[1]
+    price = GetMarketPrice(code)
+    added_value = price * EX_RATE[STOCK_INFO[code]['currency'] + '-' + STOCK_INFO[codeY]['currency']] * cross[0] * STOCK_INFO[codeY]['tax-rate']
+    if name == CODE_TO_NAME[codeA]:
+      ratio = cross[1] * STOCK_INFO[codeY]['tax-rate']
+    else:
+      added_value *= 0.9
+    value += added_value / STOCK_INFO[codeY]['shares']
+  mp = GetMarketPrice(codeY)
+  PB = mp / value
+  sys.stderr.write('%.2f shares of Alibaba per Yahoo share nav = %.2f PB = %.2f.'%(ratio, value, PB))
+
+  imbalance = HOLDING_SHARES['Yahoo'] * ratio + HOLDING_SHARES['Alibaba']
+  if imbalance / ratio < -50:
+    print 'Buy Yahoo %d unit @%.2f for portfolio parity.' % (-imbalance / ratio, GetMarketPrice('Yahoo'))
+  elif imbalance > 10:
+    print 'Sell Alibaba %d units @%.2f for portfolio parity.' % (imbalance, GetMarketPrice('Alibaba'))
+
+  lower_PB = 0.95
+  if PB < lower_PB:
+    return 'Long Yahoo @%.2f %d units short Alibaba @%.2f %.0f units with PB = %.2f' % (
+        GetMarketPrice('Yahoo'), kUnit,
+        GetMarketPrice('Alibaba'), kUnit * ratio,
+        PB)
+  upper_PB = 1.05
+  if PB > upper_PB:
+    return 'Sell Yahoo @%.2f %d units Buy Alibaba @%.2f %.0f units with PB = %.2f' % (
+        GetMarketPrice('Yahoo'), HOLDING_SHARES['Yahoo'],
+        GetMarketPrice('Alibaba'), HOLDING_SHARES['Alibaba'],
+        PB)
+
+  return ''
+
 STRATEGY_FUNCS = [
   FenJiClassA,
   KeepBanks,
@@ -322,4 +332,5 @@ STRATEGY_FUNCS = [
                        ),
 
   KeepCnyCapital,
+  YahooAndAlibaba,
 ]

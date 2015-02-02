@@ -157,7 +157,7 @@ def GetFinancialData(client):
           assert len(values) == 2
           if 'cross-share' not in financial_data:
             financial_data['cross-share'] = []
-          financial_data['cross-share'] += [(financial_value, NAME_TO_CODE[values[1].split(': ')[1]])]
+          financial_data['cross-share'] += [(financial_value, values[1].split(': ')[1])]
         else:
           financial_data[financial_key] = financial_value
       sys.stderr.write('Basic financial data for %s:%s\n'%(name, str(financial_data)))

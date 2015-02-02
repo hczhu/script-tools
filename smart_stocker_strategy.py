@@ -296,7 +296,7 @@ def YahooAndAlibaba():
   lower_PB = 0.95
   cash = GetCashAndOp([], STOCK_INFO[codeY]['currency'], 0.02)[0]
   if PB < lower_PB and cash > 0:
-    kUnit = cash / GetMarketPrice('Yahoo')
+    kUnit = min(cash / GetMarketPrice('Yahoo'), 100)
     return 'Long Yahoo @%.2f %d units short Alibaba @%.2f %.0f units with PB = %.2f' % (
         GetMarketPrice('Yahoo'), kUnit,
         GetMarketPrice('Alibaba'), kUnit * ratio,

@@ -267,19 +267,21 @@ def BuyETFDiscount(name):
 def YahooAndAlibaba():
   codeY = NAME_TO_CODE['Yahoo']
   codeA = NAME_TO_CODE['Alibaba']
-  value = STOCK_INFO[codeY]['sbv']
+  value = FINANCAIL_DATA_BASE[codeY]['sbv']
+  financial_date = FINANCAIL_DATA_BASE[codeY]
   
   kUnit = 50
   ratio = 0
-  for cross in STOCK_INFO[codeY]['cross-share']:
+  for cross in financial_date['cross-share']:
     name = cross[1]
-    price = GetMarketPrice(code)
-    added_value = price * EX_RATE[STOCK_INFO[code]['currency'] + '-' + STOCK_INFO[codeY]['currency']] * cross[0] * STOCK_INFO[codeY]['tax-rate']
-    if name == CODE_TO_NAME[codeA]:
-      ratio = cross[1] * STOCK_INFO[codeY]['tax-rate']
+    code = NAME_TO_CODE[name]
+    price = GetMarketPrice(name)
+    added_value = price * EX_RATE[STOCK_INFO[code]['currency'] + '-' + STOCK_INFO[codeY]['currency']] * cross[0] * financial_date['tax-rate']
+    if code == codeA:
+      ratio = cross[0] * financial_date['tax-rate']
     else:
       added_value *= 0.9
-    value += added_value / STOCK_INFO[codeY]['shares']
+    value += added_value / financial_date['shares']
   mp = GetMarketPrice(codeY)
   PB = mp / value
   sys.stderr.write('%.2f shares of Alibaba per Yahoo share nav = %.2f PB = %.2f.'%(ratio, value, PB))

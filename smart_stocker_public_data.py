@@ -70,10 +70,8 @@ def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True, reg_exp =
 def GetJapanStockPriceAndChange(code):
   url = 'http://jp.reuters.com/investing/quotes/quote?symbol=%s.T'%(str(code))
   try:
-    return (GetValueFromUrl(url, ['<div id="priceQuote">', '<span class="valueContent">'],
-                            '</span>', lambda s: float(s.replace(',', '')), reg_exp = '[0-9.,]+'),
-            GetValueFromUrl(url, ['<div id="percentChange">', '<span class="valueContent"><span class="', '>'],
-                            '%', lambda s: float(s.replace(',', '')), reg_exp = '[0-9.,]+'))
+    return [GetValueFromUrl(url, ['<div id="priceQuote">', '<span class="valueContent">'],
+                            '</span>', lambda s: float(s.replace(',', '')), reg_exp = '[0-9.,]+'), 0.0]
   except:
     return [float(0), 0.0]
 

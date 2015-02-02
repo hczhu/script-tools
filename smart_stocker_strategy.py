@@ -270,21 +270,22 @@ def YahooAndAlibaba():
   value = FINANCAIL_DATA_BASE[codeY]['sbv']
   financial_date = FINANCAIL_DATA_BASE[codeY]
   
-  kUnit = 50
+  kUnit = 60
   ratio = 0
   for cross in financial_date['cross-share']:
     name = cross[1]
     code = NAME_TO_CODE[name]
     price = GetMarketPrice(name)
-    added_value = price * EX_RATE[STOCK_INFO[code]['currency'] + '-' + STOCK_INFO[codeY]['currency']] * cross[0] * financial_date['tax-rate']
+    per_share = cross[0] * (1.0 - financial_date['tax-rate']) / financial_date['shares']
+    added_value = price * EX_RATE[STOCK_INFO[code]['currency'] + '-' + STOCK_INFO[codeY]['currency']] * per_share
     if code == codeA:
-      ratio = cross[0] * financial_date['tax-rate']
+      ratio = per_share
     else:
       added_value *= 0.9
-    value += added_value / financial_date['shares']
+    value += added_value
   mp = GetMarketPrice(codeY)
   PB = mp / value
-  sys.stderr.write('%.2f shares of Alibaba per Yahoo share nav = %.2f PB = %.2f.'%(ratio, value, PB))
+  sys.stderr.write('%.2f shares of Alibaba per Yahoo share nav = %.2f PB = %.2f.\n'%(ratio, value, PB))
 
   imbalance = HOLDING_SHARES['Yahoo'] * ratio + HOLDING_SHARES['Alibaba']
   if imbalance / ratio < -50:
@@ -299,7 +300,7 @@ def YahooAndAlibaba():
         GetMarketPrice('Alibaba'), kUnit * ratio,
         PB)
   upper_PB = 1.05
-  if PB > upper_PB:
+  if PB > upper_PB and HOLDING_SHARES['Yahoo'] > 0:
     return 'Sell Yahoo @%.2f %d units Buy Alibaba @%.2f %.0f units with PB = %.2f' % (
         GetMarketPrice('Yahoo'), HOLDING_SHARES['Yahoo'],
         GetMarketPrice('Alibaba'), HOLDING_SHARES['Alibaba'],

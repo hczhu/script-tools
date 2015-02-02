@@ -293,9 +293,12 @@ def YahooAndAlibaba():
   elif imbalance > 10:
     print 'Sell Alibaba %d units @%.2f for portfolio parity.' % (imbalance, GetMarketPrice('Alibaba'))
 
+  holding_percent = {
+    code: ASSET_INFO[code]['net-percent'] if code in ASSET_INFO else 0 for code in map(lambda name : NAME_TO_CODE[name], ['Alibaba', 'Yahoo'])
+  }
   lower_PB = 0.95
   cash = GetCashAndOp([], STOCK_INFO[codeY]['currency'], 0.02)[0]
-  if PB < lower_PB and cash > 0:
+  if PB < lower_PB and cash > 0 and holding_percent[codeY] < 0.1:
     kUnit = min(cash / GetMarketPrice('Yahoo'), 100)
     return 'Long Yahoo @%.2f %d units short Alibaba @%.2f %.0f units with PB = %.2f' % (
         GetMarketPrice('Yahoo'), kUnit,

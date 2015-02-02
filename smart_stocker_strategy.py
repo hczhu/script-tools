@@ -270,7 +270,7 @@ def YahooAndAlibaba():
   value = FINANCAIL_DATA_BASE[codeY]['sbv']
   financial_date = FINANCAIL_DATA_BASE[codeY]
   
-  kUnit = 60
+  kUnit = 100
   ratio = 0
   for cross in financial_date['cross-share']:
     name = cross[1]
@@ -294,7 +294,9 @@ def YahooAndAlibaba():
     print 'Sell Alibaba %d units @%.2f for portfolio parity.' % (imbalance, GetMarketPrice('Alibaba'))
 
   lower_PB = 0.95
-  if PB < lower_PB:
+  cash = GetCashAndOp([], STOCK_INFO[codeY]['currency'], 0.02)[0]
+  if PB < lower_PB and cash > 0:
+    kUnit = cash / GetMarketPrice('Yahoo')
     return 'Long Yahoo @%.2f %d units short Alibaba @%.2f %.0f units with PB = %.2f' % (
         GetMarketPrice('Yahoo'), kUnit,
         GetMarketPrice('Alibaba'), kUnit * ratio,
@@ -313,12 +315,12 @@ STRATEGY_FUNCS = [
   KeepBanks,
   lambda: BuyETFDiscount('南方A50ETF'),
 
-  lambda: KeepGroupPercentIf(['南方A50ETF'], 0.40,
+  lambda: KeepGroupPercentIf(['南方A50ETF'], 0.30,
                              hold_conditions = {
                                '南方A50ETF': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/ttme'] < 1.0 / (MACRO_DATA['risk-free-rate'] * 1.2),
                              },
                              buy_conditions = {
-                               '南方A50ETF': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/ttme'] < 10 and FINANCAIL_DATA_ADVANCE[code]['p/sbv'] < 1.005,
+                               '南方A50ETF': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/ttme'] < 9 and FINANCAIL_DATA_ADVANCE[code]['p/sbv'] < 1.005,
                              },
                              sort_key = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/ttme']
                        ),

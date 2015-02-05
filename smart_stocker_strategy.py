@@ -30,7 +30,7 @@ def GetCashAndOp(backup, currency, max_percent):
   cash_percent = min(max_percent, buying_power['net-percent'])
   if cash_percent > 0.01:
     return (cash_percent * CAPITAL_INFO['all']['net'] * EX_RATE[CURRENCY + '-' + currency], '')
-  backup = filter(lambda code: code in ASSET_INFO, [NAME_TO_CODE[name] for name in backup])
+  backup = filter(lambda code: code in ASSET_INFO, [NAME_TO_CODE[name] if name in NAME_TO_CODE else name for name in backup])
   if len(backup) == 0: return (0, '')
   backup.sort(key = lambda code: (0 if currency == ASSET_INFO[code]['currency'] else 1,
                                   ASSET_INFO[code]['net-percent']))

@@ -126,9 +126,10 @@ def NoBuyBanks(banks):
 def KeepBanks(targetPercent):
   percent_delta = 0.04
   swap_percent_delta = 0.02
-  normal_valuation_delta = 0.08
-  a2h_discount = max(0.6 * MACRO_DATA['ah-premium'], normal_valuation_delta)
+  normal_valuation_delta = 0.05
+  a2h_discount = max(0.5 * MACRO_DATA['ah-premium'], normal_valuation_delta)
   h2a_discount = 0.08
+  overflow_valuation_delta = 0.03
   max_bank_percent = {
     '建设银行': 0.4,
     '建设银行H': 0.4,
@@ -196,7 +197,8 @@ def KeepBanks(targetPercent):
         valuation_delta = a2h_discount
       elif STOCK_INFO[worse]['currency'] == 'hkd' and STOCK_INFO[better]['currency'] == 'cny':
         valuation_delta = h2a_discount
-      if holding_asset_percent[worse] > max_bank_percent[worse]: valuation_delta = 0.02
+      if holding_asset_percent[worse] > max_bank_percent[worse]:
+        valuation_delta = overflow_valuation_delta
       valuation_ratio = valuation[worse] / valuation[better]
       sys.stderr.write('%s ==> %s delta = %.3f valuation ratio = %.2f\n'%(
                        CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_delta, valuation_ratio))

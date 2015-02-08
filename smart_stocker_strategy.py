@@ -30,7 +30,7 @@ def GetCashAndOp(backup, currency, max_percent):
   cash_percent = min(max_percent, buying_power['net-percent'])
   if cash_percent > 0.01:
     return (cash_percent * CAPITAL_INFO['all']['net'] * EX_RATE[CURRENCY + '-' + currency], '')
-  backup = filter(lambda code: code in ASSET_INFO, [NAME_TO_CODE[name] for name in backup])
+  backup = filter(lambda code: code in ASSET_INFO, [NAME_TO_CODE[name] if name in NAME_TO_CODE else name for name in backup])
   if len(backup) == 0: return (0, '')
   backup.sort(key = lambda code: (0 if currency == ASSET_INFO[code]['currency'] else 1,
                                   ASSET_INFO[code]['net-percent']))
@@ -123,10 +123,9 @@ def NoBuyBanks(banks):
   return filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/sbv'] > 1.2,
                 banks)
 
-def KeepBanks():
+def KeepBanks(targetPercent):
   percent_delta = 0.04
   swap_percent_delta = 0.02
-  targetPercent = 1.0
   normal_valuation_delta = 0.08
   a2h_discount = max(0.6 * MACRO_DATA['ah-premium'], normal_valuation_delta)
   h2a_discount = 0.08
@@ -313,12 +312,17 @@ def YahooAndAlibaba():
 
   return ''
 
-STRATEGY_FUNCS = [
-  FenJiClassA,
-  KeepBanks,
-  lambda: BuyETFDiscount('南方A50ETF'),
-
-  lambda: KeepGroupPercentIf(['南方A50ETF'], 0.30,
+def BalanceAHBanks():
+  percent_sum = 1.4
+  max_A_percent =0.4
+  base_ah_premium = 0.23
+  max_ah_premium = 0.35
+  target_A_percent = max_A_percent / (max_ah_premium - base_ah_premium) * (max_ah_premium - MACRO_DATA['ah-premium'])
+  target_A_percent = min(max_A_percent, target_A_percent)
+  target_A_percent = max(0, target_A_percent)
+  target_bank_percent = percent_sum - target_A_percent
+  sys.stderr.write('Target bank percent = %.2f A50 percent = %.2f\n'%(target_bank_percent, target_A_percent))
+  res = KeepGroupPercentIf(['南方A50ETF'], target_A_percent,
                              hold_conditions = {
                                '南方A50ETF': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/ttme'] < 1.0 / (MACRO_DATA['risk-free-rate'] * 1.2),
                              },
@@ -326,7 +330,14 @@ STRATEGY_FUNCS = [
                                '南方A50ETF': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/ttme'] < 9 and FINANCAIL_DATA_ADVANCE[code]['p/sbv'] < 1.005,
                              },
                              sort_key = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/ttme']
-                       ),
+                       )
+  if res != '': res += ' '
+  res += KeepBanks(target_bank_percent)
+  return res
+  
+STRATEGY_FUNCS = [
+  FenJiClassA,
+  lambda: BuyETFDiscount('南方A50ETF'),
 
   lambda: KeepPercentIf('Weibo', 0.12,
                         hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.5,
@@ -341,4 +352,5 @@ STRATEGY_FUNCS = [
 
   KeepCnyCapital,
   YahooAndAlibaba,
+  BalanceAHBanks,
 ]

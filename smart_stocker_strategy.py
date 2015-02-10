@@ -127,7 +127,7 @@ def KeepBanks(targetPercent):
   percent_delta = 0.04
   swap_percent_delta = 0.02
   normal_valuation_delta = 0.08
-  a2h_discount = max(0.6 * MACRO_DATA['ah-premium'], normal_valuation_delta)
+  a2h_discount = max(0.5 * MACRO_DATA['ah-premium'], normal_valuation_delta)
   h2a_discount = 0.08
   max_bank_percent = {
     '建设银行': 0.5,
@@ -227,6 +227,7 @@ def FenJiClassA():
       for code in codes
   }
 
+  codes.sort(key = lambda code: FINANCAIL_DATA_ADVANCE[code]['sdv/p']) 
   want_rate = 7.0 / 100
   sell_rate = 6.5 / 100
   for code in codes:
@@ -237,7 +238,6 @@ def FenJiClassA():
     if down_percent < 8.0:
       print 'Buy %s(%s) @%.3f down %.2f%%'%(CODE_TO_NAME[code], code, price, down_percent)
 
-  codes.sort(key = lambda code: FINANCAIL_DATA_ADVANCE[code]['sdv/p']) 
   for code in codes:
     adv_data = FINANCAIL_DATA_ADVANCE[code]
     if adv_data['sdv/p'] < sell_rate and holding_market_value[code] > 0:

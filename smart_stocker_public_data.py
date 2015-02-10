@@ -279,9 +279,9 @@ def PopulateFinancialData():
     if code in NAV_FUNC:
       adv_data['sbv'] = data['sbv'] = NAV_FUNC[code]()
     for key in FINANCIAL_KEYS:
-      if key.find('p/') != -1 and key[2:] in data:
+      if key.find('p/') != -1 and key[2:] in data and data[key[2:]] > 0:
         adv_data[key] = mp / data[key[2:]]
-      elif key.find('/p') != -1 and key[0:-2] in data:
+      elif key.find('/p') != -1 and key[0:-2] in data and data[key[0:-2]] > 0:
         adv_data[key] = data[key[0:-2]] / mp
     # Populate corresponding h-share.
     if 'hcode' in info:

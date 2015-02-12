@@ -131,8 +131,8 @@ def KeepBanks(targetPercent):
   h2a_discount = 0.01
   overflow_valuation_delta = 0.01
   max_bank_percent = {
-    '建设银行': 0.3,
-    '建设银行H': 0.3,
+    '建设银行': 0.4,
+    '建设银行H': 0.4,
     '招商银行': 0.4,
     '招商银行H': 0.4,
     '中国银行': 0.25,

@@ -120,7 +120,7 @@ def GetPercent(code,holding_asset_percent):
   return percent
 
 def NoBuyBanks(banks):
-  return filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/sbv'] > 1.3,
+  return filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/sbv'] > 1.2,
                 banks)
 
 def KeepBanks(targetPercent):
@@ -219,15 +219,15 @@ def FenJiClassA():
   discount_ones = [NAME_TO_CODE[name] for name in ['德信A']]
   codes = filter(lambda code: code not in set(discount_ones), codes)
   
-  lowest_discount = 0.99
-  for code in discount_ones:
-    if FINANCAIL_DATA_ADVANCE[code]['p/sbv'] > lowest_discount:
-      print 'Sell %s(%s) @%.3f due to discount = %.3f'%(code, CODE_TO_NAME[code], GetMarketPrice(code), FINANCAIL_DATA_ADVANCE[code]['p/sbv'])
-
   holding_market_value = {
     code : ASSET_INFO[code]['market-value'] if code in ASSET_INFO else 0 \
-      for code in codes
+      for code in codes + discount_ones
   }
+
+  lowest_discount = 0.99
+  for code in discount_ones:
+    if FINANCAIL_DATA_ADVANCE[code]['p/sbv'] > lowest_discount and holding_market_value[code] > 0:
+      print 'Sell %s(%s) @%.3f due to discount = %.3f'%(code, CODE_TO_NAME[code], GetMarketPrice(code), FINANCAIL_DATA_ADVANCE[code]['p/sbv'])
 
   codes.sort(key = lambda code: FINANCAIL_DATA_ADVANCE[code]['sdv/p']) 
   want_rate = 7.0 / 100

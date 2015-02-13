@@ -231,7 +231,7 @@ def FenJiClassA():
 
   codes.sort(key = lambda code: FINANCAIL_DATA_ADVANCE[code]['sdv/p']) 
   want_rate = 7.0 / 100
-  sell_rate = 6.5 / 100
+  sell_rate = 6.05 / 100
   for code in codes:
     sbv = FINANCAIL_DATA_ADVANCE[code]['sbv']
     rate = FINANCAIL_DATA_BASE[code]['next-rate']

@@ -32,23 +32,26 @@ def HellingerDistance(mean1, sigma1, mean2, sigma2):
         math.exp(-math.pow(mean1 - mean2, 2) / (4 * (sigma1 * sigma1 + sigma2 * sigma2))))
 
 if __name__ == "__main__":
-  names = sys.stdin.readline().strip().split(',')
+  names = sys.stdin.readline().strip().split(' ')
   matrix = []
   for line in sys.stdin:
     features = [0.0] * (len(names) + 1)
-    tokens = line.strip().split(',')
+    if line.find('#') != -1:
+        line = line[0:line.find('#')]
+    tokens = line.strip().split(' ')
     for idx in range(len(tokens)):
       if -1 == tokens[idx].find(':'):
         features[idx] = float(tokens[idx])
       else:
         fid, value = tokens[idx].split(':')
         features[int(fid)] = float(value)
+    features[0] = max(features[0], 0)
     matrix.append(features)
-  
+
   matrix = numpy.matrix(matrix)
-  
+
   header = ['Feature', 'Positive Mean(Std Dev)', 'Negative Mean(Std Dev)', 'Hellinger distance', 'Correlation']
-  
+
   table_content = []
   positive_index = numpy.nonzero(matrix[:, 0])[0].tolist()[0]
   negative_index = list(set(range(matrix.shape[0])) - set(positive_index))
@@ -67,6 +70,6 @@ if __name__ == "__main__":
              HellingerDistance(pm, pd, nm, nd),
              Pearson(labels, values),
            ])
-  
+
   table_content.sort(reverse = True, key = lambda line: abs(line[4]))
   PrintTable(header, table_content)

@@ -110,9 +110,8 @@ NAME_TO_CODE = {}
 
 TOTAL_CAPITAL = collections.defaultdict(int)
 
-TOTAL_INVESTMENT = {
-  'cny': 0, 'usd': 0, 'hkd': 0, 'jpy': 0,
-}
+TOTAL_INVESTMENT = collections.defaultdict(int)
+
 NET_ASSET_BY_CURRENCY = collections.defaultdict(int)
 
 TOTAL_TRANSACTION_FEE = collections.defaultdict(float)
@@ -147,7 +146,6 @@ FINANCIAL_KEYS = set([
   'p/sbvadv', # p/sbv after dividend.
   'p/dbvadv', # p/dbv after dividend.
   'cross-share', # hold shares of other company in the format of 'stock / per self stock, name'
-  'p/cross-share', # hold shares of other company in the format of 'stock / per self stock, name'
   'tax-rate',
   'start-date', # 固定收益类本周起计息日
   'interest-rate', # 固定收益类年化利率
@@ -166,17 +164,24 @@ CAPITAL_INFO = collections.defaultdict(dict)
 
 MIN_SMA_RATIO = {
   'cny': 0.0,
-  'usd': 0.1,
+  'usd': 0.2,
 }
 
 MACRO_DATA = {}
 
 SMA_DISCOUNT = {
-  'cny': 0.0,
-  'usd': 0.5,
+  'a': 0.0,
+  'ib': 0.8,
+  'schwab': 0.0,
 }
 
 ASSET_INFO = collections.defaultdict(dict)
+
+ACCOUNT_INFO = {
+  'a': 'cny',
+  'ib': 'usd',
+  'schwab': 'usd',
+}
 
 #----------Begining of global variables------------------
 

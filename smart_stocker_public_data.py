@@ -49,7 +49,7 @@ def AppannieScore(company, country = 'japan'):
       idx = content.find(company)
   return res
 
-def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True, reg_exp = '[0-9.]+'):
+def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True, reg_exp = '[0-9.]+', default_value = None):
   try:
     if url not in URL_CONTENT_CACHE:
       request = urllib2.Request(url)
@@ -65,15 +65,13 @@ def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True, reg_exp =
     sys.stderr.write('Exception ' + str(e) +'\n')
     sys.stderr.write('Failed to open url: ' + url + '\n')
     if throw_exp: raise
-    return func('0.0')
+    return (default_value if default_value is not None else func('0.0'))
 
 def GetJapanStockPriceAndChange(code):
   url = 'http://jp.reuters.com/investing/quotes/quote?symbol=%s.T'%(str(code))
   try:
-    return (GetValueFromUrl(url, ['<div id="priceQuote">', '<span class="valueContent">'],
-                            '</span>', lambda s: float(s.replace(',', '')), reg_exp = '[0-9.,]+'),
-            GetValueFromUrl(url, ['<div id="percentChange">', '<span class="valueContent"><span class="', '>'],
-                            '%', lambda s: float(s.replace(',', '')), reg_exp = '[0-9.,]+'))
+    return [GetValueFromUrl(url, ['<div id="priceQuote">', '<span class="valueContent">'],
+                            '</span>', lambda s: float(s.replace(',', '')), reg_exp = '[0-9.,]+'), 0.0]
   except:
     return [float(0), 0.0]
 
@@ -91,6 +89,11 @@ MARKET_PRICE_FUNC = {
                     GetValueFromUrl('http://www.bloomberg.com/quote/NKY:IND',
                                     ['<meta itemprop="priceChangePercent" content="'],
                                     '"', lambda s: float(s.replace(',', '')))]
+}
+
+NAV_FUNC = {
+  '02822': lambda: GetValueFromUrl('http://www.csop.mdgms.com/iopv/nav.html?l=tc',
+                                   ['即日估計每基金單位資產淨值', 'nIopvPriceHKD', '>'], '<', float, False, default_value = 1.0),
 }
 
 def GetCurrency(code):
@@ -267,21 +270,18 @@ def InitExRate():
 
 def PopulateFinancialData():
   for code in FINANCAIL_DATA_BASE.keys():
+    sys.stderr.write('Populating date for %s\n'%(CODE_TO_NAME[code]))
     info = STOCK_INFO[code]
     data = FINANCAIL_DATA_BASE[code]
     adv_data = FINANCAIL_DATA_ADVANCE[code]
     mp = GetMarketPrice(code)
     FINANCAIL_DATA_ADVANCE[code]['mp'] = mp
-    if 'cross-share' in data:
-      cross_value = 0.0
-      for pr in data['cross-share']:
-        cross_code = pr[1]
-        cross_value += EX_RATE[STOCK_INFO[cross_code]['currency'] + '-' + info['currency']] * GetMarketPrice(cross_code) * pr[0]
-      data['cross-share'] = cross_value
+    if code in NAV_FUNC:
+      adv_data['sbv'] = data['sbv'] = NAV_FUNC[code]()
     for key in FINANCIAL_KEYS:
-      if key.find('p/') != -1 and key[2:] in data:
+      if key.find('p/') != -1 and key[2:] in data and data[key[2:]] > 0:
         adv_data[key] = mp / data[key[2:]]
-      elif key.find('/p') != -1 and key[0:-2] in data:
+      elif key.find('/p') != -1 and key[0:-2] in data and data[key[0:-2]] > 0:
         adv_data[key] = data[key[0:-2]] / mp
     # Populate corresponding h-share.
     if 'hcode' in info:
@@ -298,6 +298,7 @@ def PopulateFinancialData():
       FINANCAIL_DATA_ADVANCE[info['hcode']] = h_adv_data
     if 'class-b' in data:
       data['sbv'] = adv_data['sbv'] = 1.0 + (datetime.date.today() - data['last-date']).days / 365.0 * data['last-rate']
+      adv_data['p/sbv'] = mp / data['sbv']
       adv_data['sdv/p'] = data['next-rate'] / (1.0 - (adv_data['sbv'] - mp))
 
 def PopulateMacroData():
@@ -310,7 +311,7 @@ def PopulateMacroData():
   except Exception, e:
     MACRO_DATA['ah-premium'] = 0.1
     sys.stderr.write('Failed to get ah premium with exception [%s]\n'%(str(e)))
-  MACRO_DATA['risk-free-rate'] = 0.0735
+  MACRO_DATA['risk-free-rate'] = 0.07
   MACRO_DATA['official-rate'] = 0.0275
   sys.stderr.write('macro data = %s\n'%(str(MACRO_DATA)))
   

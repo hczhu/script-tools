@@ -37,6 +37,7 @@ def GetTable(gd_client, table_key, worksheet_key = 'od6'):
     entries = feeds.entry
     rows = []
     for row in entries:
+      if 'disabled' in row.custom and row.custom['disabled'].text is not None: continue
       rows.append({key : row.custom[key].text for key in row.custom.keys()})
       for key in rows[-1].keys():
         if rows[-1][key] is not None:
@@ -156,7 +157,7 @@ def GetFinancialData(client):
           assert len(values) == 2
           if 'cross-share' not in financial_data:
             financial_data['cross-share'] = []
-          financial_data['cross-share'] += [(financial_value, NAME_TO_CODE[values[1].split(': ')[1]])]
+          financial_data['cross-share'] += [(financial_value, values[1].split(': ')[1])]
         else:
           financial_data[financial_key] = financial_value
       sys.stderr.write('Basic financial data for %s:%s\n'%(name, str(financial_data)))

@@ -43,7 +43,7 @@ def GetIRR(market_value, cash_flow_records):
       if balance < 0:
         balance *= pow(day_loan_rate, (record[0] - prev_date).days)
       prev_date = record[0]
-      if record[1] in TOTAL_INVESTMENT:
+      if len(record[1]) == 0:
         #invest money or withdraw cash
         balance -= record[2]
         dcf += record[2] * pow(day_rate, (now - record[0]).days)
@@ -140,7 +140,6 @@ def ReadRecords():
 
   records.sort(key = lambda record: record['date']) 
 
-  all_records = collections.defaultdict(list)
   sell_fee = 18.1 / 10000
   buy_fee = 8.1 / 10000
   for record in records:
@@ -149,23 +148,44 @@ def ReadRecords():
     fee = float(record['commission']) if record['commission'] is not None else (
       buy_fee * abs(buy_shares * price) if buy_shares > 0 else sell_fee * abs(buy_shares * price))
     record['price'], record['amount'], record['commission'] = price, buy_shares, fee
-    last = all_records[record['ticker']][-1] if len(all_records[record['ticker']]) > 0 else {}
-    if (len(last) > 0 and
-        (record['date'] - last['date']).days < 7
-        and record['transaction'].find('股息') == -1
-        and last['transaction'].find('股息') == -1):
-      if buy_shares + last['amount'] != 0:
-        last['price'] = (last['extra'] + buy_shares * price + last['amount'] * last['price']) / (buy_shares + last['amount'])
-        last['extra'] = 0
-      else:
-        last['extra'] += buy_shares * price + last['amount'] * last['price']
-      last['amount'] += buy_shares
-      last['commission'] += fee
-    else:
-      all_records[record['ticker']].append(record)
-  return all_records
+  return records
 
-def PrintHoldingSecurities(all_records, charts = False):
+def ProcessOneAccount(all_records):
+  clutered_records = collections.defaultdict(list)
+  for record in all_records:
+    clutered_records[record['ticker']].append(record)
+  for ticker in clutered_records.keys():
+    sys.stderr.write('Processing [' + ticker + ']\n')
+    records = clutered_records[ticker]
+    name = records[0]['name']
+    name = name if name is not None else ''
+    account = records[0]['account']
+    # All in CURRENCY
+    (net_profit, capital_cost, remain_stock, dtp, dt, txn_fee, currency, function, division) = CalOneStock(
+     records, ticker, name)
+    if len(ticker) == 0:
+      TOTAL_CAPITAL[account] += -net_profit
+      TOTAL_CAPITAL[currency] += -net_profit
+      continue
+    if ticker in STOCK_INFO and currency != STOCK_INFO[ticker]['currency']:
+      print 'Inconsistent currency for %s: %s != %s'%(CODE_TO_NAME[ticker], currency, STOCK_INFO[ticker]['currency'])
+    investment = -net_profit
+    TOTAL_INVESTMENT[account] += investment
+    TOTAL_INVESTMENT[currency] += investment
+    TOTAL_TRANSACTION_FEE[account] += txn_fee
+    TOTAL_TRANSACTION_FEE[currency] += txn_fee
+    ex_rate = EX_RATE[currency + '-' + CURRENCY]
+    mp, chg, mv, = 0.0001, 0, 0
+    if remain_stock != 0:
+      mp = GetMarketPrice(key)
+      chg = GetMarketPriceChange(key)
+      mv = mp * remain_stock * ex_rate
+    TOTAL_MARKET_VALUE[account] += mv
+    TOTAL_MARKET_VALUE[currency] += mv
+    HOLDING_SHARES[ticker] += remain_stock
+    sys.stderr.write('Profit %.0f from %s shares %d\n'%(net_profit + mv, name, remain_stock))
+    
+def PrintHoldingSecurities(all_records):
   global NET_ASSET_BY_CURRENCY
   silent_column = [
   ]
@@ -178,50 +198,29 @@ def PrintHoldingSecurities(all_records, charts = False):
   summation = {}
   summation['Stock name'] = 'Summary'
   
-  function_html = ''
-  div_html = ''
-  
-  for key in all_records.keys():
-    sys.stderr.write('Processing [' + key + ']\n')
-    name = all_records[key][0]['name']
-    name = name if name is not None else ''
-    # All in CURRENCY
-    (net_profit, capital_cost, remain_stock, dtp, dt, txn_fee, currency, function, division) = CalOneStock(
-     all_records[key], key, name)
-    if key in TOTAL_INVESTMENT:
-      TOTAL_CAPITAL[currency] += -net_profit
-      continue
-    if key in STOCK_INFO and currency != STOCK_INFO[key]['currency']:
-      print 'Inconsistent currency for %s: %s != %s'%(CODE_TO_NAME[key], currency, STOCK_INFO[key]['currency'])
-    function_html += function
-    div_html += division
-    investment = -net_profit
-    TOTAL_INVESTMENT[currency] += investment
-    TOTAL_TRANSACTION_FEE[currency] += txn_fee
-    ex_rate = EX_RATE[currency + '-' + CURRENCY]
-    mp, chg, mv, = 0.0001, 0, 0
-    if remain_stock != 0:
-      mp = GetMarketPrice(key)
-      chg = GetMarketPriceChange(key)
-      mv = mp * remain_stock * ex_rate
-    TOTAL_MARKET_VALUE[currency] += mv
-    HOLDING_SHARES[key] = remain_stock
-    sys.stderr.write('Profit %.0f from %s shares %d\n'%(net_profit + mv, CODE_TO_NAME[key] if key in CODE_TO_NAME else key, remain_stock))
+  for account in ACCOUNT_INFO.keys():
+    ProcessOneAccount(filter(lambda record: record['account'] != account, records))
+
+  for ticker in HOLDING_SHARES.keys():
+    if HOLDING_SHARES[ticker] == 0: continue
+    mp = GetMarketPrice(ticker)
+    chg = GetMarketPriceChange(ticker)
+    mv = mp * HOLDING_SHARES[ticker]  * ex_rate
     record = {
-        'Code': key,
-        'HS': remain_stock,
+        'Code': ticker,
+        'HS': HOLDING_SHARES[ticker],
         'MV': myround(mv, 0),
         'MV(K)': myround(mv / 1000.0, 0),
         'currency': currency,
         'Price': mp,
         'Chg': round(chg, 2),
         'CC': myround(capital_cost, 0),
-        '#TxN': len(all_records[key]),
+        '#TxN': len(all_records[ticker]),
         'TNF': myround(txn_fee, 0),
         'DTP': myround(dtp, 0),
         '#DT': dt,
         'Pos': remain_stock,
-        'Stock name': name + '(' + key + ')',
+        'Stock name': name + '(' + ticker + ')',
     }
     for col in ['MV', 'MV(K)', 'CC', '#TxN', 'TNF', 'DTP', '#DT']:
       summation[col] = summation.get(col, 0) + record[col]
@@ -244,7 +243,8 @@ def PrintHoldingSecurities(all_records, charts = False):
       buy_shares = record['amount']
       price = record['price'] * ex_rate
       value = -price * buy_shares - fee - record['extra'] * ex_rate
-      cash_flow[currency].append([trans_date, key, value]);
+      cash_flow[currency].append([trans_date, record['ticker'], value]);
+      cash_flow[record['account']].append([trans_date, record['ticker'], value]);
   
   cash_flow['usd'] += cash_flow['hkd']
   cash_flow['usd'] += cash_flow['jpy']
@@ -254,6 +254,8 @@ def PrintHoldingSecurities(all_records, charts = False):
     dt['all'] = dt['usd'] + dt['cny']
     dt['cny'] *= EX_RATE[CURRENCY + '-cny']
     dt['usd'] *= EX_RATE[CURRENCY + '-usd']
+    for account in ACCOUNT_INFO.keys():
+      dt[account] *= EX_RATE[CURRENCY + '-' + ACCOUNT_INFO[account]]
 
   cash_flow['all'] = copy.deepcopy(cash_flow['usd'] + cash_flow['cny'])
   for record in cash_flow['cny']:
@@ -261,21 +263,22 @@ def PrintHoldingSecurities(all_records, charts = False):
   for record in cash_flow['usd']:
     record[2] *= EX_RATE[CURRENCY + '-usd']
   
-  for currency in ['usd', 'cny', 'all']:
-    NET_ASSET_BY_CURRENCY[currency] = TOTAL_MARKET_VALUE[currency] + TOTAL_CAPITAL[currency] - TOTAL_INVESTMENT[currency]
-    CAPITAL_INFO[currency] = {
-        'cash': TOTAL_CAPITAL[currency],
-        'currency': currency,
-        'net': int(TOTAL_MARKET_VALUE[currency] + TOTAL_CAPITAL[currency] - TOTAL_INVESTMENT[currency]),
-        'market-value': int(TOTAL_MARKET_VALUE[currency]),
-        'free-cash': int(TOTAL_CAPITAL[currency] - TOTAL_INVESTMENT[currency]),
-        'txn-fee': int(TOTAL_TRANSACTION_FEE[currency]),
-        'txn-fee-ratio': 100.0 * TOTAL_TRANSACTION_FEE[currency] / TOTAL_MARKET_VALUE[currency],
-        'IRR': GetIRR(TOTAL_MARKET_VALUE[currency], cash_flow[currency]) * 100,
+  for account in ACCOUNT_INFO.keys() + ['all']:
+    NET_ASSET_BY_CURRENCY[account] = TOTAL_MARKET_VALUE[account] + TOTAL_CAPITAL[account] - TOTAL_INVESTMENT[account]
+    CAPITAL_INFO[account] = {
+        'cash': TOTAL_CAPITAL[account],
+        'account': account,
+        'net': int(TOTAL_MARKET_VALUE[account] + TOTAL_CAPITAL[account] - TOTAL_INVESTMENT[account]),
+        'market-value': int(TOTAL_MARKET_VALUE[account]),
+        'free-cash': int(TOTAL_CAPITAL[account] - TOTAL_INVESTMENT[account]),
+        'txn-fee': int(TOTAL_TRANSACTION_FEE[account]),
+        'txn-fee-ratio': 100.0 * TOTAL_TRANSACTION_FEE[account] / TOTAL_MARKET_VALUE[account],
+        'IRR': GetIRR(TOTAL_MARKET_VALUE[account], cash_flow[account]) * 100,
     }
-    CAPITAL_INFO[currency]['leverage'] = 1.0 * CAPITAL_INFO[currency]['market-value'] / CAPITAL_INFO[currency]['net']
-  for currency in ['usd', 'cny']:
-    CAPITAL_INFO[currency]['SMA'] = CAPITAL_INFO[currency]['free-cash'] + CAPITAL_INFO[currency]['market-value'] * SMA_DISCOUNT[currency]
+    CAPITAL_INFO[account]['leverage'] = 1.0 * CAPITAL_INFO[account]['market-value'] / CAPITAL_INFO[account]['net']
+  for account in ACCOUNT_INFO.keys():
+    CAPITAL_INFO[account]['SMA'] = CAPITAL_INFO[account]['free-cash'] + CAPITAL_INFO[account]['market-value'] * SMA_DISCOUNT[account]
+    
   for code in HOLDING_SHARES.keys():
     if HOLDING_SHARES[code] < 0:
       CAPITAL_INFO['usd']['SMA'] += int(HOLDING_SHARES[code] * GetMarketPrice(code) * EX_RATE[STOCK_INFO[code]['currency'] + '-usd'])

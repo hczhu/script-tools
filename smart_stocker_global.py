@@ -110,9 +110,8 @@ NAME_TO_CODE = {}
 
 TOTAL_CAPITAL = collections.defaultdict(int)
 
-TOTAL_INVESTMENT = {
-  'cny': 0, 'usd': 0, 'hkd': 0, 'jpy': 0,
-}
+TOTAL_INVESTMENT = collections.defaultdict(int)
+
 NET_ASSET_BY_CURRENCY = collections.defaultdict(int)
 
 TOTAL_TRANSACTION_FEE = collections.defaultdict(float)
@@ -171,11 +170,18 @@ MIN_SMA_RATIO = {
 MACRO_DATA = {}
 
 SMA_DISCOUNT = {
-  'cny': 0.0,
-  'usd': 0.8,
+  'a': 0.0,
+  'ib': 0.8,
+  'schwab': 0.0,
 }
 
 ASSET_INFO = collections.defaultdict(dict)
+
+ACCOUNT_INFO = {
+  'a': 'cny',
+  'ib': 'usd',
+  'schwab': 'usd',
+}
 
 #----------Begining of global variables------------------
 

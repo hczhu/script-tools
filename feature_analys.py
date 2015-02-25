@@ -39,34 +39,40 @@ if __name__ == "__main__":
     if line.find('#') != -1:
         line = line[0:line.find('#')]
     tokens = line.strip().split(' ')
-    for idx in range(len(tokens)):
+    # The first column is the label.
+    # Put it at the last column of 'matrix'.
+    if len(tokens) == 0: continue
+    features[-1] = max(float(tokens[0]), 0)
+    for idx in range(1, len(tokens)):
       if -1 == tokens[idx].find(':'):
-        features[idx] = float(tokens[idx])
+        features[idx - 1] = float(tokens[idx])
       else:
         fid, value = tokens[idx].split(':')
-        features[int(fid)] = float(value)
-    features[0] = max(features[0], 0)
+        fid = int(fid)
+        if fid >= len(names):
+            sys.stderr.write('feature id %d exceed %d\n'%(fid, len(names)))
+            continue
+        features[fid] = float(value)
     matrix.append(features)
-
   matrix = numpy.matrix(matrix)
 
   header = ['Feature', 'Positive Mean(Std Dev)', 'Negative Mean(Std Dev)', 'Hellinger distance', 'Correlation']
 
   table_content = []
-  positive_index = numpy.nonzero(matrix[:, 0])[0].tolist()[0]
+  positive_index = numpy.nonzero(matrix[:, -1])[0].tolist()[0]
   negative_index = list(set(range(matrix.shape[0])) - set(positive_index))
   for idx in range(len(names)):
     line = [names[idx]]
-    labels = numpy.transpose(matrix[:, 0].tolist())[0]
-    values = numpy.transpose(matrix[:, idx + 1].tolist())[0]
-    positive = matrix[positive_index, [idx + 1]][0]
-    negative = matrix[negative_index, [idx + 1]][0]
+    labels = numpy.transpose(matrix[:, -1].tolist())[0]
+    values = numpy.transpose(matrix[:, idx].tolist())[0]
+    positive = matrix[positive_index, [idx]][0]
+    negative = matrix[negative_index, [idx]][0]
     pm, pd = positive.mean(), positive.std()
     nm, nd = negative.mean(), negative.std()
     table_content.append([
              names[idx],
-             '%.3f(%.3f)'%(pm, pd),
-             '%.3f(%.3f)'%(nm, nd),
+             '%.6f(%.6f)'%(pm, pd),
+             '%.6f(%.6f)'%(nm, nd),
              HellingerDistance(pm, pd, nm, nd),
              Pearson(labels, values),
            ])

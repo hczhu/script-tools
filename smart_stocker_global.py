@@ -103,24 +103,9 @@ ETF_BOOK_VALUE_FUNC = {
 DV_TAX = 0.1
 LOAN_RATE = 1.8 / 100.0
 
-CODE_TO_NAME = {
-}
+CODE_TO_NAME = {}
 
 NAME_TO_CODE = {}
-
-TOTAL_CAPITAL = collections.defaultdict(int)
-
-TOTAL_INVESTMENT = collections.defaultdict(int)
-
-NET_ASSET_BY_CURRENCY = collections.defaultdict(int)
-
-TOTAL_TRANSACTION_FEE = collections.defaultdict(float)
-
-TOTAL_MARKET_VALUE = collections.defaultdict(int) 
-
-HOLDING_PERCENT = collections.defaultdict(float)
-
-HOLDING_SHARES = collections.defaultdict(int)
 
 FINANCIAL_KEYS = set([
   'a-shares',
@@ -162,25 +147,64 @@ STOCK_INFO = collections.defaultdict(dict)
 
 CAPITAL_INFO = collections.defaultdict(dict)
 
-MIN_SMA_RATIO = {
-  'cny': 0.0,
-  'usd': 0.2,
-}
-
 MACRO_DATA = {}
-
-SMA_DISCOUNT = {
-  'a': 0.0,
-  'ib': 0.8,
-  'schwab': 0.0,
-}
 
 ASSET_INFO = collections.defaultdict(dict)
 
+HOLDING_INFO = collections.defaultdict(lambda: collections.defaultdict(float))
+
 ACCOUNT_INFO = {
-  'a': 'cny',
-  'ib': 'usd',
-  'schwab': 'usd',
+  'a': {
+    'account': 'china-a',
+    'currency': 'cny',
+    'support-currency': ['cny'],
+    'investment': 0.0,
+    'market-value': 0.0,
+    'free-cash': 0.0,
+    'sma-discount': 0.0,
+    'sma': 0.0,
+    'sma-ratio': 0.0,
+    'min-sma-ratio': 0.0,
+    'cash-flow': [],
+    'dividend': 0,
+    'interest-loss': 0,
+    'txn-fee': 0,
+    'holding-shares': collections.defaultdict(int),
+  },
+  'ib': {
+    'account': 'us-ib',
+    'currency': 'usd',
+    'support-currency': ['usd', 'jpy', 'hkd'],
+    'investment': 0.0,
+    'market-value': 0.0,
+    'free-cash': 0.0,
+    'sma-discount': 0.8,
+    'sma': 0.0,
+    'sma-ratio': 0.0,
+    'min-sma-ratio': 0.2,
+    'cash-flow': [],
+    'dividend': 0,
+    'interest-loss': 0,
+    'txn-fee': 0,
+    'holding-shares': collections.defaultdict(int),
+  },
+  'schwab': {
+    'account': 'us-schwab',
+    'currency': 'usd',
+    'support-currency': ['usd'],
+    'investment': 0.0,
+    'market-value': 0.0,
+    'free-cash': 0.0,
+    'sma-discount': 0.0,
+    'sma': 0.0,
+    'sma-ratio': 0.0,
+    'min-sma-ratio': 0.0,
+    'cash-flow': [],
+    'dividend': 0,
+    'interest-loss': 0,
+    'txn-fee': 0,
+    'holding-shares': collections.defaultdict(int),
+  },
 }
 
 #----------Begining of global variables------------------

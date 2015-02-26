@@ -97,7 +97,7 @@ NAV_FUNC = {
 }
 
 def GetCurrency(code):
-  return STOCK_INFO[code]['currency'] if code in STOCK_INFO else 'cny'
+  return STOCK_INFO[code]['currency'] if code in STOCK_INFO else 'unknown'
 
 def GetXueqiuUrlPrefix(code):
   market2prefix = {

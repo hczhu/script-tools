@@ -16,7 +16,10 @@ def PrintTable(table_header, records, silent_column = [], truncate_float = True,
   for cells in records:
     for i in range(len(cells)):
       if truncate_float and isinstance(cells[i], float):
-        cells[i] = str(round(cells[i], float_precision))
+        if float_precision > 0:
+          cells[i] = str(round(cells[i], float_precision))
+        else:
+          cells[i] = str(int(cells[i]))
       col_len[i] = max(col_len[i], len(str(cells[i])))
   for i in range(len(col_len)):
     if col_len[i] > 0:

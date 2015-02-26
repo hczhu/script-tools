@@ -38,7 +38,9 @@ def GetIRR(final_net_value, inflow_records):
     dcf = 0
     for inflow in inflow_records:
       dcf -= inflow[1] * pow(day_rate, (now - inflow[0]).days)
-    if final_net_value + dcf > 0:
+    if abs(final_net_value + dcf) < 1:
+      low = high = mid
+    elif final_net_value + dcf > 0:
       low = mid
     else:
       high = mid
@@ -97,6 +99,20 @@ def ProcessRecords(all_records):
       account_info['holding-shares'][ticker] += buy_shares
 
 def PrintAccountInfo():
+  aggregated_accout_info = {
+    'account': 'ALL',
+    'currency': CURRENCY,
+    'investment': 0.0,
+    'market-value': 0.0,
+    'free-cash': 0.0,
+    'sma': 0.0,
+    'net': 0.0,
+    'dividend': 0,
+    'interest-loss': 0,
+    'txn-fee': 0,
+    'cash-flow': [],
+    'holding-shares': collections.defaultdict(int),
+  }
   for account, account_info in ACCOUNT_INFO.items():
     account_info['sma'] = account_info['free-cash']
     base_currency = ACCOUNT_INFO[account]['currency']
@@ -108,22 +124,45 @@ def PrintAccountInfo():
         account_info['market-value'] += mv
         if holding[ticker] > 0: account_info['sma'] += account_info['sma-discount'] * mv
         else: account_info['sma'] += mv
-    account_info['sma-ratio'] = account_info['sma'] / max(1.0, account_info['market-value']) * 100
     account_info['net'] = account_info['market-value'] + account_info['free-cash']
-    account_info['IRR'] = GetIRR(account_info['net'], account_info['cash-flow']) * 100
-    account_info['txn-fee-ratio'] = account_info['txn-fee'] / max(max(1.0, account_info['net']), account_info['market-value']) * 1000
-    sys.stderr.write('%s\n'%(str(account_info)))
+
   header = [
     'account',
+    'currency',
+    'net',
+    'free-cash',
     'market-value',
-    'txn-fee-ratio',
     'sma',
+    'leverage',
+    'txn-fee-ratio',
     'sma-ratio',
     'IRR',
   ]
+  for account, account_info in ACCOUNT_INFO.items():
+    base_currency = ACCOUNT_INFO[account]['currency']
+    ex_rate = EX_RATE[base_currency + '-' + aggregated_accout_info['currency']]
+    for key in ['net', 'investment', 'market-value', 'free-cash', 'sma', 'dividend', 'interest-loss', 'txn-fee',]:
+      aggregated_accout_info[key] += ex_rate * account_info[key]
+    for key in ['cash-flow']:
+      aggregated_accout_info[key] += map(lambda inflow: (inflow[0], inflow[1] * ex_rate), account_info[key])
+    for key in ['holding-shares']:
+      for ticker, shares in account_info[key].items():
+        aggregated_accout_info[key][ticker] += shares
+  
   records = [
     ACCOUNT_INFO[account] for account in ACCOUNT_INFO.keys()
   ]
+  records += [aggregated_accout_info]
+
+  ACCOUNT_INFO['ALL'] = aggregated_accout_info
+
+  for account, account_info in ACCOUNT_INFO.items():
+    account_info['sma-ratio'] = account_info['sma'] / max(account_info['net'], account_info['market-value']) * 100
+    account_info['txn-fee-ratio'] = account_info['txn-fee'] / max(max(1.0, account_info['net']), account_info['market-value']) * 1000
+    account_info['leverage'] = 100.0 * account_info['market-value'] / account_info['net']
+    account_info['IRR'] = GetIRR(account_info['net'], account_info['cash-flow']) * 100
+    sys.stderr.write('%s\n'%(str(account_info)))
+
   PrintTableMap(header, records, set(), truncate_float = True, float_precision = 0)
    
 def PrintHoldingSecurities(all_records):

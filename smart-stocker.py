@@ -166,7 +166,7 @@ def PrintAccountInfo():
     account_info['txn-fee-ratio'] = account_info['txn-fee'] / max(max(1.0, account_info['net']), account_info['market-value']) * 1000
     account_info['leverage'] = 100.0 * account_info['market-value'] / max(1, account_info['net'])
     account_info['IRR'] = GetIRR(account_info['net'], account_info['cash-flow']) * 100
-    account_info['buying-power-ratio'] = account_info['buying-power'] / account_info['net']
+    account_info['buying-power-ratio'] = account_info['buying-power'] / max(1, account_info['net'])
     sys.stderr.write('%s\n'%(str(account_info)))
 
   PrintTableMap(header, records, set(), truncate_float = True, float_precision = 0)

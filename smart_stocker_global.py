@@ -151,8 +151,6 @@ MACRO_DATA = {}
 
 ASSET_INFO = collections.defaultdict(dict)
 
-HOLDING_INFO = collections.defaultdict(lambda: collections.defaultdict(float))
-
 ACCOUNT_INFO = {
   'a': {
     'account': 'china-a',
@@ -170,6 +168,7 @@ ACCOUNT_INFO = {
     'interest-loss': 0,
     'txn-fee': 0,
     'holding-shares': collections.defaultdict(int),
+    'buying-power': 0,
   },
   'ib': {
     'account': 'us-ib',
@@ -187,6 +186,7 @@ ACCOUNT_INFO = {
     'interest-loss': 0,
     'txn-fee': 0,
     'holding-shares': collections.defaultdict(int),
+    'buying-power': 0,
   },
   'schwab': {
     'account': 'us-schwab',
@@ -204,6 +204,7 @@ ACCOUNT_INFO = {
     'interest-loss': 0,
     'txn-fee': 0,
     'holding-shares': collections.defaultdict(int),
+    'buying-power': 0,
   },
 }
 

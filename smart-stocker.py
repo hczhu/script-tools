@@ -162,9 +162,9 @@ def PrintAccountInfo():
   ACCOUNT_INFO['ALL'] = aggregated_accout_info
 
   for account, account_info in ACCOUNT_INFO.items():
-    account_info['sma-ratio'] = account_info['sma'] / max(account_info['net'], account_info['market-value']) * 100
+    account_info['sma-ratio'] = account_info['sma'] / max(max(1, account_info['net']), account_info['market-value']) * 100
     account_info['txn-fee-ratio'] = account_info['txn-fee'] / max(max(1.0, account_info['net']), account_info['market-value']) * 1000
-    account_info['leverage'] = 100.0 * account_info['market-value'] / account_info['net']
+    account_info['leverage'] = 100.0 * account_info['market-value'] / max(1, account_info['net'])
     account_info['IRR'] = GetIRR(account_info['net'], account_info['cash-flow']) * 100
     account_info['buying-power-ratio'] = account_info['buying-power'] / account_info['net']
     sys.stderr.write('%s\n'%(str(account_info)))

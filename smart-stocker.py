@@ -238,7 +238,13 @@ def PrintStocks(names):
 try:
   args = set(sys.argv[1:])
   prices = filter(lambda arg: arg.find('=') != -1, args)
-  target_names = args - set(prices)
+  args = args - set(prices)
+  accounts = filter(lambda arg: arg.find('accounts:') == 0, args)
+  args = args - set(accounts)
+  if len(accounts) > 0:
+    accounts = set(accounts[0][len('accounts:'):].split(','))
+
+  target_names = args
   InitAll()
   GetStockPool(GD_CLIENT)
 
@@ -251,7 +257,7 @@ try:
   PopulateMacroData()
   GetFinancialData(GD_CLIENT) 
   PopulateFinancialData()
-  ProcessRecords(ReadRecords())
+  ProcessRecords(ReadRecords(), accounts)
   PrintAccountInfo()
   PrintHoldingSecurities()
   if len(target_names) > 0:

@@ -155,7 +155,7 @@ ACCOUNT_INFO = {
   'a': {
     'account': 'china-a',
     'currency': 'cny',
-    'support-currency': ['cny'],
+    'support-currencies': ['cny'],
     'investment': 0.0,
     'market-value': 0.0,
     'free-cash': 0.0,
@@ -169,11 +169,14 @@ ACCOUNT_INFO = {
     'txn-fee': 0,
     'holding-shares': collections.defaultdict(int),
     'buying-power': 0,
+    'holding-percent': collections.defaultdict(float),
+    'holding-value': collections.defaultdict(float),
+    'holding-percent-all': collections.defaultdict(float),
   },
   'ib': {
     'account': 'us-ib',
     'currency': 'usd',
-    'support-currency': ['usd', 'jpy', 'hkd'],
+    'support-currencies': ['usd', 'jpy', 'hkd'],
     'investment': 0.0,
     'market-value': 0.0,
     'free-cash': 0.0,
@@ -187,11 +190,14 @@ ACCOUNT_INFO = {
     'txn-fee': 0,
     'holding-shares': collections.defaultdict(int),
     'buying-power': 0,
+    'holding-percent': collections.defaultdict(float),
+    'holding-value': collections.defaultdict(float),
+    'holding-percent-all': collections.defaultdict(float),
   },
   'schwab': {
     'account': 'us-schwab',
     'currency': 'usd',
-    'support-currency': ['usd'],
+    'support-currencies': ['usd'],
     'investment': 0.0,
     'market-value': 0.0,
     'free-cash': 0.0,
@@ -205,8 +211,13 @@ ACCOUNT_INFO = {
     'txn-fee': 0,
     'holding-shares': collections.defaultdict(int),
     'buying-power': 0,
+    'holding-percent': collections.defaultdict(float),
+    'holding-percent-all': collections.defaultdict(float),
+    'holding-value': collections.defaultdict(float),
   },
 }
+
+MIN_TXN_PERCENT = 0.01
 
 #----------Begining of global variables------------------
 

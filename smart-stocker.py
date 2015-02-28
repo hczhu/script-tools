@@ -115,6 +115,10 @@ def PrintAccountInfo():
     'txn-fee': 0,
     'cash-flow': [],
     'holding-shares': collections.defaultdict(int),
+    'holding-percent': collections.defaultdict(float),
+    'holding-percent-all': collections.defaultdict(float),
+    'holding-value': collections.defaultdict(float),
+    'support-currencies': [],
   }
   for account, account_info in ACCOUNT_INFO.items():
     account_info['sma'] = account_info['free-cash']
@@ -125,6 +129,7 @@ def PrintAccountInfo():
       if holding[ticker] != 0:
         mv = GetMarketPrice(ticker) * EX_RATE[GetCurrency(ticker) + '-' + base_currency] * holding[ticker]
         account_info['market-value'] += mv
+        account_info['holding-value'][ticker] = mv
         if holding[ticker] > 0: account_info['sma'] += account_info['sma-discount'] * mv
         else: account_info['sma'] += mv
     account_info['net'] = account_info['market-value'] + account_info['free-cash']
@@ -134,9 +139,6 @@ def PrintAccountInfo():
     'account',
     'currency',
     'net',
-    'free-cash',
-    'market-value',
-    'sma',
     'buying-power',
     'leverage',
     'txn-fee-ratio',
@@ -150,9 +152,9 @@ def PrintAccountInfo():
       aggregated_accout_info[key] += ex_rate * account_info[key]
     for key in ['cash-flow']:
       aggregated_accout_info[key] += map(lambda inflow: (inflow[0], inflow[1] * ex_rate), account_info[key])
-    for key in ['holding-shares']:
-      for ticker, shares in account_info[key].items():
-        aggregated_accout_info[key][ticker] += shares
+    for key in ['holding-shares', 'holding-value']:
+      for ticker, value in account_info[key].items():
+        aggregated_accout_info[key][ticker] += value
   
   records = [
     ACCOUNT_INFO[account] for account in ACCOUNT_INFO.keys()
@@ -162,11 +164,16 @@ def PrintAccountInfo():
   ACCOUNT_INFO['ALL'] = aggregated_accout_info
 
   for account, account_info in ACCOUNT_INFO.items():
+    ex_rate = EX_RATE[account_info['currency'] + '-' + ACCOUNT_INFO['ALL']['currency']] 
     account_info['sma-ratio'] = account_info['sma'] / max(max(1, account_info['net']), account_info['market-value']) * 100
     account_info['txn-fee-ratio'] = account_info['txn-fee'] / max(max(1.0, account_info['net']), account_info['market-value']) * 1000
     account_info['leverage'] = 100.0 * account_info['market-value'] / max(1, account_info['net'])
     account_info['IRR'] = GetIRR(account_info['net'], account_info['cash-flow']) * 100
-    account_info['buying-power-ratio'] = account_info['buying-power'] / max(1, account_info['net'])
+    account_info['buying-power-percent'] = account_info['buying-power'] / max(1, account_info['net'])
+    account_info['buying-power-percent-all'] = ex_rate * account_info['buying-power'] / max(1, ACCOUNT_INFO['ALL']['net'])
+    for ticker, value in account_info['holding-value'].items():
+      account_info['holding-percent'][ticker] = value / max(1, account_info['net'])
+      account_info['holding-percent-all'][ticker] = ex_rate * value / max(1, ACCOUNT_INFO['ALL']['net'])
     sys.stderr.write('%s\n'%(str(account_info)))
 
   PrintTableMap(header, records, set(), truncate_float = True, float_precision = 0)
@@ -263,7 +270,7 @@ try:
   if len(target_names) > 0:
     names = ','.join(target_names).split(',')
     PrintStocks(names)
-  # RunStrategies()
+  RunStrategies()
 except Exception as ins:
   print 'Run time error: ', ins
   traceback.print_exc(file=sys.stdout)

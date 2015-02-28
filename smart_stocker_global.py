@@ -145,11 +145,7 @@ FINANCAIL_DATA_ADVANCE = collections.defaultdict(dict)
 
 STOCK_INFO = collections.defaultdict(dict)
 
-CAPITAL_INFO = collections.defaultdict(dict)
-
 MACRO_DATA = {}
-
-ASSET_INFO = collections.defaultdict(dict)
 
 ACCOUNT_INFO = {
   'a': {

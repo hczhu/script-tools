@@ -270,7 +270,8 @@ try:
   if len(target_names) > 0:
     names = ','.join(target_names).split(',')
     PrintStocks(names)
-  RunStrategies()
+  if len(accounts) == 0:
+    RunStrategies()
 except Exception as ins:
   print 'Run time error: ', ins
   traceback.print_exc(file=sys.stdout)

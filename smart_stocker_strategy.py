@@ -319,7 +319,7 @@ def YahooAndAlibaba():
 def BalanceAHBanks():
   percent_sum = 1.07
   max_A_percent =0.3
-  base_ah_premium = 0.15
+  base_ah_premium = 0.18
   max_ah_premium = 0.30
   target_A_percent = max_A_percent / (max_ah_premium - base_ah_premium) * (max_ah_premium - MACRO_DATA['ah-premium'])
   target_A_percent = min(max_A_percent, target_A_percent)

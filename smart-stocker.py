@@ -197,7 +197,7 @@ def PrintHoldingSecurities():
     name = STOCK_INFO[ticker]['name']
     record = {
         'Percent': mv * ex_rate / ACCOUNT_INFO['ALL']['net'],
-        'HS': shares,
+        'Share': shares,
         'MV': str(myround(mv / 1000.0, 0)) + 'K',
         'Currency': currency,
         'Chg': chg,
@@ -220,6 +220,7 @@ def PrintHoldingSecurities():
       record['MV'] += ' ' + record['Currency']
   table_header = [
     'Percent',
+    'Share',
     'MV',
     'Chg',
     'Stock name',

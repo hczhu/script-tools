@@ -123,6 +123,7 @@ def NoBuyBanks(banks):
 def KeepBanks(targetPercent):
   percent_delta = 0.04
   swap_percent_delta = 0.02
+  max_swap_percent = 0.05
   normal_valuation_delta = 0.05
   a2h_discount = max(0.5 * MACRO_DATA['ah-premium'], normal_valuation_delta)
   h2a_discount = 0.01
@@ -207,14 +208,15 @@ def KeepBanks(targetPercent):
                        CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_delta, valuation_ratio))
       if valuation_ratio < (1 + valuation_delta): continue
       swap_percent = min(holding_asset_percent[worse], max_bank_percent[better] - GetPercent(better, holding_asset_percent))
+      swap_percent = min(swap_percent, max_swap_percent)
       swap_cash = swap_percent * NET
+      if swap_percent < swap_percent_delta: continue
       if worse_currency != better_currency:
-        swap_cash = min(swap_cash, GetCashAndOp(currency_to_account[better_currency], better_currency, swap_percent)[0])
-      if swap_percent > swap_percent_delta:
-        return GiveTip('Sell', worse, swap_cash * EX_RATE[CURRENCY + '-' + worse_currency]) +\
-                 ' ==> ' +\
-               GiveTip('Buy', better, swap_cash * EX_RATE[CURRENCY + '-' + better_currency]) +\
-               ' due to valuation ratio = %.3f'%(valuation_ratio)
+        swap_cash = min(swap_cash, EX_RATE[better_currency + '-' + CURRENCY] * GetCashAndOp(currency_to_account[better_currency], better_currency, swap_percent)[0])
+      return GiveTip('Sell', worse, swap_cash * EX_RATE[CURRENCY + '-' + worse_currency]) +\
+               ' ==> ' +\
+             GiveTip('Buy', better, swap_cash * EX_RATE[CURRENCY + '-' + better_currency]) +\
+             ' due to valuation ratio = %.3f'%(valuation_ratio)
   return ''
 
 def FenJiClassA():

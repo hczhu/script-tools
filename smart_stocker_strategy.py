@@ -129,12 +129,12 @@ def KeepBanks(targetPercent):
   h2a_discount = 0.01
   overflow_valuation_delta = 0.01
   max_bank_percent = {
-    '建设银行': 0.35,
-    '建设银行H': 0.35,
+    '建设银行': 0.3,
+    '建设银行H': 0.3,
     '招商银行': 0.4,
     '招商银行H': 0.4,
-    '中国银行': 0.3,
-    '中国银行H': 0.3,
+    '中国银行': 0.25,
+    '中国银行H': 0.25,
     '浦发银行': 0.2,
     '兴业银行': 0.2,
     '交通银行': 0.2,
@@ -152,6 +152,7 @@ def KeepBanks(targetPercent):
     bank: ACCOUNT_INFO['ALL']['holding-percent-all'][bank] for bank in all_banks
   }
   currentPercent = sum(map(lambda code: holding_asset_percent[code], all_banks))
+  sys.stderr.write('bank holding percents: %s\n'%(str(holding_asset_percent)))
   sys.stderr.write('total bank percent = %.3f\n'%(currentPercent))
   banks = FilterBanks(all_banks)
 
@@ -172,7 +173,6 @@ def KeepBanks(targetPercent):
     'cny': ['a'],
   }
   NET = ACCOUNT_INFO['ALL']['net']
-  holding_asset_percent = ACCOUNT_INFO['ALL']['holding-percent-all']
 
   for code in banks:
     if code in no_buy_banks: continue

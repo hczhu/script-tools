@@ -152,9 +152,12 @@ def PrintAccountInfo():
       aggregated_accout_info[key] += ex_rate * account_info[key]
     for key in ['cash-flow']:
       aggregated_accout_info[key] += map(lambda inflow: (inflow[0], inflow[1] * ex_rate), account_info[key])
-    for key in ['holding-shares', 'holding-value']:
+    for key in ['holding-shares']:
       for ticker, value in account_info[key].items():
         aggregated_accout_info[key][ticker] += value
+    for key in ['holding-value']:
+      for ticker, value in account_info[key].items():
+        aggregated_accout_info[key][ticker] += value * ex_rate
   
   records = [
     ACCOUNT_INFO[account] for account in ACCOUNT_INFO.keys()
@@ -186,19 +189,18 @@ def PrintHoldingSecurities():
     'Percent': 0.0,
     'Stock name': 'Summary',
   }
-  holding_info = ACCOUNT_INFO['ALL']['holding-shares']
-  for ticker, shares in holding_info.items():
+  holding_shares = ACCOUNT_INFO['ALL']['holding-shares']
+  holding_value = ACCOUNT_INFO['ALL']['holding-value']
+  holding_percent = ACCOUNT_INFO['ALL']['holding-percent-all']
+  for ticker, shares in holding_shares.items():
     if shares == 0: continue
-    mp = GetMarketPrice(ticker)
     chg = GetMarketPriceChange(ticker)
     currency = STOCK_INFO[ticker]['currency']
-    mv = mp * shares
-    ex_rate = EX_RATE[currency + '-' + CURRENCY]
     name = STOCK_INFO[ticker]['name']
     record = {
-        'Percent': mv * ex_rate / ACCOUNT_INFO['ALL']['net'],
-        'Share': shares,
-        'MV': str(myround(mv / 1000.0, 0)) + 'K',
+        'Percent': holding_percent[ticker],
+        'Shares': shares,
+        'MV': str(myround(holding_value[ticker] / 1000.0, 0)) + 'K',
         'Currency': currency,
         'Chg': chg,
         'Stock name': name + '(' + ticker + ')',
@@ -220,7 +222,7 @@ def PrintHoldingSecurities():
       record['MV'] += ' ' + record['Currency']
   table_header = [
     'Percent',
-    'Share',
+    'Shares',
     'MV',
     'Chg',
     'Stock name',

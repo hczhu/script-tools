@@ -67,7 +67,7 @@ if __name__ == "__main__":
         matrix.append(features)
     matrix = numpy.matrix(matrix)
 
-    header = ['Feature', 'Positive Mean(Std Dev)', 'Negative Mean(Std Dev)', 'Hellinger distance', 'Correlation']
+    header = ['Feature', 'Positive Mean(Std Dev)', 'Negative Mean(Std Dev)', 'Hellinger distance', 'Correlation', 'Nonzero values']
 
     table_content = []
     positive_index = numpy.nonzero(matrix[:, -1])[0].tolist()[0]
@@ -86,6 +86,7 @@ if __name__ == "__main__":
                           '%.6f(%.6f)'%(nm, nd),
                           HellingerDistance(pm, pd, nm, nd),
                           Pearson(labels, values),
+                          1.0 * len(numpy.nonzero(values)[0]) / len(values),
                       ])
 
     table_content.sort(reverse = True, key = lambda line: abs(line[4]))

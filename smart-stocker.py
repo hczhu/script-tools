@@ -238,7 +238,7 @@ def PrintStocks(names):
   for code in FINANCAIL_DATA_ADVANCE.keys():
     if any([CODE_TO_NAME[code].find(name) != -1 for name in names]):
       data = dict(FINANCAIL_DATA_ADVANCE[code])
-      data['name'] = CODE_TO_NAME[code]
+      data['name'] = ('*' if code in ACCOUNT_INFO['ALL']['holding-shares'] else '') + CODE_TO_NAME[code]
       tableMap.append(data)
   PrintTableMap(header, tableMap, float_precision = 5)
 

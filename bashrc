@@ -41,7 +41,7 @@ PROMPT_COMMAND="settitle; $PROMPT_COMMAND"
 #export XIM_PROGRAM="scim -d" #使可以自动启动
 
 #For Weka
-export WEKAROOT='/home/hcz/packages/weka-3-6-12'
+export WEKAROOT='$HOME/packages/weka-3-6-12'
 export CLASSPATH="$CLASSPATH:.:$WEKAROOT/weka.jar"
 alias weka-lr='java weka.classifiers.functions.LinearRegression'
 alias weka-lg='java -Xmx2028m weka.classifiers.functions.Logistic'

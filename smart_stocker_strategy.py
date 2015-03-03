@@ -20,7 +20,7 @@ def FinancialValue(name, key):
   return FINANCAIL_DATA_ADVANCE[NAME_TO_CODE[name]][key]
 
 def GiveTip(op, code, money):
-  return '%s %s(%s) %d units @%.3f cash %.0f%s'%(op, CODE_TO_NAME[code], code,
+  return '%s %s(%s) %d units @%.3f cash %.0f %s'%(op, CODE_TO_NAME[code], code,
                                      int(money / FINANCAIL_DATA_ADVANCE[code]['mp']),
                                      FINANCAIL_DATA_ADVANCE[code]['mp'], money, STOCK_INFO[code]['currency'])
 
@@ -214,7 +214,7 @@ def KeepBanks(targetPercent):
         return GiveTip('Sell', worse, swap_cash * EX_RATE[CURRENCY + '-' + worse_currency]) +\
                  ' ==> ' +\
                GiveTip('Buy', better, swap_cash * EX_RATE[CURRENCY + '-' + better_currency]) +\
-               'due to valuation ratio = %.3f'%(valuation_ratio)
+               ' due to valuation ratio = %.3f'%(valuation_ratio)
   return ''
 
 def FenJiClassA():
@@ -239,7 +239,7 @@ def FenJiClassA():
     rate = FINANCAIL_DATA_BASE[code]['next-rate']
     price = sbv - 1.0 + rate / want_rate
     down_percent = (GetMarketPrice(code) - price) / max(0.10, GetMarketPrice(code)) * 100
-    if down_percent < 8.0:
+    if down_percent < 1.0:
       print 'Buy %s(%s) @%.3f down %.2f%%'%(CODE_TO_NAME[code], code, price, down_percent)
 
   for code in codes:
@@ -297,11 +297,12 @@ def YahooAndAlibaba():
     print 'Sell Alibaba %d units @%.2f for portfolio parity.' % (imbalance, GetMarketPrice('Alibaba'))
 
   holding_percent = {
-    code: ACCOUNT_INFO['ALL']['holding-percent-all'] for code in map(lambda name : NAME_TO_CODE[name], ['Alibaba', 'Yahoo'])
+    code: ACCOUNT_INFO['ALL']['holding-percent-all'][code] for code in map(lambda name : NAME_TO_CODE[name], ['Alibaba', 'Yahoo'])
   }
   lower_PB = 0.95
-  cash = GetCashAndOp(['ib', 'schwab'], STOCK_INFO[codeY]['currency'], 0.02)[0]
-  if PB < lower_PB and cash > 0 and holding_percent[codeY] < 0.1:
+  cash = GetCashAndOp(['ib', 'schwab'], STOCK_INFO[codeY]['currency'], 0.03)[0]
+  sys.stderr.write('Cash for Yahoo %d %s PB %f < bound %f holding percent = %f\n'%(cash, STOCK_INFO[codeY]['currency'], PB, lower_PB, holding_percent[codeY]))
+  if PB < lower_PB and cash > 0 and holding_percent[codeY] < 0.15:
     kUnit = min(cash / GetMarketPrice('Yahoo'), 100)
     return 'Long Yahoo @%.2f %d units short Alibaba @%.2f %.0f units with PB = %.2f' % (
         GetMarketPrice('Yahoo'), kUnit,
@@ -319,7 +320,7 @@ def YahooAndAlibaba():
 def BalanceAHBanks():
   percent_sum = 1.07
   max_A_percent =0.3
-  base_ah_premium = 0.18
+  base_ah_premium = 0.15
   max_ah_premium = 0.30
   target_A_percent = max_A_percent / (max_ah_premium - base_ah_premium) * (max_ah_premium - MACRO_DATA['ah-premium'])
   target_A_percent = min(max_A_percent, target_A_percent)

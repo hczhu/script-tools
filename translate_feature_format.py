@@ -49,7 +49,7 @@ def load_svmlight(input_filename, keep_sparse_matrix = False):
       print('Expecting feature names in the first line starting with a #')
       return None, None, None
     feature_names = feature_names[1:].split(' ')
-  X, Y = load_svmlight_file(input_filename) 
+  X, Y = load_svmlight_file(input_filename, zero_based = True) 
   if len(feature_names) < X.shape[1]:
     print('feature names are not enough {0} < {1}'.format(len(feature_names), X.shape[1]))
   # X.set_shape((X.shape[0], len(feature_names)))
@@ -65,7 +65,7 @@ def dump_svmlight(X_matrix, Y, feature_names, output_filename):
   with open(output_filename, 'w') as output_file:
     output_file.write(contents)
 
-def dumpArff(X, Y, feature_names, output_filename):
+def dump_arff(X, Y, feature_names, output_filename):
   X = [x.tolist()[0] for x in X]
   with open(output_filename, 'w') as output_file:
     output_file.write('@relation whatever\n')
@@ -77,11 +77,11 @@ def dumpArff(X, Y, feature_names, output_filename):
 
 def main():
   options = create_options()
-  X, Y, feature_names = loadSvmlight(options.input_file)
+  X, Y, feature_names = load_svmlight(options.input_file)
   if X is None:
     print('Failed to load svmlight file {0}'.format(options.input_file))  
     return 1
-  dumpArff(X, Y, feature_names, options.output_file)
+  dump_arff(X, Y, feature_names, options.output_file)
   return 0
 
 if __name__ == '__main__':

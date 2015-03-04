@@ -67,15 +67,52 @@ def normalize(X, method, normalize_binary):
   elif method =='':
     pass
   return X, offset, scale
+
+def eval_value(values, expression, add = lambda x, y: x + y, sub = lambda x, y: x - y):
+  sub_expressions = []
+  ret = None
+  if expression.find('+') != -1:
+    sub_expressions = expression.split('+')
+    for exp in sub_expressions:
+      val = eval_value(values, exp, add, sub)
+      ret = val if ret is None else add(ret, val)
+  elif expression.find('-') != -1:
+    sub_expressions = expression.split('-')
+    for exp in sub_expressions:
+      val = eval_value(values, exp, add, sub)
+      ret = val if ret is None else sub(ret, val)
+  else:
+    ret = values[int(expression)]
+  return ret
+
+# X is a np.matrix
+def combine_features(X, feature_names, expressions):
+  X = [x.tolist()[0] for x in X]
+  for expr in expressions:
+    feature_names += [eval_value(feature_names, expr, lambda x, y: x + '+' + y, lambda x, y: x + '-' + y)]
+    for x in X:
+      x += [eval_value(x, expr)]
+  return np.matrix(X), feature_names
+
+def ignore_features(X, ignored_features_list):
+  X[:, ignored_features_list] = 0.0
+  return X
   
 def main():
   options = create_options()
   X, Y, feature_names = load_svmlight(options.input_file)
+  if options.feature_combinations is not None:
+    X, feature_names = combine_features(X, feature_names, options.feature_combinations.split(','))
   X, offset, scale = normalize(X, options.normalize, options.normalize_binary)
+  if options.ignored_features is not None and len(options.ignored_features) > 0:
+    X = ignore_features(X, map(int, options.ignored_features.split(',')))
   if options.output_param_file is not None:
     with open(options.output_param_file, 'w') as output_file:
-      json.dump({'offset': offset, 'scale': scale}, output_file, indent = 2)
-      
+      json.dump({
+                  'offset': {str(i) : offset[i] for i in range(len(offset))},
+                  'scale': {str(i) : scale[i] for i in range(len(scale))}
+                },
+                output_file, indent = 2)
   dump_svmlight(X, Y, feature_names, options.output_file)
 
 if __name__ == '__main__':

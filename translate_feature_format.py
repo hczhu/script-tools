@@ -8,7 +8,7 @@ from __future__ import print_function
 import json
 from optparse import OptionParser
 
-from sklearn.datasets import load_svmlight_file
+from sklearn.datasets import load_svmlight_file, dump_svmlight_file
 
 import numpy as np
 
@@ -40,7 +40,8 @@ def create_options():
     option, args = parser.parse_args()
     return option
 
-def loadSvmlight(input_filename):
+# Returns np.matrix.
+def load_svmlight(input_filename, keep_sparse_matrix = False):
   feature_names = []
   with open(input_filename) as input_file:
     feature_names = input_file.readline().strip()
@@ -51,12 +52,21 @@ def loadSvmlight(input_filename):
   X, Y = load_svmlight_file(input_filename) 
   if len(feature_names) < X.shape[1]:
     print('feature names are not enough {0} < {1}'.format(len(feature_names), X.shape[1]))
-  X.set_shape((X.shape[0], len(feature_names)))
-  X = X.todense()
-  X = [x.tolist()[0] for x in X]
+  # X.set_shape((X.shape[0], len(feature_names)))
+  if not keep_sparse_matrix:
+    X = X.todense()
   return X, Y, feature_names
 
+def dump_svmlight(X_matrix, Y, feature_names, output_filename):
+  dump_svmlight_file(X_matrix, Y, output_filename)
+  contents = None
+  with open(output_filename) as output_file:
+    contents = '#' + ' '.join(feature_names) + '\n' + ''.join(output_file.readlines())
+  with open(output_filename, 'w') as output_file:
+    output_file.write(contents)
+
 def dumpArff(X, Y, feature_names, output_filename):
+  X = [x.tolist()[0] for x in X]
   with open(output_filename, 'w') as output_file:
     output_file.write('@relation whatever\n')
     for name in feature_names:

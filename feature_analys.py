@@ -5,6 +5,8 @@ import sys
 from table_printer import *
 import math
 
+from translate_feature_format import *
+
 """
 The first row contains feature names.
 The first column is labels.
@@ -32,7 +34,7 @@ def HellingerDistance(mean1, sigma1, mean2, sigma2):
                 math.exp(-math.pow(mean1 - mean2, 2) / (4 * (sigma1 * sigma1 + sigma2 * sigma2))))
 
 if __name__ == "__main__":
-    names = sys.stdin.readline().strip().split(' ')
+    names = sys.stdin.readline().strip()[1:].split(' ')
     origin_len = len(names)
     if len(sys.argv) > 1:
         for i in range(origin_len):
@@ -42,7 +44,7 @@ if __name__ == "__main__":
     for line in sys.stdin:
         features = [0.0] * (len(names) + 1)
         if line.find('#') != -1:
-                line = line[0:line.find('#')]
+            line = line[0:line.find('#')]
         tokens = line.strip().split(' ')
         # The first column is the label.
         # Put it at the last column of 'matrix'.

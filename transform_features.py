@@ -49,6 +49,10 @@ def create_options():
         "--feature_combinations",
         dest = "feature_combinations",
         help = "comma separated feature combination descriptions.")
+    parser.add_option(
+        "--balance_training_instance",
+        dest = "balance_training_instance",
+        help = "Whether to balance positive and negative instances.")
 
     option, args = parser.parse_args()
     return option

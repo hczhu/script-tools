@@ -126,8 +126,8 @@ def KeepBanks(targetPercent):
   max_swap_percent = 0.05
   normal_valuation_delta = 0.05
   a2h_discount = max(0.5 * MACRO_DATA['ah-premium'], normal_valuation_delta)
-  h2a_discount = 0.01
-  overflow_valuation_delta = 0.01
+  h2a_discount = 0.03
+  overflow_valuation_delta = 0.02
   max_bank_percent = {
     '建设银行': 0.3,
     '建设银行H': 0.3,
@@ -221,7 +221,7 @@ def KeepBanks(targetPercent):
 
 def FenJiClassA():
   codes = GetClassA()
-  discount_ones = [NAME_TO_CODE[name] for name in ['德信A']]
+  discount_ones = [NAME_TO_CODE[name] for name in []]
   codes = filter(lambda code: code not in set(discount_ones), codes)
   
   holding_market_value = {
@@ -251,10 +251,11 @@ def FenJiClassA():
 
   best = codes[-1]
   for worse in range(len(codes)):
-    if FINANCAIL_DATA_ADVANCE[best]['sdv/p'] / FINANCAIL_DATA_ADVANCE[codes[worse]]['sdv/p'] > 1.05 and \
+    if FINANCAIL_DATA_ADVANCE[best]['sdv/p'] / FINANCAIL_DATA_ADVANCE[codes[worse]]['sdv/p'] > 1.03 and \
         holding_market_value[codes[worse]] > 0:
       return GiveTip('Sell', codes[worse], holding_market_value[codes[worse]]) + \
-                ' due to interest rate drops to %.4f'%(FINANCAIL_DATA_ADVANCE[codes[worse]]['sdv/p'])
+                ' due to interest rate drops to %.4f'%(FINANCAIL_DATA_ADVANCE[codes[worse]]['sdv/p']) + \
+             GiveTip('Buy', codes[best], holding_market_value[codes[worse]]) + ' interest rate: %.4f'%(FINANCAIL_DATA_ADVANCE[codes[best]]['sdv/p'])
   return ''
 
 def KeepCnyCapital():
@@ -320,7 +321,8 @@ def YahooAndAlibaba():
   return ''
 
 def BalanceAHBanks():
-  percent_sum = 1.07
+  total_money_in_CURRENCT = 280000
+  percent_sum = 1.0 * total_money_in_CURRENCT / ACCOUNT_INFO['ALL']['net']
   max_A_percent =0.3
   base_ah_premium = 0.15
   max_ah_premium = 0.30
@@ -351,10 +353,10 @@ STRATEGY_FUNCS = [
                         buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.0
                        ),
 
-  lambda: KeepPercentIf('中海油服H', 0.15,
+  lambda: KeepPercentIf('中海油服H', 0.1,
                         hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.7,
                         buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.6 and FINANCAIL_DATA_ADVANCE[code]['sdv/p'] > 0.035 \
-                                                     and FINANCAIL_DATA_ADVANCE[code]['p/sbv'] < 1.1,
+                                                     and FINANCAIL_DATA_ADVANCE[code]['p/sbv'] < 1.15,
                        ),
 
   KeepCnyCapital,

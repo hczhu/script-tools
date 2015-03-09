@@ -35,6 +35,7 @@ key_values = collections.defaultdict(list)
 
 for code in table.keys():
   company = table[code]
+  sys.stderr.write('%s: %s\n'%(company['name'], str(company)))
   info = GetEasyMoneyInfo(company['code'], company['market'])
   weights.append(float(company['weight']))
   for key in info.keys():

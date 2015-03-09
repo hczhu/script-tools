@@ -200,7 +200,7 @@ def PrintHoldingSecurities():
     record = {
         'Percent': holding_percent[ticker],
         'Shares': shares,
-        'MV': str(myround(holding_value[ticker] / 1000.0, 0)) + 'K',
+        'MV': str(myround(holding_value[ticker] * EX_RATE[CURRENCY + '-' + currency] / 1000.0, 0)) + 'K',
         'Currency': currency,
         'Chg': chg,
         'Stock name': name + '(' + ticker + ')',

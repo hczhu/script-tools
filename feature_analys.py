@@ -83,7 +83,7 @@ if __name__ == "__main__":
         pm, pd = positive.mean(), positive.std()
         nm, nd = negative.mean(), negative.std()
         table_content.append([
-                          names[idx],
+                          names[idx] + ' (' + str(idx) + ')',
                           '%.6f(%.6f)'%(pm, pd),
                           '%.6f(%.6f)'%(nm, nd),
                           HellingerDistance(pm, pd, nm, nd),

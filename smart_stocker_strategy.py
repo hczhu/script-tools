@@ -126,18 +126,18 @@ def KeepBanks(targetPercent):
   normal_valuation_delta = 0.05
   a2h_discount = max(0.5 * MACRO_DATA['ah-premium'], normal_valuation_delta)
   h2a_discount = 0.03
-  overflow_valuation_delta = 0.02
+  overflow_valuation_delta = -0.01
   max_bank_percent = {
     '建设银行': 0.3,
     '建设银行H': 0.3,
     '招商银行': 0.4,
     '招商银行H': 0.4,
-    '中国银行': 0.25,
-    '中国银行H': 0.25,
+    '中国银行': 0.2,
+    '中国银行H': 0.2,
     '浦发银行': 0.2,
-    '兴业银行': 0.2,
-    '交通银行': 0.2,
-    '交通银行H': 0.2,
+    '兴业银行': 0.25,
+    '交通银行': 0.15,
+    '交通银行H': 0.15,
   }
   backup = [
     '中信银行H',

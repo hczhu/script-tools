@@ -110,14 +110,14 @@ def ignore_features(X, ignored_features_list):
 def main():
   options = create_options()
   X, Y, feature_names = load_svmlight(options.input_file)
-  if options.feature_combinations is not None:
-    X, feature_names = combine_features(X, feature_names, options.feature_combinations.split(','))
-  if options.ignored_features is not None and len(options.ignored_features) > 0:
-    X = ignore_features(X, map(int, options.ignored_features.split(',')))
   unnormalized_features = set([])
   if options.unnormalized_features is not None:
     unnormalized_features = set(map(int, options.unnormalized_features.split(',')))
   X, offset, scale = normalize(X, options.normalize, options.normalize_binary, unnormalized_features)
+  if options.feature_combinations is not None:
+    X, feature_names = combine_features(X, feature_names, options.feature_combinations.split(','))
+  if options.ignored_features is not None and len(options.ignored_features) > 0:
+    X = ignore_features(X, map(int, options.ignored_features.split(',')))
   if options.output_param_file is not None:
     with open(options.output_param_file, 'w') as output_file:
       json.dump({

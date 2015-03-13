@@ -121,10 +121,11 @@ def NoBuyBanks(banks):
                 banks)
 
 def KeepBanks(targetPercent):
-  swap_percent_delta = 0.02
+  min_txn_percent = max(0.3, MIN_TXN_PERCENT)
+  swap_percent_delta = 0.03
   max_swap_percent = 0.05
   normal_valuation_delta = 0.05
-  a2h_discount = max(0.5 * MACRO_DATA['ah-premium'], normal_valuation_delta)
+  a2h_discount = min(0.5 * MACRO_DATA['ah-premium'], 0.1)
   h2a_discount = 0.03
   overflow_valuation_delta = -0.01
   max_bank_percent = {
@@ -178,13 +179,13 @@ def KeepBanks(targetPercent):
     currency = STOCK_INFO[code]['currency']
     add_percent = min(targetPercent - currentPercent, max_bank_percent[code] - GetPercent(code, holding_asset_percent))
     cash, op = GetCashAndOp(currency_to_account[currency], currency, add_percent, backup)
-    if add_percent > MIN_TXN_PERCENT and cash > 0:
+    if add_percent > min_txn_percent and cash > 0:
       return op + GiveTip(' ==> Buy', code, cash)
   banks.reverse()
   for code in banks:
     currency = STOCK_INFO[code]['currency']
     sub_percent = min(currentPercent - targetPercent, holding_asset_percent[code])
-    if sub_percent > MIN_TXN_PERCENT:
+    if sub_percent > min_txn_percent:
       return GiveTip('Sell', code, sub_percent * NET * EX_RATE[CURRENCY + '-' + currency])
   
   valuation_delta = 100
@@ -352,10 +353,10 @@ STRATEGY_FUNCS = [
                         buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.0
                        ),
 
-  lambda: KeepPercentIf('中海油服H', 0.1,
+  lambda: KeepPercentIf('中海油服H', 0.2,
                         hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.7,
                         buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.6 and FINANCAIL_DATA_ADVANCE[code]['sdv/p'] > 0.035 \
-                                                     and FINANCAIL_DATA_ADVANCE[code]['p/sbv'] < 1.15,
+                                                     and FINANCAIL_DATA_ADVANCE[code]['p/sbv'] < 0.7,
                        ),
 
   KeepCnyCapital,

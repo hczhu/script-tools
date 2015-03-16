@@ -343,7 +343,7 @@ def BalanceAHBanks():
   if res != '': res += ' '
   res += KeepBanks(target_bank_percent)
   return res
-  
+
 STRATEGY_FUNCS = [
   FenJiClassA,
   lambda: BuyETFDiscount('南方A50ETF'),
@@ -351,6 +351,10 @@ STRATEGY_FUNCS = [
   lambda: KeepPercentIf('Weibo', 0.12,
                         hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.5,
                         buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.0
+                       ),
+  lambda: KeepPercentIf('Sina', 0.1,
+                        hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.5,
+                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 0.95
                        ),
 
   lambda: KeepPercentIf('中海油服H', 0.2,

@@ -71,7 +71,7 @@ def dump_arff(X, Y, feature_names, output_filename):
     output_file.write('@relation whatever\n')
     for name in feature_names:
       output_file.write('@attribute {0} real\n'.format(name))
-    output_file.write('@attribute label integer\n@data\n')
+    output_file.write('@attribute nominal {%s}\n@data\n'%(', '.join({str(value) : 1 for value in Y}.keys())))
     for i in range(len(X)):
       output_file.write('{0},{1}\n'.format(','.join(['{0}'.format(x) for x in X[i]]), Y[i]))
 

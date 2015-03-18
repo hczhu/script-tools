@@ -114,7 +114,7 @@ def main():
   if options.unnormalized_features is not None:
     unnormalized_features = set(map(int, options.unnormalized_features.split(',')))
   X, offset, scale = normalize(X, options.normalize, options.normalize_binary, unnormalized_features)
-  if options.feature_combinations is not None:
+  if options.feature_combinations is not None and len(options.feature_combinations) > 0:
     X, feature_names = combine_features(X, feature_names, options.feature_combinations.split(','))
   if options.ignored_features is not None and len(options.ignored_features) > 0:
     X = ignore_features(X, map(int, options.ignored_features.split(',')))

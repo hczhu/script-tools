@@ -57,6 +57,12 @@ def create_options():
         "--balance_training_instance",
         dest = "balance_training_instance",
         help = "Whether to balance positive and negative instances.")
+    parser.add_option(
+        "--min_feature_coverage",
+        dest = "min_feature_coverage",
+        type = float,
+        default = 0.001,
+        help = "A feature with a coverage less than this threshold will be ignored.")
 
     option, args = parser.parse_args()
     return option
@@ -103,7 +109,12 @@ def combine_features(X, feature_names, expressions):
       x += [eval_value(x, expr)]
   return np.matrix(X), feature_names
 
-def ignore_features(X, ignored_features_list):
+def ignore_features(X, feature_names, ignored_features_list, min_feature_coverage):
+  for idx in range(len(feature_names)):
+    values = np.transpose(X[:, idx].tolist())[0]
+    if 1.0 * len(np.nonzero(values)[0]) / len(values) < min_feature_coverage:
+      ignored_features_list += [idx]
+      sys.stderr.write('Feature {0} is disabled.\n'.format(feature_names[idx]))
   X[:, ignored_features_list] = 0.0
   return X
   
@@ -117,7 +128,9 @@ def main():
   if options.feature_combinations is not None and len(options.feature_combinations) > 0:
     X, feature_names = combine_features(X, feature_names, options.feature_combinations.split(','))
   if options.ignored_features is not None and len(options.ignored_features) > 0:
-    X = ignore_features(X, map(int, options.ignored_features.split(',')))
+    X = ignore_features(X, feature_names,
+                        map(int, options.ignored_features.split(',')) if len(options.ignored_features) > 0 else [],
+                        options.min_feature_coverage)
   if options.output_param_file is not None:
     with open(options.output_param_file, 'w') as output_file:
       json.dump({

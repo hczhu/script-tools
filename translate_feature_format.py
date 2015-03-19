@@ -67,11 +67,13 @@ def dump_svmlight(X_matrix, Y, feature_names, output_filename):
 
 def dump_arff(X, Y, feature_names, output_filename):
   X = [x.tolist()[0] for x in X]
+  unique_Y = {str(value) : 1 for value in Y}.keys()
+  unique_Y.sort(reverse = True)
   with open(output_filename, 'w') as output_file:
     output_file.write('@relation whatever\n')
     for name in feature_names:
       output_file.write('@attribute {0} real\n'.format(name))
-    output_file.write('@attribute nominal {%s}\n@data\n'%(', '.join({str(value) : 1 for value in Y}.keys())))
+    output_file.write('@attribute nominal {%s}\n@data\n'%(', '.join(unique_Y)))
     for i in range(len(X)):
       output_file.write('{0},{1}\n'.format(','.join(['{0}'.format(x) for x in X[i]]), Y[i]))
 

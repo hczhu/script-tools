@@ -234,8 +234,8 @@ def FenJiClassA():
       print 'Sell %s(%s) @%.3f due to discount = %.3f'%(code, CODE_TO_NAME[code], GetMarketPrice(code), FINANCAIL_DATA_ADVANCE[code]['p/sbv'])
 
   codes.sort(key = lambda code: FINANCAIL_DATA_ADVANCE[code]['sdv/p']) 
-  want_rate = 7.0 / 100
-  sell_rate = 6.05 / 100
+  want_rate = 6.4 / 100
+  sell_rate = 5.9 / 100
   for code in codes:
     sbv = FINANCAIL_DATA_ADVANCE[code]['sbv']
     rate = FINANCAIL_DATA_BASE[code]['next-rate']
@@ -350,11 +350,11 @@ STRATEGY_FUNCS = [
 
   lambda: KeepPercentIf('Weibo', 0.12,
                         hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.5,
-                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.0
+                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.05
                        ),
   lambda: KeepPercentIf('Sina', 0.1,
                         hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.5,
-                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 0.95
+                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 0.99
                        ),
 
   lambda: KeepPercentIf('中海油服H', 0.2,

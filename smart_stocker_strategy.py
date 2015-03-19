@@ -121,7 +121,7 @@ def NoBuyBanks(banks):
                 banks)
 
 def KeepBanks(targetPercent):
-  min_txn_percent = max(0.3, MIN_TXN_PERCENT)
+  min_txn_percent = max(0.02, MIN_TXN_PERCENT)
   swap_percent_delta = 0.03
   max_swap_percent = 0.05
   normal_valuation_delta = 0.05

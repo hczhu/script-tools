@@ -114,23 +114,22 @@ def ignore_features(X, feature_names, ignored_features_list, min_feature_coverag
     values = np.transpose(X[:, idx].tolist())[0]
     if 1.0 * len(np.nonzero(values)[0]) / len(values) < min_feature_coverage:
       ignored_features_list += [idx]
-      sys.stderr.write('Feature {0} is disabled.\n'.format(feature_names[idx]))
+      sys.stderr.write('Feature {0} is ignored due to low coverage.\n'.format(feature_names[idx]))
   X[:, ignored_features_list] = 0.0
   return X
   
 def main():
   options = create_options()
   X, Y, feature_names = load_svmlight(options.input_file)
+  if options.feature_combinations is not None and len(options.feature_combinations) > 0:
+    X, feature_names = combine_features(X, feature_names, options.feature_combinations.split(','))
   unnormalized_features = set([])
   if options.unnormalized_features is not None:
     unnormalized_features = set(map(int, options.unnormalized_features.split(',')))
   X, offset, scale = normalize(X, options.normalize, options.normalize_binary, unnormalized_features)
-  if options.feature_combinations is not None and len(options.feature_combinations) > 0:
-    X, feature_names = combine_features(X, feature_names, options.feature_combinations.split(','))
-  if options.ignored_features is not None and len(options.ignored_features) > 0:
-    X = ignore_features(X, feature_names,
-                        map(int, options.ignored_features.split(',')) if len(options.ignored_features) > 0 else [],
-                        options.min_feature_coverage)
+  X = ignore_features(X, feature_names,
+                      map(int, options.ignored_features.split(',')) if options.ignored_features is not None and len(options.ignored_features) > 0 else [],
+                      options.min_feature_coverage)
   if options.output_param_file is not None:
     with open(options.output_param_file, 'w') as output_file:
       json.dump({

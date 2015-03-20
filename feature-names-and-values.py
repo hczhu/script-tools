@@ -9,6 +9,9 @@ with open(sys.argv[1], 'r') as feature_file:
 for line in sys.stdin:
   line = line.strip('\n\r')
   for idx in range(len(feature_names)):
-    line = line.replace(feature_names[idx], str(idx))
+    if len(sys.argv) == 2:
+      line = line.replace(feature_names[idx], str(idx))
+    else:
+      line = line.replace(str(idx), feature_names[idx])
   print line
 

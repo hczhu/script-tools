@@ -63,6 +63,12 @@ def create_options():
         type = float,
         default = 0.001,
         help = "A feature with a coverage less than this threshold will be ignored.")
+    parser.add_option(
+        "--feature_id_offset",
+        dest = "feature_id_offset",
+        type = int,
+        default = 0,
+        help = "The feature id will be added by this value.")
 
     option, args = parser.parse_args()
     return option
@@ -117,6 +123,17 @@ def ignore_features(X, feature_names, ignored_features_list, min_feature_coverag
       sys.stderr.write('Feature {0} is ignored due to low coverage.\n'.format(feature_names[idx]))
   X[:, ignored_features_list] = 0.0
   return X
+
+def shift_feature_id(X, feature_names, id_offset):
+  if id_offset > 0:
+    feature_names = ['#None'] * id_offset + feature_names
+    feature_num = X.shape[1]
+    newX = np.zeros((X.shape[0], feature_num + id_offset))
+    newX[:, range(id_offset, feature_num + id_offset)] = X[:, range(feature_num)]
+    X = newX
+  elif id_offset < 0:
+    pass
+  return X, feature_names 
   
 def main():
   options = create_options()
@@ -130,11 +147,13 @@ def main():
   X = ignore_features(X, feature_names,
                       map(int, options.ignored_features.split(',')) if options.ignored_features is not None and len(options.ignored_features) > 0 else [],
                       options.min_feature_coverage)
+  if options.feature_id_offset != 0:
+    X, feature_names = shift_feature_id(X, feature_names, options.feature_id_offset)
   if options.output_param_file is not None:
     with open(options.output_param_file, 'w') as output_file:
       json.dump({
-                  'offset': {str(i) : offset[i] for i in range(len(offset))},
-                  'scale': {str(i) : scale[i] for i in range(len(scale))}
+                  'offset': {str(i + options.feature_id_offset) : offset[i] for i in range(len(offset))},
+                  'scale': {str(i + options.feature_id_offset) : scale[i] for i in range(len(scale))}
                 },
                 output_file, indent = 2)
   dump_svmlight(X, Y, feature_names, options.output_file)

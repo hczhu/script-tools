@@ -57,7 +57,7 @@ def load_svmlight(input_filename, keep_sparse_matrix = False):
     X = X.todense()
   return X, Y, feature_names
 
-def dump_svmlight(X_matrix, Y, feature_names, output_filename):
+def dump_svmlight(X_matrix, Y, feature_names, output_filename, feature_id_offset = 0):
   dump_svmlight_file(X_matrix, Y, output_filename)
   contents = None
   with open(output_filename) as output_file:

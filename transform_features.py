@@ -152,8 +152,8 @@ def main():
   if options.output_param_file is not None:
     with open(options.output_param_file, 'w') as output_file:
       json.dump({
-                  'offset': {str(i + options.feature_id_offset) : offset[i] for i in range(len(offset))},
-                  'scale': {str(i + options.feature_id_offset) : scale[i] for i in range(len(scale))}
+                  'offset': {str(i) : offset[i] for i in range(len(offset))},
+                  'scale': {str(i) : scale[i] for i in range(len(scale))}
                 },
                 output_file, indent = 2)
   dump_svmlight(X, Y, feature_names, options.output_file)

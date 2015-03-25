@@ -124,9 +124,9 @@ def KeepBanks(targetPercent):
   min_txn_percent = max(0.02, MIN_TXN_PERCENT)
   swap_percent_delta = 0.03
   max_swap_percent = 0.05
-  normal_valuation_delta = 0.05
+  normal_valuation_delta = 0.08
   a2h_discount = min(0.5 * MACRO_DATA['ah-premium'], 0.1)
-  h2a_discount = 0.03
+  h2a_discount = 0.02
   overflow_valuation_delta = -0.01
   max_bank_percent = {
     '建设银行': 0.25,
@@ -241,7 +241,7 @@ def FenJiClassA():
     rate = FINANCAIL_DATA_BASE[code]['next-rate']
     want_price = sbv - 1.0 + rate / want_rate
     price = GetMarketPrice(code)
-    if want_price > price and ACCOUNT_INFO['a']['buying-power-ratio'] > 0.01:
+    if want_price > price and ACCOUNT_INFO['a']['buying-power-percent'] > 0.01:
       print 'Buy %s(%s) @%.3f'%(CODE_TO_NAME[code], code, price)
 
   for code in codes:

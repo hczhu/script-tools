@@ -131,8 +131,8 @@ def KeepBanks(targetPercent):
   max_bank_percent = {
     '建设银行': 0.25,
     '建设银行H': 0.25,
-    '招商银行': 0.35,
-    '招商银行H': 0.35,
+    '招商银行': 0.5,
+    '招商银行H': 0.5,
     '中国银行': 0.2,
     '中国银行H': 0.2,
     '浦发银行': 0.25,
@@ -303,10 +303,10 @@ def YahooAndAlibaba():
   holding_percent = {
     code: ACCOUNT_INFO['ALL']['holding-percent-all'][code] for code in map(lambda name : NAME_TO_CODE[name], ['Alibaba', 'Yahoo'])
   }
-  lower_PB = 0.95
+  lower_PB = 0.91
   cash = GetCashAndOp(['ib', 'schwab'], STOCK_INFO[codeY]['currency'], 0.03)[0]
   sys.stderr.write('Cash for Yahoo %d %s PB %f < bound %f holding percent = %f\n'%(cash, STOCK_INFO[codeY]['currency'], PB, lower_PB, holding_percent[codeY]))
-  if PB < lower_PB and cash > 0 and holding_percent[codeY] < 0.15:
+  if PB < lower_PB and cash > 0 and holding_percent[codeY] < 0.2:
     kUnit = min(cash / GetMarketPrice('Yahoo'), 100)
     return 'Long Yahoo @%.2f %d units short Alibaba @%.2f %.0f units with PB = %.2f' % (
         GetMarketPrice('Yahoo'), kUnit,

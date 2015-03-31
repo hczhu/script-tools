@@ -322,7 +322,7 @@ def YahooAndAlibaba():
   return ''
 
 def BalanceAHBanks():
-  total_money_in_CURRENCT = 280000
+  total_money_in_CURRENCT = 400000
   percent_sum = 1.0 * total_money_in_CURRENCT / ACCOUNT_INFO['ALL']['net']
   max_A_percent =0.3
   base_ah_premium = 0.15

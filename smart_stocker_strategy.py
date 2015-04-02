@@ -125,7 +125,7 @@ def NoBuyBanks(banks):
 def KeepBanks(targetPercent):
   min_txn_percent = max(0.02, MIN_TXN_PERCENT)
   swap_percent_delta = 0.03
-  max_swap_percent = 0.05
+  max_swap_percent = 0.1
   normal_valuation_delta = 0.08
   a2h_discount = min(0.6 * MACRO_DATA['ah-premium'], 0.15)
   h2a_discount = 0.03
@@ -203,36 +203,45 @@ def KeepBanks(targetPercent):
   
   valuation_delta = 100
   
+  swap_pairs = [] 
   for a in range(len(banks)):
     worse = banks[a]
-    worse_currency = STOCK_INFO[worse]['currency']
-    for b in range(len(banks) - 1, 0, -1):
-      if b == a: continue
+    for b in range(len(banks) - 1, a, -1):
       better = banks[b]
-      better_currency = STOCK_INFO[better]['currency']
-      valuation_delta = normal_valuation_delta
-      if STOCK_INFO[worse]['currency'] == 'hkd' and STOCK_INFO[better]['currency'] == 'cny' and STOCK_INFO[better]['hcode'] == worse:
-        valuation_delta = same_h2a_discount
-      elif STOCK_INFO[worse]['currency'] == 'cny' and STOCK_INFO[better]['currency'] == 'hkd':
-        valuation_delta = a2h_discount
-      elif STOCK_INFO[worse]['currency'] == 'hkd' and STOCK_INFO[better]['currency'] == 'cny':
-        valuation_delta = h2a_discount
-      if holding_asset_percent[worse] > max_bank_percent[worse]:
-        valuation_delta = overflow_valuation_delta
-      valuation_ratio = valuation[worse] / valuation[better]
-      sys.stderr.write('%s ==> %s delta = %.3f valuation ratio = %.2f\n'%(
-                       CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_delta, valuation_ratio))
-      if valuation_ratio < (1 + valuation_delta): continue
-      swap_percent = min(holding_asset_percent[worse], max_bank_percent[better] - GetPercent(better, holding_asset_percent))
-      swap_percent = min(swap_percent, max_swap_percent)
-      swap_cash = swap_percent * NET
-      if swap_percent < swap_percent_delta: continue
-      if worse_currency != better_currency:
-        swap_cash = min(swap_cash, EX_RATE[better_currency + '-' + CURRENCY] * GetCashAndOp(currency_to_account[better_currency], better_currency, swap_percent)[0])
-      return GiveTip('Sell', worse, swap_cash * EX_RATE[CURRENCY + '-' + worse_currency]) +\
-               ' ==> ' +\
-             GiveTip('Buy', better, swap_cash * EX_RATE[CURRENCY + '-' + better_currency]) +\
-             ' due to valuation ratio = %.3f'%(valuation_ratio)
+      swap_pairs += [(worse, better, valuation[worse] / valuation[better])]
+  swap_pairs.sort(key = lambda triple: triple[0], reverse = True)
+  for bank in banks:
+    if 'hcode' in STOCK_INFO[bank]:
+      swap_pairs = [(bank, STOCK_INFO[bank]['hcode'], 1.0),
+                    (STOCK_INFO[bank]['hcode'], bank, 1.0)] + swap_pairs
+  for pr in swap_pairs:
+    worse = pr[0]
+    better = pr[1]
+    worse_currency = STOCK_INFO[worse]['currency']
+    better_currency = STOCK_INFO[better]['currency']
+    valuation_delta = normal_valuation_delta
+    if STOCK_INFO[worse]['currency'] == 'hkd' and STOCK_INFO[better]['currency'] == 'cny' and STOCK_INFO[better]['hcode'] == worse:
+      valuation_delta = same_h2a_discount
+    elif STOCK_INFO[worse]['currency'] == 'cny' and STOCK_INFO[better]['currency'] == 'hkd':
+      valuation_delta = a2h_discount
+    elif STOCK_INFO[worse]['currency'] == 'hkd' and STOCK_INFO[better]['currency'] == 'cny':
+      valuation_delta = h2a_discount
+    if holding_asset_percent[worse] > max_bank_percent[worse]:
+      valuation_delta = overflow_valuation_delta
+    valuation_ratio = valuation[worse] / valuation[better]
+    sys.stderr.write('%s ==> %s delta = %.3f valuation ratio = %.2f\n'%(
+                     CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_delta, valuation_ratio))
+    if valuation_ratio < (1 + valuation_delta): continue
+    swap_percent = min(holding_asset_percent[worse], max_bank_percent[better] - GetPercent(better, holding_asset_percent))
+    swap_percent = min(swap_percent, max_swap_percent)
+    swap_cash = swap_percent * NET
+    if swap_percent < swap_percent_delta: continue
+    if worse_currency != better_currency:
+      swap_cash = min(swap_cash, EX_RATE[better_currency + '-' + CURRENCY] * GetCashAndOp(currency_to_account[better_currency], better_currency, swap_percent)[0])
+    return GiveTip('Sell', worse, swap_cash * EX_RATE[CURRENCY + '-' + worse_currency]) +\
+             ' ==> ' +\
+           GiveTip('Buy', better, swap_cash * EX_RATE[CURRENCY + '-' + better_currency]) +\
+           ' due to valuation ratio = %.3f'%(valuation_ratio)
   return ''
 
 def FenJiClassA():

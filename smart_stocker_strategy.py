@@ -237,9 +237,11 @@ def KeepBanks(targetPercent):
     swap_cash = swap_percent * NET
     if swap_percent < swap_percent_delta: continue
     if worse_currency != better_currency:
-      swap_cash = min(swap_cash, EX_RATE[better_currency + '-' + CURRENCY] * GetCashAndOp(currency_to_account[better_currency], better_currency, swap_percent)[0])
+      avail_cash, op = GetCashAndOp(currency_to_account[better_currency], better_currency, swap_percent, backup)
+      swap_cash = EX_RATE[better_currency + '-' + CURRENCY] * avail_cash
+    if swap_cash < MIN_TXN_PERCENT * ACCOUNT_INFO['ALL']['net']: continue
     return GiveTip('Sell', worse, swap_cash * EX_RATE[CURRENCY + '-' + worse_currency]) +\
-             ' ==> ' +\
+             ' ==>\n    ' + op + '\n    ' +\
            GiveTip('Buy', better, swap_cash * EX_RATE[CURRENCY + '-' + better_currency]) +\
            ' due to valuation ratio = %.3f'%(valuation_ratio)
   return ''

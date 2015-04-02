@@ -100,9 +100,9 @@ def ScoreBanks(banks):
   for bank in banks:
     finance = FINANCAIL_DATA_ADVANCE[bank]
     mp  = GetMarketPrice(bank)
-    ttme = mp / finance['p/worst-ttme'] if 'p/worst-ttme' in finance else 0
+    ttme3 = (mp / finance['p/ttme3']) if 'p/ttme3' in finance else 0
     bv = mp / (finance['p/worst-book-value'] if 'p/worst-book-value' in finance else (2 * finance['p/book-value']))
-    scores[bank] = mp / (ttme + bv)
+    scores[bank] = mp / (ttme3 + bv)
   banks.sort(key = lambda code: scores[code])
   for bank in banks:
     sys.stderr.write('%s: %f\n'%(CODE_TO_NAME[bank], scores[bank]))
@@ -166,6 +166,7 @@ def KeepBanks(targetPercent):
   currentPercent = sum(map(lambda code: holding_asset_percent[code], all_banks))
   sys.stderr.write('bank holding percents: %s\n'%(str(holding_asset_percent)))
   sys.stderr.write('total bank percent = %.3f\n'%(currentPercent))
+  sys.stderr.write('total bank market value = %.0f\n'%(currentPercent * ACCOUNT_INFO['ALL']['net']))
   banks = FilterBanks(all_banks)
 
   drop_banks = set(all_banks) - set(banks)
@@ -337,7 +338,7 @@ def YahooAndAlibaba():
   return ''
 
 def BalanceAHBanks():
-  total_money_in_CURRENCT = 400000
+  total_money_in_CURRENCT = 350000
   percent_sum = 1.0 * total_money_in_CURRENCT / ACCOUNT_INFO['ALL']['net']
   max_A_percent =0.1
   base_ah_premium = 0.05

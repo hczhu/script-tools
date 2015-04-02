@@ -266,6 +266,7 @@ try:
 
   PopulateMacroData()
   GetFinancialData(GD_CLIENT) 
+  GetBankData(GD_CLIENT)
   PopulateFinancialData()
   ProcessRecords(ReadRecords(), accounts)
   PrintAccountInfo()

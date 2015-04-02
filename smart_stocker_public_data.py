@@ -270,7 +270,7 @@ def InitExRate():
 
 def PopulateFinancialData():
   for code in FINANCAIL_DATA_BASE.keys():
-    sys.stderr.write('Populating date for %s\n'%(CODE_TO_NAME[code]))
+    sys.stderr.write('Populating data for %s(%s)\nbasic data: %s\n'%(CODE_TO_NAME[code], code, str(FINANCAIL_DATA_BASE[code])))
     info = STOCK_INFO[code]
     data = FINANCAIL_DATA_BASE[code]
     adv_data = FINANCAIL_DATA_ADVANCE[code]
@@ -279,9 +279,9 @@ def PopulateFinancialData():
     if code in NAV_FUNC:
       adv_data['sbv'] = data['sbv'] = NAV_FUNC[code]()
     for key in FINANCIAL_KEYS:
-      if key.find('p/') != -1 and key[2:] in data and data[key[2:]] > 0:
+      if key.find('p/') != -1 and key[2:] in data and isinstance(data[key[2:]], float):
         adv_data[key] = mp / data[key[2:]]
-      elif key.find('/p') != -1 and key[0:-2] in data and data[key[0:-2]] > 0:
+      elif key.find('/p') != -1 and key[0:-2] in data and isinstance(data[key[0:-2]], float):
         adv_data[key] = data[key[0:-2]] / mp
     # Populate corresponding h-share.
     if 'hcode' in info:

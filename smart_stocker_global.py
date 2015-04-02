@@ -117,8 +117,6 @@ FINANCIAL_KEYS = set([
   'p/dbv',
   'ttme', # trailing twelve month earning
   'p/ttme',
-  'f-ttme', # forward trailing twelve month earning
-  'p/f-ttme',
   'dye', # dynamic yearly earning
   'p/dye',
   'sdv', # static dividend yield
@@ -135,6 +133,22 @@ FINANCIAL_KEYS = set([
   'start-date', # 固定收益类本周起计息日
   'interest-rate', # 固定收益类年化利率
   'old-rate', # 固定收益类当前年化利率
+
+  'book-value',
+  'p/book-value',
+
+  'best-book-value',
+  'p/best-book-value',
+
+  'worst-book-value',
+  'p/worst-book-value',
+
+  'best-ttme',
+  'p/best-ttme',
+
+  'worst-ttme',
+  'p/worst-ttme',
+
 ])
 
 GD_CLIENT = None

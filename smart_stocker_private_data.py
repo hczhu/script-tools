@@ -28,7 +28,7 @@ def LoginMyGoogle(email_file, password_file):
     sys.stderr.write('Failed to login google account. Exception ' + str(e) +'\n')
   return None
     
-def GetTable(gd_client, table_key, worksheet_key = 'od6'):
+def GetTable(gd_client, table_key, worksheet_key = 'od6', value_transformer = lambda x: x):
   if gd_client is None:
     return []
   try:
@@ -41,11 +41,33 @@ def GetTable(gd_client, table_key, worksheet_key = 'od6'):
       rows.append({key : row.custom[key].text for key in row.custom.keys()})
       for key in rows[-1].keys():
         if rows[-1][key] is not None:
-          rows[-1][key] = rows[-1][key].encode('utf-8')
+          rows[-1][key] = value_transformer(rows[-1][key].encode('utf-8'))
+      sys.stderr.write('Got row:[%s]\n'%(str(rows[-1])))
     return rows
   except Exception, e:
     sys.stderr.write('Failed to read worksheet [%s] with exception [%s]\n'%(title, str(e)))
   return []
+
+def MergeAllSheets(gd_client, ws_key, primary_key, value_transformer = lambda x: x):
+  records = collections.defaultdict(dict)
+  worksheets = gd_client.GetWorksheetsFeed(ws_key).entry
+  for ws in worksheets:
+    sys.stderr.write('Reading worksheet: %s\n'%(ws.title.text))
+    try:
+      ws_id = ws.id.text.split('/')[-1]
+      time.sleep(1)
+      sheet_table = GetTable(gd_client, ws_key, ws_id, value_transformer)
+      for row in sheet_table:
+        if primary_key not in row:
+          sys.stderr.write('Missing primary key: [%s]\n'%(primary_key))
+          continue
+        record = records[row[primary_key]]
+        for key, value in row.items():
+          record[key] = value
+    except Exception, e:
+      sys.stderr.write('Failed to get data from worksheet: %s with exception [%s]\n'%(ws.title.text, str(e)))
+  return records
+  
 
 def GetTransectionRecords(gd_client):
   table_key, worksheet_key = '0Akv9eeSdKMP0dHBzeVIzWTY1VUlQcFVKOWFBZkdDeWc', 'od6'
@@ -123,14 +145,21 @@ def GetStockPool(client):
 def GetClassA(client):
   table_key = '1ER4HZD-_UUZF7ph5RkgPu8JftY9jwFVJtpd2tUwz_ac'
   sys.stderr.write('Reading class A table.\n')
-  table = GetTable(client, table_key)
+  table = GetTable(client, table_key, value_transformer = GetFinancialValue)
   for row in table:
-    code = row['code']
-    STOCK_INFO[code] = row
-    for key in STOCK_INFO[code].keys():
-      STOCK_INFO[code][key] = GetFinancialValue(STOCK_INFO[code][key])
-    FINANCAIL_DATA_BASE[code] = STOCK_INFO[code]
+    code = str(int(row['code']))
+    FINANCAIL_DATA_BASE[code] = STOCK_INFO[code] = row
     sys.stderr.write('Class A %s data: %s\n'%(STOCK_INFO[code]['name'], str(FINANCAIL_DATA_BASE[code])))
+
+def GetBankData(client):
+  sys.stderr.write('Reading bank data.\n')
+  bank_data = MergeAllSheets(client, '1xw6xPiyE6zOmbHmNo9L2HCPknidj4vPdwU9PubZZtCs', 'name', GetFinancialValue)
+  sys.stderr.write('Got bank data:\n%s\n'%(str(bank_data)))
+  for name, value in bank_data.items():
+    if name not in NAME_TO_CODE:
+      sys.stderr.write('unknown stock name: %s\n'%(name))
+    sys.stderr.write('Added financial data for %s(%s)\n'%(name, NAME_TO_CODE[name]))
+    FINANCAIL_DATA_BASE[NAME_TO_CODE[name]] = value
 
 def GetFinancialData(client):
   ws_key = '14pJTivMAHd-Gqpc9xboV4Kl7WbK51TrOc9QzgXBFRgw'

@@ -96,18 +96,20 @@ def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True
   return '' 
 
 def ScoreBanks(banks):
-  scores = {
-    code: GetMarketPrice(code) / ((GetMarketPrice(code) / FINANCAIL_DATA_ADVANCE[code]['p/ttme'] +
-                                   GetMarketPrice(code) / FINANCAIL_DATA_ADVANCE[code]['p/dbv']) *
-                                   (1.0 + FINANCAIL_DATA_ADVANCE[code]['sdv/p'])) for code in banks
-  }
+  scores ={}
+  for bank in banks:
+    finance = FINANCAIL_DATA_ADVANCE[bank]
+    mp  = GetMarketPrice(bank)
+    ttme = mp / finance['p/worst-ttme'] if 'p/worst-ttme' in finance else 0
+    bv = mp / (finance['p/worst-book-value'] if 'p/worst-book-value' in finance else (2 * finance['p/book-value']))
+    scores[bank] = mp / (ttme + bv)
   banks.sort(key = lambda code: scores[code])
   for bank in banks:
     sys.stderr.write('%s: %f\n'%(CODE_TO_NAME[bank], scores[bank]))
   return banks, scores
 
 def FilterBanks(banks):
-  return filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/sbv'] < 1.8, banks)
+  return filter(lambda code: code in FINANCAIL_DATA_ADVANCE and 'p/book-value' in FINANCAIL_DATA_ADVANCE[code] and FINANCAIL_DATA_ADVANCE[code]['p/book-value'] < 1.8, banks)
 
 def GetPercent(code,holding_asset_percent):
   percent = holding_asset_percent[code]
@@ -117,7 +119,7 @@ def GetPercent(code,holding_asset_percent):
   return percent
 
 def NoBuyBanks(banks):
-  return filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/sbv'] > 1.2,
+  return filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/book-value'] > 1.2,
                 banks)
 
 def KeepBanks(targetPercent):
@@ -125,23 +127,33 @@ def KeepBanks(targetPercent):
   swap_percent_delta = 0.03
   max_swap_percent = 0.05
   normal_valuation_delta = 0.08
-  a2h_discount = min(0.5 * MACRO_DATA['ah-premium'], 0.1)
-  h2a_discount = 0.02
+  a2h_discount = min(0.6 * MACRO_DATA['ah-premium'], 0.15)
+  h2a_discount = 0.03
+  same_h2a_discount = -0.01
   overflow_valuation_delta = -0.01
   max_bank_percent = {
-    '建设银行': 0.25,
-    '建设银行H': 0.25,
-    '招商银行': 0.7,
-    '招商银行H': 0.7,
-    '中国银行': 0.2,
-    '中国银行H': 0.2,
+    '建设银行': 0.3,
+    '建设银行H': 0.3,
+    '工商银行': 0.3,
+    '工商银行H': 0.3,
+    '招商银行': 0.6,
+    '招商银行H': 0.6,
+    '中国银行': 0.25,
+    '中国银行H': 0.25,
     '浦发银行': 0.25,
     '兴业银行': 0.25,
     '交通银行': 0.1,
     '交通银行H': 0.1,
+    '农业银行': 0.1,
+    '农业银行H': 0.1,
+    '中信银行': 0.1,
+    '中信银行H': 0.1,
+    '平安银行': 0.1,
+    '民生银行': 0.15,
+    '民生银行H': 0.15,
+    '华夏银行': 0.1,
   }
   backup = [
-    '中信银行H',
     '中海油服H',
     '上证红利ETF',
     '南方A50ETF',
@@ -193,11 +205,14 @@ def KeepBanks(targetPercent):
   for a in range(len(banks)):
     worse = banks[a]
     worse_currency = STOCK_INFO[worse]['currency']
-    for b in range(len(banks) - 1, a, -1):
+    for b in range(len(banks) - 1, 0, -1):
+      if b == a: continue
       better = banks[b]
       better_currency = STOCK_INFO[better]['currency']
       valuation_delta = normal_valuation_delta
-      if STOCK_INFO[worse]['currency'] == 'cny' and STOCK_INFO[better]['currency'] == 'hkd':
+      if STOCK_INFO[worse]['currency'] == 'hkd' and STOCK_INFO[better]['currency'] == 'cny' and STOCK_INFO[better]['hcode'] == worse:
+        valuation_delta = same_h2a_discount
+      elif STOCK_INFO[worse]['currency'] == 'cny' and STOCK_INFO[better]['currency'] == 'hkd':
         valuation_delta = a2h_discount
       elif STOCK_INFO[worse]['currency'] == 'hkd' and STOCK_INFO[better]['currency'] == 'cny':
         valuation_delta = h2a_discount
@@ -234,8 +249,8 @@ def FenJiClassA():
       print 'Sell %s(%s) @%.3f due to discount = %.3f'%(code, CODE_TO_NAME[code], GetMarketPrice(code), FINANCAIL_DATA_ADVANCE[code]['p/sbv'])
 
   codes.sort(key = lambda code: FINANCAIL_DATA_ADVANCE[code]['sdv/p']) 
-  want_rate = 6.5 / 100
-  sell_rate = 5.5 / 100
+  want_rate = 7.0 / 100
+  sell_rate = 6.0 / 100
   for code in codes:
     sbv = FINANCAIL_DATA_ADVANCE[code]['sbv']
     rate = FINANCAIL_DATA_BASE[code]['next-rate']
@@ -250,7 +265,7 @@ def FenJiClassA():
       return GiveTip('Sell', code, holding_market_value[code]) + ' due to interest rate drops to %.4f'%(adv_data['sdv/p'])
 
   best = codes[-1]
-  yield_delta = 0.05
+  yield_delta = 0.003
   for worse in range(len(codes)):
     if FINANCAIL_DATA_ADVANCE[best]['sdv/p'] - FINANCAIL_DATA_ADVANCE[codes[worse]]['sdv/p'] >= yield_delta and \
         holding_market_value[codes[worse]] > 0:
@@ -322,10 +337,10 @@ def YahooAndAlibaba():
   return ''
 
 def BalanceAHBanks():
-  total_money_in_CURRENCT = 400000
+  total_money_in_CURRENCT = 300000
   percent_sum = 1.0 * total_money_in_CURRENCT / ACCOUNT_INFO['ALL']['net']
-  max_A_percent =0.3
-  base_ah_premium = 0.15
+  max_A_percent =0.1
+  base_ah_premium = 0.05
   max_ah_premium = 0.30
   target_A_percent = max_A_percent / (max_ah_premium - base_ah_premium) * (max_ah_premium - MACRO_DATA['ah-premium'])
   target_A_percent = min(max_A_percent, target_A_percent)

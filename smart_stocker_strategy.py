@@ -138,14 +138,14 @@ def KeepBanks(targetPercent):
     '工商银行H': 0.3,
     '招商银行': 0.6,
     '招商银行H': 0.6,
-    '中国银行': 0.25,
-    '中国银行H': 0.25,
+    '中国银行': 0.3,
+    '中国银行H': 0.3,
     '浦发银行': 0.25,
     '兴业银行': 0.25,
-    '交通银行': 0.1,
-    '交通银行H': 0.1,
-    '农业银行': 0.1,
-    '农业银行H': 0.1,
+    '交通银行': 0.15,
+    '交通银行H': 0.15,
+    '农业银行': 0.15,
+    '农业银行H': 0.15,
     '中信银行': 0.1,
     '中信银行H': 0.1,
     '平安银行': 0.1,
@@ -349,7 +349,7 @@ def YahooAndAlibaba():
   return ''
 
 def BalanceAHBanks():
-  total_money_in_CURRENCT = 322500
+  total_money_in_CURRENCT = 350000
   percent_sum = 1.0 * total_money_in_CURRENCT / ACCOUNT_INFO['ALL']['net']
   max_A_percent =0.1
   base_ah_premium = 0.05

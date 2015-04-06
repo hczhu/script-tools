@@ -102,7 +102,7 @@ def ScoreBanks(banks):
     mp  = GetMarketPrice(bank)
     ttme3 = (mp / finance['p/ttme3']) if 'p/ttme3' in finance else 0
     bv = mp / (finance['p/worst-book-value'] if 'p/worst-book-value' in finance else (2 * finance['p/book-value']))
-    scores[bank] = mp / (ttme3 + bv)
+    scores[bank] = finance['p/bv3'] if 'p/bv3' in finance else mp / (ttme3 * 3 + bv)
   banks.sort(key = lambda code: scores[code])
   for bank in banks:
     sys.stderr.write('%s: %f\n'%(CODE_TO_NAME[bank], scores[bank]))
@@ -276,6 +276,7 @@ def FenJiClassA():
     if adv_data['sdv/p'] < sell_rate and holding_market_value[code] > 0:
       return GiveTip('Sell', code, holding_market_value[code]) + ' due to interest rate drops to %.4f'%(adv_data['sdv/p'])
 
+  if len(codes) == 0: return ''
   best = codes[-1]
   yield_delta = 0.003
   for worse in range(len(codes)):

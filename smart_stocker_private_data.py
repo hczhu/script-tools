@@ -42,7 +42,6 @@ def GetTable(gd_client, table_key, worksheet_key = 'od6', value_transformer = la
       for key in rows[-1].keys():
         if rows[-1][key] is not None:
           rows[-1][key] = value_transformer(rows[-1][key].encode('utf-8'))
-      sys.stderr.write('Got row:[%s]\n'%(str(rows[-1])))
     return rows
   except Exception, e:
     sys.stderr.write('Failed to read worksheet [%s] with exception [%s]\n'%(title, str(e)))
@@ -60,6 +59,9 @@ def MergeAllSheets(gd_client, ws_key, primary_key, value_transformer = lambda x:
       for row in sheet_table:
         if primary_key not in row:
           sys.stderr.write('Missing primary key: [%s]\n'%(primary_key))
+          continue
+        elif row[primary_key] is None:
+          sys.stderr.write('None value for primary key: [%s]\n'%(primary_key))
           continue
         record = records[row[primary_key]]
         for key, value in row.items():

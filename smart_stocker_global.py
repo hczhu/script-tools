@@ -128,29 +128,23 @@ FINANCIAL_KEYS = set([
   'ddv', # dynamic dividend yield
   'ddv/p',
   'ah-ratio',
-  'p/sbvadv', # p/sbv after dividend.
-  'p/dbvadv', # p/dbv after dividend.
   'cross-share', # hold shares of other company in the format of 'stock / per self stock, name'
   'tax-rate',
   'start-date', # 固定收益类本周起计息日
   'interest-rate', # 固定收益类年化利率
   'old-rate', # 固定收益类当前年化利率
 
+  'p/dividend',  # 当期分红
+  'p/dividend3',  # 未来3年平均每年分红
+
   'book-value',
   'p/book-value',
 
-  'best-book-value',
-  'p/best-book-value',
+  'bv3',  # 3年后的book value
+  'p/bv3',
 
   'worst-book-value',
   'p/worst-book-value',
-
-  'best-ttme',
-  'p/best-ttme',
-
-  'worst-ttme',
-  'p/worst-ttme',
-
 ])
 
 GD_CLIENT = None

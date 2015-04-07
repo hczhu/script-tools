@@ -284,7 +284,7 @@ def FenJiClassA():
         holding_market_value[codes[worse]] > 0:
       return GiveTip('Sell', codes[worse], holding_market_value[codes[worse]]) + \
                 ' due to interest rate drops to %.4f'%(FINANCAIL_DATA_ADVANCE[codes[worse]]['sdv/p']) + \
-             GiveTip('Buy', best, holding_market_value[codes[worse]]) + ' interest rate: %.4f'%(FINANCAIL_DATA_ADVANCE[best]['sdv/p'])
+             GiveTip(' Buy', best, holding_market_value[codes[worse]]) + ' interest rate: %.4f'%(FINANCAIL_DATA_ADVANCE[best]['sdv/p'])
   return ''
 
 def KeepCnyCapital():

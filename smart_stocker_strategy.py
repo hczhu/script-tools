@@ -394,5 +394,5 @@ STRATEGY_FUNCS = [
 
   KeepCnyCapital,
   YahooAndAlibaba,
-  lambda: KeepBanks(356000.0 / ACCOUNT_INFO['ALL']['NET']),
+  lambda: KeepBanks(356000.0 / ACCOUNT_INFO['ALL']['net']),
 ]

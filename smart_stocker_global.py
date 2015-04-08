@@ -207,7 +207,7 @@ ACCOUNT_INFO = {
     'investment': 0.0,
     'market-value': 0.0,
     'free-cash': 0.0,
-    'sma-discount': 0.0,
+    'sma-discount': 0.3,
     'sma': 0.0,
     'sma-ratio': 0.0,
     'min-sma-ratio': 0.0,

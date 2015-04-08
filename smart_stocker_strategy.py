@@ -220,7 +220,7 @@ def KeepBanks(targetPercent):
     worse_currency = STOCK_INFO[worse]['currency']
     better_currency = STOCK_INFO[better]['currency']
     valuation_delta = normal_valuation_delta
-    if STOCK_INFO[worse]['currency'] == 'hkd' and STOCK_INFO[better]['currency'] == 'cny' and STOCK_INFO[better]['hcode'] == worse:
+    if STOCK_INFO[worse]['currency'] == 'hkd' and STOCK_INFO[better]['currency'] == 'cny' and 'hcode' in STOCK_INFO[better] and STOCK_INFO[better]['hcode'] == worse:
       valuation_delta = same_h2a_discount
     elif STOCK_INFO[worse]['currency'] == 'cny' and STOCK_INFO[better]['currency'] == 'hkd':
       valuation_delta = a2h_discount

@@ -350,9 +350,9 @@ def YahooAndAlibaba():
   return ''
 
 def BalanceAHBanks():
-  total_money_in_CURRENCT = 350000
+  total_money_in_CURRENCT = 356000
   percent_sum = 1.0 * total_money_in_CURRENCT / ACCOUNT_INFO['ALL']['net']
-  max_A_percent =0.1
+  max_A_percent =0.8 * percent_sum
   base_ah_premium = 0.05
   max_ah_premium = 0.30
   target_A_percent = max_A_percent / (max_ah_premium - base_ah_premium) * (max_ah_premium - MACRO_DATA['ah-premium'])
@@ -394,5 +394,5 @@ STRATEGY_FUNCS = [
 
   KeepCnyCapital,
   YahooAndAlibaba,
-  BalanceAHBanks,
+  lambda: KeepBanks(356000.0 / ACCOUNT_INFO['ALL']['NET']),
 ]

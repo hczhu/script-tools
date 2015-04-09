@@ -131,6 +131,7 @@ def KeepBanks(targetPercent):
   h2a_discount = 0.03
   same_h2a_discount = -0.01
   overflow_valuation_delta = -0.01
+  overflow_percent = 0.2
   max_bank_percent = {
     '建设银行': 0.3,
     '建设银行H': 0.3,
@@ -198,7 +199,7 @@ def KeepBanks(targetPercent):
   for code in banks:
     currency = STOCK_INFO[code]['currency']
     sub_percent = min(currentPercent - targetPercent, holding_asset_percent[code])
-    if sub_percent > min_txn_percent:
+    if sub_percent > overflow_percent:
       return GiveTip('Sell', code, sub_percent * NET * EX_RATE[CURRENCY + '-' + currency])
   
   valuation_delta = 100

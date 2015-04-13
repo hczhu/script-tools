@@ -275,6 +275,10 @@ def PopulateFinancialData():
     data = FINANCAIL_DATA_BASE[code]
     adv_data = FINANCAIL_DATA_ADVANCE[code]
     mp = GetMarketPrice(code)
+    if mp < 0 and 'hcode' in info:
+      # A股涨停，按H股价格计算
+      mp = GetMarketPrice(info['hcode']) * EX_RATE['hkd-cny']
+      sys.stderr.write('Using h stock market price for %s\n'%(CODE_TO_NAME[code]))
     FINANCAIL_DATA_ADVANCE[code]['mp'] = mp
     if code in NAV_FUNC:
       adv_data['sbv'] = data['sbv'] = NAV_FUNC[code]()

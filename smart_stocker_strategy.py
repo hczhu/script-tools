@@ -126,10 +126,10 @@ def KeepBanks(targetPercent):
   min_txn_percent = max(0.02, MIN_TXN_PERCENT)
   swap_percent_delta = 0.03
   max_swap_percent = 0.1
-  normal_valuation_delta = 0.08
+  normal_valuation_delta = 0.06
   a2h_discount = min(0.4 * MACRO_DATA['ah-premium'], 0.15)
   h2a_discount = 0.03
-  same_h2a_discount = -0.01
+  same_h2a_discount = 0.01
   overflow_valuation_delta = -0.01
   overflow_percent = 0.2
   max_bank_percent = {
@@ -282,7 +282,8 @@ def FenJiClassA():
   yield_delta = 0.003
   for worse in range(len(codes)):
     if FINANCAIL_DATA_ADVANCE[best]['sdv/p'] - FINANCAIL_DATA_ADVANCE[codes[worse]]['sdv/p'] >= yield_delta and \
-        holding_market_value[codes[worse]] > 0:
+        holding_market_value[codes[worse]] > 0 and \
+        holding_market_value[codes[better]] < 100000:
       return GiveTip('Sell', codes[worse], holding_market_value[codes[worse]]) + \
                 ' due to interest rate drops to %.4f'%(FINANCAIL_DATA_ADVANCE[codes[worse]]['sdv/p']) + \
              GiveTip(' Buy', best, holding_market_value[codes[worse]]) + ' interest rate: %.4f'%(FINANCAIL_DATA_ADVANCE[best]['sdv/p'])

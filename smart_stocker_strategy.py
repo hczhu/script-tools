@@ -143,12 +143,12 @@ def KeepBanks(targetPercent):
     '中国银行H': 0.3,
     '浦发银行': 0.25,
     '兴业银行': 0.25,
-    '交通银行': 0.15,
-    '交通银行H': 0.15,
-    '农业银行': 0.1,
-    '农业银行H': 0.1,
-    '中信银行': 0.1,
-    '中信银行H': 0.1,
+    '交通银行': 0.2,
+    '交通银行H': 0.2,
+    '农业银行': 0.2,
+    '农业银行H': 0.2,
+    '中信银行': 0.15,
+    '中信银行H': 0.15,
     '平安银行': 0.1,
     '民生银行': 0.15,
     '民生银行H': 0.15,
@@ -210,7 +210,7 @@ def KeepBanks(targetPercent):
     for b in range(len(banks) - 1, a, -1):
       better = banks[b]
       swap_pairs += [(worse, better, valuation[worse] / valuation[better])]
-  swap_pairs.sort(key = lambda triple: triple[0], reverse = True)
+  swap_pairs.sort(key = lambda triple: triple[2], reverse = True)
   for bank in banks:
     if 'hcode' in STOCK_INFO[bank]:
       swap_pairs = [(bank, STOCK_INFO[bank]['hcode'], 1.0),

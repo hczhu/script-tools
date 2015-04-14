@@ -126,10 +126,10 @@ def KeepBanks(targetPercent):
   min_txn_percent = max(0.02, MIN_TXN_PERCENT)
   swap_percent_delta = 0.03
   max_swap_percent = 0.1
-  normal_valuation_delta = 0.06
-  a2h_discount = min(0.4 * MACRO_DATA['ah-premium'], 0.15)
-  h2a_discount = 0.03
-  same_h2a_discount = 0.01
+  normal_valuation_delta = 0.10
+  a2h_discount = max(normal_valuation_delta, 0.5 * MACRO_DATA['ah-premium'])
+  h2a_discount = normal_valuation_delta
+  same_h2a_discount = 0.05
   overflow_valuation_delta = -0.01
   overflow_percent = 0.2
   max_bank_percent = {
@@ -137,16 +137,16 @@ def KeepBanks(targetPercent):
     '建设银行H': 0.3,
     '工商银行': 0.3,
     '工商银行H': 0.3,
-    '招商银行': 0.6,
-    '招商银行H': 0.6,
+    '招商银行': 0.5,
+    '招商银行H': 0.5,
     '中国银行': 0.3,
     '中国银行H': 0.3,
     '浦发银行': 0.25,
     '兴业银行': 0.25,
     '交通银行': 0.15,
     '交通银行H': 0.15,
-    '农业银行': 0.15,
-    '农业银行H': 0.15,
+    '农业银行': 0.1,
+    '农业银行H': 0.1,
     '中信银行': 0.1,
     '中信银行H': 0.1,
     '平安银行': 0.1,
@@ -230,8 +230,8 @@ def KeepBanks(targetPercent):
     if holding_asset_percent[worse] > max_bank_percent[worse]:
       valuation_delta = overflow_valuation_delta
     valuation_ratio = valuation[worse] / valuation[better]
-    sys.stderr.write('%s ==> %s delta = %.3f valuation ratio = %.2f\n'%(
-                     CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_delta, valuation_ratio))
+    sys.stderr.write('%s ==> %s delta = %.3f valuation ratio %.2f > threshold %.2f\n'%(
+                     CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_delta, valuation_ratio, valuation_delta))
     if valuation_ratio < (1 + valuation_delta): continue
     swap_percent = min(holding_asset_percent[worse], max_bank_percent[better] - GetPercent(better, holding_asset_percent))
     swap_percent = min(swap_percent, max_swap_percent)

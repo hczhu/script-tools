@@ -283,11 +283,14 @@ def PopulateFinancialData():
     FINANCAIL_DATA_ADVANCE[code]['mp'] = mp
     if code in NAV_FUNC:
       adv_data['sbv'] = data['sbv'] = NAV_FUNC[code]()
+    extra_key = set(['roe3'])
     for key in FINANCIAL_KEYS:
       if key.find('p/') != -1 and key[2:] in data and isinstance(data[key[2:]], float) and data[key[2:]] > 0:
         adv_data[key] = mp / data[key[2:]]
       elif key.find('/p') != -1 and key[0:-2] in data and isinstance(data[key[0:-2]], float) and data[key[0:-2]] > 0:
         adv_data[key] = data[key[0:-2]] / mp
+      elif key in extra_key and key in data:
+        adv_data[key] = data[key]
     # Populate corresponding h-share.
     if 'hcode' in info:
       hmp = GetMarketPrice(info['hcode'])

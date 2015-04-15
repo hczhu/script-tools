@@ -109,7 +109,18 @@ def ScoreBanks(banks):
   return banks, scores
 
 def FilterBanks(banks):
-  return filter(lambda code: code in FINANCAIL_DATA_ADVANCE and 'p/book-value' in FINANCAIL_DATA_ADVANCE[code] and FINANCAIL_DATA_ADVANCE[code]['p/book-value'] < 1.8, banks)
+  return filter(lambda code:
+                  code in FINANCAIL_DATA_ADVANCE
+                  and 'p/book-value' in FINANCAIL_DATA_ADVANCE[code]
+                  and 'roe3' in FINANCAIL_DATA_ADVANCE[code]
+                  and FINANCAIL_DATA_ADVANCE[code]['p/book-value'] < FINANCAIL_DATA_ADVANCE[code]['roe3'] / 0.1, banks)
+
+def NoBuyBanks(banks):
+  return filter(lambda code:
+                  code in FINANCAIL_DATA_ADVANCE
+                  and 'p/book-value' in FINANCAIL_DATA_ADVANCE[code]
+                  and 'roe3' in FINANCAIL_DATA_ADVANCE[code]
+                  and FINANCAIL_DATA_ADVANCE[code]['p/book-value'] > FINANCAIL_DATA_ADVANCE[code]['roe3'] / 0.14, banks)
 
 def GetPercent(code,holding_asset_percent):
   percent = holding_asset_percent[code]
@@ -118,15 +129,11 @@ def GetPercent(code,holding_asset_percent):
       percent += holding_asset_percent[STOCK_INFO[code][key]]
   return percent
 
-def NoBuyBanks(banks):
-  return filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/book-value'] > 1.2,
-                banks)
-
 def KeepBanks(targetPercent):
   min_txn_percent = max(0.02, MIN_TXN_PERCENT)
   swap_percent_delta = 0.03
   max_swap_percent = 0.1
-  normal_valuation_delta = 0.15
+  normal_valuation_delta = 0.12
   a2h_discount = max(normal_valuation_delta, 0.5 * MACRO_DATA['ah-premium'])
   h2a_discount = normal_valuation_delta
   same_h2a_discount = 0.05
@@ -195,6 +202,7 @@ def KeepBanks(targetPercent):
     cash, op = GetCashAndOp(currency_to_account[currency], currency, add_percent, backup)
     if add_percent > min_txn_percent and cash > 0:
       return op + GiveTip(' ==> Buy', code, cash)
+
   banks.reverse()
   for code in banks:
     currency = STOCK_INFO[code]['currency']

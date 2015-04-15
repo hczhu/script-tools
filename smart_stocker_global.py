@@ -145,6 +145,7 @@ FINANCIAL_KEYS = set([
 
   'worst-book-value',
   'p/worst-book-value',
+  'roe3',
 ])
 
 GD_CLIENT = None

@@ -117,8 +117,8 @@ FINANCIAL_KEYS = set([
   'p/dbv',
   'ttme', # trailing twelve month earning
   'p/ttme',
-  'f-ttme', # forward trailing twelve month earning
-  'p/f-ttme',
+  'ttme3', # Forward 3 year earning.
+  'p/ttme3',
   'dye', # dynamic yearly earning
   'p/dye',
   'sdv', # static dividend yield
@@ -128,13 +128,24 @@ FINANCIAL_KEYS = set([
   'ddv', # dynamic dividend yield
   'ddv/p',
   'ah-ratio',
-  'p/sbvadv', # p/sbv after dividend.
-  'p/dbvadv', # p/dbv after dividend.
   'cross-share', # hold shares of other company in the format of 'stock / per self stock, name'
   'tax-rate',
   'start-date', # 固定收益类本周起计息日
   'interest-rate', # 固定收益类年化利率
   'old-rate', # 固定收益类当前年化利率
+
+  'p/dividend',  # 当期分红
+  'p/dividend3',  # 未来3年平均每年分红
+
+  'book-value',
+  'p/book-value',
+
+  'bv3',  # 3年后的book value
+  'p/bv3',
+
+  'worst-book-value',
+  'p/worst-book-value',
+  'roe3',
 ])
 
 GD_CLIENT = None
@@ -197,7 +208,7 @@ ACCOUNT_INFO = {
     'investment': 0.0,
     'market-value': 0.0,
     'free-cash': 0.0,
-    'sma-discount': 0.0,
+    'sma-discount': 0.3,
     'sma': 0.0,
     'sma-ratio': 0.0,
     'min-sma-ratio': 0.0,

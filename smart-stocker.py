@@ -138,6 +138,7 @@ def PrintAccountInfo():
   header = [
     'account',
     'currency',
+    'investment',
     'net',
     'buying-power',
     'leverage',
@@ -243,7 +244,8 @@ def PrintStocks(names):
       data = dict(FINANCAIL_DATA_ADVANCE[code])
       data['name'] = ('*' if code in ACCOUNT_INFO['ALL']['holding-shares'] else '') + CODE_TO_NAME[code]
       tableMap.append(data)
-  PrintTableMap(header, tableMap, float_precision = 5)
+  tableMap.sort(key = lambda recordMap: recordMap['p/book-value'] if 'p/book-value' in recordMap else 0)
+  PrintTableMap(header, tableMap, float_precision = 3, header_transformer = lambda header: header.replace('book-value', 'bv'))
 
 try:
   args = set(sys.argv[1:])
@@ -266,6 +268,7 @@ try:
 
   PopulateMacroData()
   GetFinancialData(GD_CLIENT) 
+  GetBankData(GD_CLIENT)
   PopulateFinancialData()
   ProcessRecords(ReadRecords(), accounts)
   PrintAccountInfo()

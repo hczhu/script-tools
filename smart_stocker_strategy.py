@@ -54,7 +54,7 @@ def GetCashEquivalence():
   return codes
 
 def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_conditions = {},
-                       sort_key = lambda code: ACCOUNT_INFO['ALL']['holding-percent-all'][code]):
+                       stock_eval = lambda code: 1.0, eval_delta = 0.1):
   codes = [NAME_TO_CODE[name] for name in names]
   hold_cond = {
     NAME_TO_CODE[name]: hold_conditions[name] if name in hold_conditions else lambda code: True for name in names
@@ -66,19 +66,45 @@ def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_co
     if not hold_cond[code](code):
       return 'Clear %s(%s)'%(CODE_TO_NAME[code], code)
   holding_percent = {code : ACCOUNT_INFO['ALL']['holding-percent-all'][code] for code in codes}
-  codes.sort(key = sort_key)
+  codes.sort(key = stock_eval)
   sum_percent = sum(holding_percent.values())
-  if sum_percent + MIN_TXN_PERCENT < percent:
+  if sum_percent + MIN_TXN_PERCENT <= percent:
     for code in codes:
       cash, op = GetCashAndOp(ACCOUNT_INFO.keys(), STOCK_INFO[code]['currency'], percent - sum_percent)
       if cash > 0 and buy_cond[code](code):
         return GiveTip('Buy', code, cash)
   codes.reverse()
-  if sum_percent > percent + MIN_TXN_PERCENT:
+  if sum_percent >= percent + MIN_TXN_PERCENT:
     for code in codes:
       if holding_percent[code] > MIN_TXN_PERCENT:
         cash = EX_RATE[CURRENCY + '-' + STOCK_INFO[code]['currency']] * min(sum_percent - percent, holding_percent[code]) * ACCOUNT_INFO['ALL']['net']
         return GiveTip('Sell', code, cash)
+  currency_to_account = {
+    'hkd': ['ib'],
+    'cny': ['a'],
+  }
+  NET = ACCOUNT_INFO['ALL']['net']
+  for a in range(len(codes)):
+    worse = codes[a]
+    if holding_percent[worse] <= 0: continue
+    for b in range(len(codes) - 1, a + 1, -1):
+      better = codes[b] 
+      worse_currency = STOCK_INFO[worse]['currency']
+      better_currency = STOCK_INFO[better]['currency']
+      valuation_ratio = stock_eval[worse] / stock_eval[better]
+      if valuation_ratio < 1 + eval_delta: continue
+      swap_percent = holding_percent[worse]
+      swap_cash = swap_percent * NET
+      if swap_percent < swap_percent_delta: continue
+      op = ''
+      if worse_currency != better_currency:
+        avail_cash, op = GetCashAndOp(currency_to_account[better_currency], better_currency, swap_percent, backup)
+        swap_cash = EX_RATE[better_currency + '-' + CURRENCY] * avail_cash
+      if swap_cash < MIN_TXN_PERCENT * NET: continue
+      return GiveTip('Sell', worse, swap_cash * EX_RATE[CURRENCY + '-' + worse_currency]) +\
+               ' ==>\n    ' + op + '\n    ' +\
+             GiveTip('Buy', better, swap_cash * EX_RATE[CURRENCY + '-' + better_currency]) +\
+             ' due to valuation ratio = %.3f'%(valuation_ratio)
   return ''
 
 def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True, buy_condition = lambda code: True):
@@ -133,19 +159,17 @@ def KeepBanks(targetPercent):
   min_txn_percent = max(0.02, MIN_TXN_PERCENT)
   swap_percent_delta = 0.03
   max_swap_percent = 0.1
-  normal_valuation_delta = 0.12
+  normal_valuation_delta = 0.1
   a2h_discount = max(normal_valuation_delta, 0.5 * MACRO_DATA['ah-premium'])
   h2a_discount = normal_valuation_delta
   same_h2a_discount = 0.05
   overflow_valuation_delta = 0.02
-  overflow_percent = 0.15
+  overflow_percent = targetPercent * 0.15
   max_bank_percent = {
     '建设银行': 0.3,
     '建设银行H': 0.3,
     '工商银行': 0.25,
     '工商银行H': 0.25,
-    '招商银行': 0.5,
-    '招商银行H': 0.5,
     '中国银行': 0.3,
     '中国银行H': 0.3,
     '浦发银行': 0.25,
@@ -173,7 +197,7 @@ def KeepBanks(targetPercent):
   }
   currentPercent = sum(map(lambda code: holding_asset_percent[code], all_banks))
   sys.stderr.write('bank holding percents: %s\n'%(str(holding_asset_percent)))
-  sys.stderr.write('total bank percent = %.3f\n'%(currentPercent))
+  sys.stderr.write('total bank percent = %.3f target percent = %.3f\n'%(currentPercent, targetPercent))
   sys.stderr.write('total bank market value = %.0f\n'%(currentPercent * ACCOUNT_INFO['ALL']['net']))
   banks = FilterBanks(all_banks)
 
@@ -186,6 +210,10 @@ def KeepBanks(targetPercent):
   
   no_buy_banks = set(NoBuyBanks(banks))
   sys.stderr.write('No buy banks: %s \n'%(', '.join([CODE_TO_NAME[code] for code in no_buy_banks])))
+  
+  if len(banks) == 0:
+    sys.stderr.write('No banks to consider!')
+    return ''
 
   banks, valuation = ScoreBanks(banks) 
 
@@ -204,11 +232,18 @@ def KeepBanks(targetPercent):
       return op + GiveTip(' ==> Buy', code, cash)
 
   banks.reverse()
-  for code in banks:
-    currency = STOCK_INFO[code]['currency']
-    sub_percent = min(currentPercent - targetPercent, holding_asset_percent[code])
-    if sub_percent > overflow_percent:
-      return GiveTip('Sell', code, sub_percent * NET * EX_RATE[CURRENCY + '-' + currency])
+  if currentPercent - targetPercent >= overflow_percent:
+    worst = filter(lambda code: holding_asset_percent[code] > 0, banks)[0]
+    banks_to_sell = filter(lambda code: valuation[worst] / valuation[code] < 1 + normal_valuation_delta and holding_asset_percent[code] > 0, banks)
+    sys.stderr.write('Banks to sell: %s \n'%(', '.join([CODE_TO_NAME[code] for code in banks_to_sell])))
+    percent_sum = sum([holding_asset_percent[code] for code in banks_to_sell])
+    ret = ''
+    for code in banks_to_sell:
+      currency = STOCK_INFO[code]['currency']
+      sub_percent = (currentPercent - targetPercent) * holding_asset_percent[code] / percent_sum
+      if sub_percent >= MIN_TXN_PERCENT:
+        ret += GiveTip('Sell', code, sub_percent * NET * EX_RATE[CURRENCY + '-' + currency]) + '\n    '
+    return ret
   
   valuation_delta = 100
   
@@ -245,6 +280,7 @@ def KeepBanks(targetPercent):
     swap_percent = min(swap_percent, max_swap_percent)
     swap_cash = swap_percent * NET
     if swap_percent < swap_percent_delta: continue
+    op = ''
     if worse_currency != better_currency:
       avail_cash, op = GetCashAndOp(currency_to_account[better_currency], better_currency, swap_percent, backup)
       swap_cash = EX_RATE[better_currency + '-' + CURRENCY] * avail_cash
@@ -404,5 +440,16 @@ STRATEGY_FUNCS = [
 
   KeepCnyCapital,
   YahooAndAlibaba,
-  lambda: KeepBanks(356000.0 / ACCOUNT_INFO['ALL']['net']),
+  lambda: KeepBanks(250000.0 / ACCOUNT_INFO['ALL']['net']),
+
+  lambda: KeepGroupPercentIf(['招商银行', '招商银行H'], 0.6, backup = GetClassA(),
+                             hold_conditions = {
+                                '招商银行': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'] < 1.3,
+                                '招商银行H': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'] < 1.3,
+                             },
+                             buy_conditions = {
+                                '招商银行': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'] < 0.91,
+                                '招商银行H': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'] < 0.91,
+                             },
+                             stock_eval = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'], eval_delta = 0.05),
 ]

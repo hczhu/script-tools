@@ -62,6 +62,10 @@ def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_co
   buy_cond = {
     NAME_TO_CODE[name]: buy_conditions[name] if name in buy_conditions else lambda code: True for name in names
   }
+  currency_to_account = {
+    'hkd': ['ib'],
+    'cny': ['a'],
+  }
   for code in codes:
     if not hold_cond[code](code):
       return 'Clear %s(%s)'%(CODE_TO_NAME[code], code)
@@ -70,7 +74,7 @@ def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_co
   sum_percent = sum(holding_percent.values())
   if sum_percent + MIN_TXN_PERCENT <= percent:
     for code in codes:
-      cash, op = GetCashAndOp(ACCOUNT_INFO.keys(), STOCK_INFO[code]['currency'], percent - sum_percent)
+      cash, op = GetCashAndOp(ACCOUNT_INFO.keys(), STOCK_INFO[code]['currency'], percent - sum_percent, backup)
       if cash > 0 and buy_cond[code](code):
         return GiveTip('Buy', code, cash)
   codes.reverse()
@@ -79,10 +83,6 @@ def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_co
       if holding_percent[code] > MIN_TXN_PERCENT:
         cash = EX_RATE[CURRENCY + '-' + STOCK_INFO[code]['currency']] * min(sum_percent - percent, holding_percent[code]) * ACCOUNT_INFO['ALL']['net']
         return GiveTip('Sell', code, cash)
-  currency_to_account = {
-    'hkd': ['ib'],
-    'cny': ['a'],
-  }
   NET = ACCOUNT_INFO['ALL']['net']
   for a in range(len(codes)):
     worse = codes[a]
@@ -441,7 +441,7 @@ STRATEGY_FUNCS = {
 
   'A股最少资金': KeepCnyCapital,
   'Yahoo - Alibaba': YahooAndAlibaba,
-  '银行股': lambda: KeepBanks(250000.0 / ACCOUNT_INFO['ALL']['net']),
+  '银行股': lambda: KeepBanks(300000.0 / ACCOUNT_INFO['ALL']['net']),
 
   '招商银行': lambda: KeepGroupPercentIf(['招商银行', '招商银行H'], 0.6, backup = GetClassA(),
                              hold_conditions = {

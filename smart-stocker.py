@@ -231,7 +231,8 @@ def PrintHoldingSecurities():
   PrintTableMap(table_header, stat_records_map, truncate_float = False)
 
 def RunStrategies():
-  for strategy in STRATEGY_FUNCS:
+  for name, strategy in STRATEGY_FUNCS:
+    sys.stderr.write('Running strategy: %s\n'%(name))
     tip = strategy()
     if tip != '': print bcolors.FAIL + 'ACTION!!! ' + tip + bcolors.ENDC
 

@@ -100,6 +100,7 @@ def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_co
       if worse_currency != better_currency:
         avail_cash, op = GetCashAndOp(currency_to_account[better_currency], better_currency, swap_percent, backup)
         swap_cash = EX_RATE[better_currency + '-' + CURRENCY] * avail_cash
+      sys.stderr.write('%s ==> %s\n'%(CODE_TO_NAME[worse], CODE_TO_NAME[better]))
       if swap_cash < MIN_TXN_PERCENT * NET: continue
       return GiveTip('Sell', worse, swap_cash * EX_RATE[CURRENCY + '-' + worse_currency]) +\
                ' ==>\n    ' + op + '\n    ' +\
@@ -419,30 +420,30 @@ def BalanceAHBanks():
   res += KeepBanks(target_bank_percent)
   return res
 
-STRATEGY_FUNCS = [
-  FenJiClassA,
-  lambda: BuyETFDiscount('南方A50ETF'),
+STRATEGY_FUNCS = {
+  '分级基金': FenJiClassA,
+  '南方A50': lambda: BuyETFDiscount('南方A50ETF'),
 
-  lambda: KeepPercentIf('Weibo', 0.12,
+  'Weibo': lambda: KeepPercentIf('Weibo', 0.12,
                         hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.5,
                         buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.05
                        ),
-  lambda: KeepPercentIf('Sina', 0.1,
+  'Sina': lambda: KeepPercentIf('Sina', 0.1,
                         hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.5,
                         buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 0.99
                        ),
 
-  lambda: KeepPercentIf('中海油服H', 0.2,
+  '中海油服H': lambda: KeepPercentIf('中海油服H', 0.2,
                         hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.7,
                         buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.6 and FINANCAIL_DATA_ADVANCE[code]['sdv/p'] > 0.035 \
                                                      and FINANCAIL_DATA_ADVANCE[code]['p/sbv'] < 0.7,
                        ),
 
-  KeepCnyCapital,
-  YahooAndAlibaba,
-  lambda: KeepBanks(250000.0 / ACCOUNT_INFO['ALL']['net']),
+  'A股最少资金': KeepCnyCapital,
+  'Yahoo - Alibaba': YahooAndAlibaba,
+  '银行股': lambda: KeepBanks(250000.0 / ACCOUNT_INFO['ALL']['net']),
 
-  lambda: KeepGroupPercentIf(['招商银行', '招商银行H'], 0.6, backup = GetClassA(),
+  '招商银行': lambda: KeepGroupPercentIf(['招商银行', '招商银行H'], 0.6, backup = GetClassA(),
                              hold_conditions = {
                                 '招商银行': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'] < 1.3,
                                 '招商银行H': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'] < 1.3,
@@ -452,4 +453,4 @@ STRATEGY_FUNCS = [
                                 '招商银行H': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'] < 0.91,
                              },
                              stock_eval = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'], eval_delta = 0.05),
-]
+}

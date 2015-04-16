@@ -33,6 +33,18 @@ settitle() {
 }
 PROMPT_COMMAND="settitle; $PROMPT_COMMAND"
 
+set_git_branch() {
+  export GIT_BRANCH=$(git branch 2> /dev/null | grep \* | cut -d' ' -f2)
+}
+
+get_git_branch() {
+  git branch 2> /dev/null | grep \* | cut -d' ' -f2
+}
+
+PROMPT_COMMAND="set_git_branch; $PROMPT_COMMAND"
+
+export PS1='[\u@\h \w($(get_git_branch))] '
+
 # Input method
 #export XIM="SCIM"
 #export XMODIFIERS=@im=SCIM  #设置scim为xim默认输入法

@@ -59,7 +59,7 @@ autocmd BufNewFile,BufRead *.html,*htm set spell
 command Sb vert sb
 command Target vs %:h/TARGETS
 command Cs !look <cword>
-command Ls !ls -l $(echo <cWORD> | sed 's/\"//g' | sed 's/,//g' | sed "s/\'//g")
+command Ls !ls -l <cfile>
 command Fl !grep "^DEFINE_[a-zA-Z0-9]\+($(echo <cword> | sed 's/FLAGS_//')" % -A 3
 " Create a variable name for type: AaaBbbCaa ===> aaa_bbb_ccc
 map Va wbveyea <CR><Esc>O<Esc>p:.s/\([a-z]\)\([A-Z]\)/\1_\2/g<CR>VuA <Esc>JkJ

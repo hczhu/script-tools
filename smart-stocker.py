@@ -234,7 +234,7 @@ def RunStrategies():
   for name, strategy in STRATEGY_FUNCS.items():
     sys.stderr.write('Running strategy: %s\n'%(name))
     tip = strategy()
-    if tip != '': print bcolors.FAIL + 'ACTION!!! ' + tip + bcolors.ENDC
+    if tip != '': print bcolors.FAIL + 'ACTION!!! ' + tip + bcolors.ENDC + '\n'
 
 def PrintStocks(names):
   tableMap = []

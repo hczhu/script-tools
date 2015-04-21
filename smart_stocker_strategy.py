@@ -87,20 +87,19 @@ def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_co
   for a in range(len(codes)):
     worse = codes[a]
     if holding_percent[worse] <= 0: continue
-    for b in range(len(codes) - 1, a + 1, -1):
+    for b in range(len(codes) - 1, a, -1):
       better = codes[b] 
       worse_currency = STOCK_INFO[worse]['currency']
       better_currency = STOCK_INFO[better]['currency']
-      valuation_ratio = stock_eval[worse] / stock_eval[better]
-      if valuation_ratio < 1 + eval_delta: continue
+      valuation_ratio = stock_eval(worse) / stock_eval(better)
       swap_percent = holding_percent[worse]
       swap_cash = swap_percent * NET
-      if swap_percent < swap_percent_delta: continue
       op = ''
       if worse_currency != better_currency:
         avail_cash, op = GetCashAndOp(currency_to_account[better_currency], better_currency, swap_percent, backup)
         swap_cash = EX_RATE[better_currency + '-' + CURRENCY] * avail_cash
-      sys.stderr.write('%s ==> %s\n'%(CODE_TO_NAME[worse], CODE_TO_NAME[better]))
+      sys.stderr.write('%s ==> %s valuation ratio = %.2f threhold = %.2f\n'%(CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_ratio, 1 + eval_delta))
+      if valuation_ratio < 1 + eval_delta: continue
       if swap_cash < MIN_TXN_PERCENT * NET: continue
       return GiveTip('Sell', worse, swap_cash * EX_RATE[CURRENCY + '-' + worse_currency]) +\
                ' ==>\n    ' + op + '\n    ' +\
@@ -164,15 +163,15 @@ def KeepBanks(targetPercent):
   a2h_discount = max(normal_valuation_delta, 0.5 * MACRO_DATA['ah-premium'])
   h2a_discount = normal_valuation_delta
   same_h2a_discount = 0.05
-  overflow_valuation_delta = 0.02
+  overflow_valuation_delta = -0.01
   overflow_percent = targetPercent * 0.1
   max_bank_percent = {
     '建设银行': 0.3,
     '建设银行H': 0.3,
     '工商银行': 0.25,
     '工商银行H': 0.25,
-    '中国银行': 0.3,
-    '中国银行H': 0.3,
+    '中国银行': 0.35,
+    '中国银行H': 0.35,
     '浦发银行': 0.25,
     '兴业银行': 0.25,
     '交通银行': 0.15,
@@ -274,12 +273,12 @@ def KeepBanks(targetPercent):
     if holding_asset_percent[worse] > max_bank_percent[worse]:
       valuation_delta = overflow_valuation_delta
     valuation_ratio = valuation[worse] / valuation[better]
-    sys.stderr.write('%s ==> %s delta = %.3f valuation ratio %.2f > threshold %.2f\n'%(
-                     CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_delta, valuation_ratio, valuation_delta))
-    if valuation_ratio < (1 + valuation_delta): continue
     swap_percent = min(holding_asset_percent[worse], max_bank_percent[better] - GetPercent(better, holding_asset_percent))
     swap_percent = min(swap_percent, max_swap_percent)
     swap_cash = swap_percent * NET
+    sys.stderr.write('%s ==> %s delta = %.3f valuation ratio %.2f > threshold %.2f seap percent = %.2f\n'%(
+                     CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_delta, valuation_ratio, 1 + valuation_delta, swap_percent))
+    if valuation_ratio < (1 + valuation_delta): continue
     if swap_percent < swap_percent_delta: continue
     op = ''
     if worse_currency != better_currency:

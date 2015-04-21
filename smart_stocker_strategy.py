@@ -441,7 +441,7 @@ STRATEGY_FUNCS = {
 
   'A股最少资金': KeepCnyCapital,
   'Yahoo - Alibaba': YahooAndAlibaba,
-  '银行股': lambda: KeepBanks(300000.0 / ACCOUNT_INFO['ALL']['net']),
+  '银行股': lambda: KeepBanks(290000.0 / ACCOUNT_INFO['ALL']['net']),
 
   '招商银行': lambda: KeepGroupPercentIf(['招商银行', '招商银行H'], 0.6, backup = GetClassA(),
                              hold_conditions = {

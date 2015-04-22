@@ -327,7 +327,7 @@ def FenJiClassA():
   for worse in range(len(codes)):
     if FINANCAIL_DATA_ADVANCE[best]['sdv/p'] - FINANCAIL_DATA_ADVANCE[codes[worse]]['sdv/p'] >= yield_delta and \
         holding_market_value[codes[worse]] > 0 and \
-        holding_market_value[codes[better]] < 100000:
+        holding_market_value[best] < 200000:
       return GiveTip('Sell', codes[worse], holding_market_value[codes[worse]]) + \
                 ' due to interest rate drops to %.4f'%(FINANCAIL_DATA_ADVANCE[codes[worse]]['sdv/p']) + \
              GiveTip(' Buy', best, holding_market_value[codes[worse]]) + ' interest rate: %.4f'%(FINANCAIL_DATA_ADVANCE[best]['sdv/p'])

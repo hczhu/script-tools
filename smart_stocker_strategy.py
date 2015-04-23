@@ -41,11 +41,16 @@ def GetCashAndOp(accounts, currency, max_percent, backup = []):
   sys.stderr.write('No enough buying power for currency: %s\n'%(currency))
   return (0, '')
 
-def GetClassA():
+def GetClassA(keep_percent = 0.0, sorter = lambda code: ACCOUNT_INFO['ALL']['holding-percent-all'][code] if code in ACCOUNT_INFO['ALL']['holding-percent-all'] else 0):
   codes = []
+  holding_percent = {code : ACCOUNT_INFO['ALL']['holding-percent-all'][code] if code in ACCOUNT_INFO['ALL']['holding-percent-all'] else 0 for code in codes}
   for code in STOCK_INFO.keys():
     if 'class-b'  in STOCK_INFO[code]:
       codes.append(code)
+  codes.sort(key = sorter)
+  while keep_percent > 0.0 and len(codes) > 0:
+    keep_percent -= holding_percent[codes[0]]
+    codes = codes[1:]
   return codes
 
 def GetCashEquivalence():
@@ -442,7 +447,7 @@ STRATEGY_FUNCS = {
   'Yahoo - Alibaba': YahooAndAlibaba,
   '银行股': lambda: KeepBanks(290000.0 / ACCOUNT_INFO['ALL']['net']),
 
-  '招商银行': lambda: KeepGroupPercentIf(['招商银行', '招商银行H'], 0.6, backup = GetClassA(),
+  '招商银行': lambda: KeepGroupPercentIf(['招商银行', '招商银行H'], 0.6, backup = GetClassA(keep_percent = 0.03, sorter = lambda code: FINANCAIL_DATA_ADVANCE[code]['sdv/p']),
                              hold_conditions = {
                                 '招商银行': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'] < 1.3,
                                 '招商银行H': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'] < 1.3,

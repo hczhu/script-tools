@@ -43,10 +43,10 @@ def GetCashAndOp(accounts, currency, max_percent, backup = []):
 
 def GetClassA(keep_percent = 0.0, sorter = lambda code: ACCOUNT_INFO['ALL']['holding-percent-all'][code] if code in ACCOUNT_INFO['ALL']['holding-percent-all'] else 0):
   codes = []
-  holding_percent = {code : ACCOUNT_INFO['ALL']['holding-percent-all'][code] if code in ACCOUNT_INFO['ALL']['holding-percent-all'] else 0 for code in codes}
   for code in STOCK_INFO.keys():
     if 'class-b'  in STOCK_INFO[code]:
       codes.append(code)
+  holding_percent = {code : ACCOUNT_INFO['ALL']['holding-percent-all'][code] if code in ACCOUNT_INFO['ALL']['holding-percent-all'] else 0 for code in codes}
   codes.sort(key = sorter)
   while keep_percent > 0.0 and len(codes) > 0:
     keep_percent -= holding_percent[codes[0]]

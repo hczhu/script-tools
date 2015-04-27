@@ -169,7 +169,7 @@ def KeepBanks(targetPercent):
   h2a_discount = normal_valuation_delta
   same_h2a_discount = 0.05
   overflow_valuation_delta = -0.01
-  overflow_percent = targetPercent * 0.1
+  overflow_percent = targetPercent * 0.15
   max_bank_percent = {
     '建设银行': 0.3,
     '建设银行H': 0.3,
@@ -445,7 +445,7 @@ STRATEGY_FUNCS = {
 
   'A股最少资金': KeepCnyCapital,
   'Yahoo - Alibaba': YahooAndAlibaba,
-  '银行股': lambda: KeepBanks(290000.0 / ACCOUNT_INFO['ALL']['net']),
+  '银行股': lambda: KeepBanks(260000.0 / ACCOUNT_INFO['ALL']['net']),
 
   '招商银行': lambda: KeepGroupPercentIf(['招商银行', '招商银行H'], 0.6, backup = GetClassA(keep_percent = 0.03, sorter = lambda code: FINANCAIL_DATA_ADVANCE[code]['sdv/p']),
                              hold_conditions = {

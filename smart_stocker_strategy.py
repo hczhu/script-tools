@@ -171,16 +171,16 @@ def KeepBanks(targetPercent):
   overflow_valuation_delta = -0.01
   overflow_percent = targetPercent * 0.15
   max_bank_percent = {
-    '建设银行': 0.3,
-    '建设银行H': 0.3,
+    '建设银行': 0.35,
+    '建设银行H': 0.35,
     '工商银行': 0.25,
     '工商银行H': 0.25,
-    '中国银行': 0.35,
-    '中国银行H': 0.35,
+    '中国银行': 0.4,
+    '中国银行H': 0.4,
     '浦发银行': 0.25,
     '兴业银行': 0.25,
-    '交通银行': 0.15,
-    '交通银行H': 0.15,
+    '交通银行': 0.1,
+    '交通银行H': 0.1,
     '农业银行': 0.1,
     '农业银行H': 0.1,
     '中信银行': 0.15,
@@ -456,5 +456,5 @@ STRATEGY_FUNCS = {
                                 '招商银行': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'] < 0.91,
                                 '招商银行H': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'] < 0.91,
                              },
-                             stock_eval = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'], eval_delta = 0.05),
+                             stock_eval = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'], eval_delta = 0.04),
 }

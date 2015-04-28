@@ -456,5 +456,5 @@ STRATEGY_FUNCS = {
                                 '招商银行': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'] < 0.91,
                                 '招商银行H': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'] < 0.91,
                              },
-                             stock_eval = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'], eval_delta = 0.05),
+                             stock_eval = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'], eval_delta = 0.04),
 }

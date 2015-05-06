@@ -260,7 +260,7 @@ def KeepBanks(targetPercent):
       swap_pairs += [(worse, better, valuation[worse] / valuation[better])]
   swap_pairs.sort(key = lambda triple: triple[2], reverse = True)
   for bank in banks:
-    if 'hcode' in STOCK_INFO[bank]:
+    if 'hcode' in STOCK_INFO[bank] and STOCK_INFO[bank]['hcode'] in valuation:
       swap_pairs = [(bank, STOCK_INFO[bank]['hcode'], 1.0),
                     (STOCK_INFO[bank]['hcode'], bank, 1.0)] + swap_pairs
   for pr in swap_pairs:

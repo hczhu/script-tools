@@ -129,11 +129,7 @@ def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True
 def ScoreBanks(banks):
   scores ={}
   for bank in banks:
-    finance = FINANCAIL_DATA_ADVANCE[bank]
-    mp  = GetMarketPrice(bank)
-    ttme3 = (mp / finance['p/ttme3']) if 'p/ttme3' in finance else 0
-    bv = mp / (finance['p/worst-book-value'] if 'p/worst-book-value' in finance else (2 * finance['p/book-value']))
-    scores[bank] = finance['p/bv3'] if 'p/bv3' in finance else mp / (ttme3 * 3 + bv)
+    scores[bank] = FINANCAIL_DATA_ADVANCE[bank]['p/bv3'] if 'p/bv3' in FINANCAIL_DATA_ADVANCE[bank] else 100.0
   banks.sort(key = lambda code: scores[code])
   for bank in banks:
     sys.stderr.write('%s: %f\n'%(CODE_TO_NAME[bank], scores[bank]))
@@ -142,16 +138,12 @@ def ScoreBanks(banks):
 def FilterBanks(banks):
   return filter(lambda code:
                   code in FINANCAIL_DATA_ADVANCE
-                  and 'p/book-value' in FINANCAIL_DATA_ADVANCE[code]
-                  and 'roe3' in FINANCAIL_DATA_ADVANCE[code]
-                  and FINANCAIL_DATA_ADVANCE[code]['p/book-value'] < FINANCAIL_DATA_ADVANCE[code]['roe3'] / 0.1, banks)
+                  and FINANCAIL_DATA_ADVANCE[code]['p/bv3'] < 1.1, banks)
 
 def NoBuyBanks(banks):
   return filter(lambda code:
                   code in FINANCAIL_DATA_ADVANCE
-                  and 'p/book-value' in FINANCAIL_DATA_ADVANCE[code]
-                  and 'roe3' in FINANCAIL_DATA_ADVANCE[code]
-                  and FINANCAIL_DATA_ADVANCE[code]['p/book-value'] > FINANCAIL_DATA_ADVANCE[code]['roe3'] / 0.14, banks)
+                  and FINANCAIL_DATA_ADVANCE[code]['p/bv3'] > 0.8, banks)
 
 def GetPercent(code,holding_asset_percent):
   percent = holding_asset_percent[code]
@@ -171,24 +163,29 @@ def KeepBanks(targetPercent):
   overflow_valuation_delta = -0.01
   overflow_percent = targetPercent * 0.15
   max_bank_percent = {
-    '建设银行': 0.3,
-    '建设银行H': 0.3,
-    '工商银行': 0.3,
-    '工商银行H': 0.3,
-    '中国银行': 0.3,
-    '中国银行H': 0.3,
-    '浦发银行': 0.25,
-    '兴业银行': 0.25,
-    '交通银行': 0.15,
-    '交通银行H': 0.15,
-    '农业银行': 0.1,
-    '农业银行H': 0.1,
+    '招商银行': 0.5,
+    '招商银行H': 0.5,
+    '浦发银行': 0.3,
+    '兴业银行': 0.3,
+
+    '建设银行': 0.25,
+    '建设银行H': 0.25,
+    '工商银行': 0.25,
+    '工商银行H': 0.25,
+    '中国银行': 0.25,
+    '中国银行H': 0.25,
+    '农业银行': 0.2,
+    '农业银行H': 0.2,
+
+    '交通银行': 0.2,
+    '交通银行H': 0.2,
+
     '中信银行': 0.15,
     '中信银行H': 0.15,
-    '平安银行': 0.1,
     '民生银行': 0.15,
     '民生银行H': 0.15,
     '华夏银行': 0.1,
+    '平安银行': 0.1,
   }
   backup = [
     '中海油服H',
@@ -445,16 +442,5 @@ STRATEGY_FUNCS = {
 
   'A股最少资金': KeepCnyCapital,
   'Yahoo - Alibaba': YahooAndAlibaba,
-  '银行股': lambda: KeepBanks(260000.0 / ACCOUNT_INFO['ALL']['net']),
-
-  '招商银行': lambda: KeepGroupPercentIf(['招商银行', '招商银行H'], 0.6, backup = GetClassA(keep_percent = 0.03, sorter = lambda code: FINANCAIL_DATA_ADVANCE[code]['sdv/p']),
-                             hold_conditions = {
-                                '招商银行': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'] < 1.2,
-                                '招商银行H': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'] < 1.2,
-                             },
-                             buy_conditions = {
-                                '招商银行': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'] < 0.81,
-                                '招商银行H': lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'] < 0.81,
-                             },
-                             stock_eval = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/bv3'], eval_delta = 0.04),
+  '银行股': lambda: KeepBanks(400000.0 / ACCOUNT_INFO['ALL']['net']),
 }

@@ -53,8 +53,8 @@ def GetClassA(keep_percent = 0.0, sorter = lambda code: ACCOUNT_INFO['ALL']['hol
     codes = codes[1:]
   return codes
 
-def GetCashEquivalence():
-  codes = GetClassA()
+def GetCashEquivalence(keep_percent = 0.0):
+  codes = GetClassA(keep_percent)
   map(lambda code: CODE_TO_NAME[code], codes)
   return codes
 
@@ -168,17 +168,17 @@ def KeepBanks(targetPercent):
     '浦发银行': 0.3,
     '兴业银行': 0.3,
 
-    '建设银行': 0.25,
-    '建设银行H': 0.25,
-    '工商银行': 0.25,
-    '工商银行H': 0.25,
-    '中国银行': 0.25,
-    '中国银行H': 0.25,
-    '农业银行': 0.2,
-    '农业银行H': 0.2,
+    '建设银行': 0.2,
+    '建设银行H': 0.2,
+    '工商银行': 0.2,
+    '工商银行H': 0.2,
+    '中国银行': 0.2,
+    '中国银行H': 0.2,
+    '农业银行': 0.15,
+    '农业银行H': 0.15,
 
-    '交通银行': 0.2,
-    '交通银行H': 0.2,
+    '交通银行': 0.15,
+    '交通银行H': 0.15,
 
     '中信银行': 0.15,
     '中信银行H': 0.15,
@@ -191,7 +191,7 @@ def KeepBanks(targetPercent):
     '中海油服H',
     '上证红利ETF',
     '南方A50ETF',
-  ] + GetCashEquivalence()
+  ] + GetCashEquivalence(0.05)
   max_bank_percent = {NAME_TO_CODE[name] : max_bank_percent[name] for name in max_bank_percent.keys()}
   all_banks = max_bank_percent.keys()
   holding_asset_percent = {
@@ -235,6 +235,7 @@ def KeepBanks(targetPercent):
 
   banks.reverse()
   def OverflowSell(reduce_percent, overflow_valuation_delta = normal_valuation_delta, except_bank = None):
+    if reduce_percent < MIN_TXN_PERCENT: return ''
     sys.stderr.write('Sell overflow %f\n'%(reduce_percent))
     worst = filter(lambda code: holding_asset_percent[code] > 0 and code != except_bank, banks)[0]
     banks_to_sell = filter(lambda code: valuation[worst] / valuation[code] < 1 + overflow_valuation_delta and holding_asset_percent[code] > 0 and except_bank != code, banks)
@@ -244,8 +245,7 @@ def KeepBanks(targetPercent):
     for code in banks_to_sell:
       currency = STOCK_INFO[code]['currency']
       sub_percent = reduce_percent * holding_asset_percent[code] / percent_sum
-      if sub_percent >= MIN_TXN_PERCENT:
-        ret += GiveTip('Sell', code, sub_percent * NET * EX_RATE[CURRENCY + '-' + currency]) + '\n    '
+      ret += GiveTip('Sell', code, sub_percent * NET * EX_RATE[CURRENCY + '-' + currency]) + '\n    '
     return ret
  
   if currentPercent > targetPercent + overflow_percent:
@@ -295,7 +295,7 @@ def KeepBanks(targetPercent):
       swap_cash = EX_RATE[better_currency + '-' + CURRENCY] * avail_cash
     swap_percent = swap_cash / ACCOUNT_INFO['ALL']['net']
     if swap_percent < MIN_TXN_PERCENT: continue
-    return OverflowSell(swap_percent, 0.02, better) +\
+    return OverflowSell(swap_percent, 0.02, better) + op + '    \n' +\
            GiveTip('Buy', better, swap_cash * EX_RATE[CURRENCY + '-' + better_currency]) +\
            ' due to valuation ratio = %.3f'%(valuation_ratio)
   return ''

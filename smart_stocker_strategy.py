@@ -297,7 +297,7 @@ def KeepBanks(targetPercent):
       swap_cash = EX_RATE[better_currency + '-' + CURRENCY] * avail_cash
     swap_percent = swap_cash / ACCOUNT_INFO['ALL']['net']
     if swap_percent < MIN_TXN_PERCENT: continue
-    return OverflowSell(swap_percent, 0.02, better) + op + '    \n' +\
+    return OverflowSell(swap_percent, 0.02, better) + op + '    ' +\
            GiveTip('Buy', better, swap_cash * EX_RATE[CURRENCY + '-' + better_currency]) +\
            ' due to valuation ratio = %.3f'%(valuation_ratio)
   return ''
@@ -447,6 +447,10 @@ STRATEGY_FUNCS = {
                         hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.7,
                         buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.6 and FINANCAIL_DATA_ADVANCE[code]['sdv/p'] > 0.035 \
                                                      and FINANCAIL_DATA_ADVANCE[code]['p/sbv'] < 0.7,
+                       ),
+  '海螺水泥': lambda: KeepPercentIf('海螺水泥', 0.1,
+                        hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 1.1,
+                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.7,
                        ),
 
   'A股最少资金': KeepCnyCapital,

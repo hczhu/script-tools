@@ -68,3 +68,24 @@ fi
 
 # access the last output by $(L)
 alias L='tmux capture-pane; tmux showb -b 0 | tail -n 3 | head -n 1'
+
+alias tmux-new='tmux new -s'
+
+alias ds='date +%F'
+
+alias git-new-br='git checkout --track origin/master -b'
+
+# record screen output
+#if [ "$SCREEN_RECORDED" = "" ]; then
+#  export SCREEN_RECORDED=1
+#  script -t -a 2> /tmp/terminal-record-time-$$.txt /tmp/terminal-record-$$.txt
+#fi
+
+VimBinaryDiff() {
+  vimdiff <(xxd $1) <(xxd $2)
+}
+
+alias vimbdiff='VimBinaryDiff'
+
+# edit command line in bash by vi
+# set -o vi

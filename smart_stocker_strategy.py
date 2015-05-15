@@ -193,7 +193,7 @@ def KeepBanks(targetPercent):
     '中海油服H',
     '上证红利ETF',
     '南方A50ETF',
-  ] + GetCashEquivalence(0.05)
+  ] + GetCashEquivalence(0.1)
   max_bank_percent = {NAME_TO_CODE[name] : max_bank_percent[name] for name in max_bank_percent.keys()}
   all_banks = max_bank_percent.keys()
   holding_asset_percent = {

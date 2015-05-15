@@ -41,20 +41,25 @@ def GetCashAndOp(accounts, currency, max_percent, backup = []):
   sys.stderr.write('No enough buying power for currency: %s\n'%(currency))
   return (0, '')
 
-def GetClassA():
+def GetClassA(keep_percent = 0.0, sorter = lambda code: ACCOUNT_INFO['ALL']['holding-percent-all'][code] if code in ACCOUNT_INFO['ALL']['holding-percent-all'] else 0):
   codes = []
   for code in STOCK_INFO.keys():
     if 'class-b'  in STOCK_INFO[code]:
       codes.append(code)
+  holding_percent = {code : ACCOUNT_INFO['ALL']['holding-percent-all'][code] if code in ACCOUNT_INFO['ALL']['holding-percent-all'] else 0 for code in codes}
+  codes.sort(key = sorter)
+  while keep_percent > 0.0 and len(codes) > 0:
+    keep_percent -= holding_percent[codes[0]]
+    codes = codes[1:]
   return codes
 
-def GetCashEquivalence():
-  codes = GetClassA()
+def GetCashEquivalence(keep_percent = 0.0):
+  codes = GetClassA(keep_percent)
   map(lambda code: CODE_TO_NAME[code], codes)
   return codes
 
 def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_conditions = {},
-                       sort_key = lambda code: ACCOUNT_INFO['ALL']['holding-percent-all'][code]):
+                       stock_eval = lambda code: 1.0, eval_delta = 0.1):
   codes = [NAME_TO_CODE[name] for name in names]
   hold_cond = {
     NAME_TO_CODE[name]: hold_conditions[name] if name in hold_conditions else lambda code: True for name in names
@@ -62,23 +67,49 @@ def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_co
   buy_cond = {
     NAME_TO_CODE[name]: buy_conditions[name] if name in buy_conditions else lambda code: True for name in names
   }
+  currency_to_account = {
+    'hkd': ['ib'],
+    'cny': ['a'],
+  }
   for code in codes:
     if not hold_cond[code](code):
       return 'Clear %s(%s)'%(CODE_TO_NAME[code], code)
   holding_percent = {code : ACCOUNT_INFO['ALL']['holding-percent-all'][code] for code in codes}
-  codes.sort(key = sort_key)
+  codes.sort(key = stock_eval)
   sum_percent = sum(holding_percent.values())
-  if sum_percent + MIN_TXN_PERCENT < percent:
+  if sum_percent + MIN_TXN_PERCENT <= percent:
     for code in codes:
-      cash, op = GetCashAndOp(ACCOUNT_INFO.keys(), STOCK_INFO[code]['currency'], percent - sum_percent)
+      cash, op = GetCashAndOp(ACCOUNT_INFO.keys(), STOCK_INFO[code]['currency'], percent - sum_percent, backup)
       if cash > 0 and buy_cond[code](code):
         return GiveTip('Buy', code, cash)
   codes.reverse()
-  if sum_percent > percent + MIN_TXN_PERCENT:
+  if sum_percent >= percent + MIN_TXN_PERCENT:
     for code in codes:
       if holding_percent[code] > MIN_TXN_PERCENT:
         cash = EX_RATE[CURRENCY + '-' + STOCK_INFO[code]['currency']] * min(sum_percent - percent, holding_percent[code]) * ACCOUNT_INFO['ALL']['net']
         return GiveTip('Sell', code, cash)
+  NET = ACCOUNT_INFO['ALL']['net']
+  for a in range(len(codes)):
+    worse = codes[a]
+    if holding_percent[worse] <= 0: continue
+    for b in range(len(codes) - 1, a, -1):
+      better = codes[b] 
+      worse_currency = STOCK_INFO[worse]['currency']
+      better_currency = STOCK_INFO[better]['currency']
+      valuation_ratio = stock_eval(worse) / stock_eval(better)
+      swap_percent = holding_percent[worse]
+      swap_cash = swap_percent * NET
+      op = ''
+      if worse_currency != better_currency:
+        avail_cash, op = GetCashAndOp(currency_to_account[better_currency], better_currency, swap_percent, backup)
+        swap_cash = EX_RATE[better_currency + '-' + CURRENCY] * avail_cash
+      sys.stderr.write('%s ==> %s valuation ratio = %.2f threhold = %.2f\n'%(CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_ratio, 1 + eval_delta))
+      if valuation_ratio < 1 + eval_delta: continue
+      if swap_cash < MIN_TXN_PERCENT * NET: continue
+      return GiveTip('Sell', worse, swap_cash * EX_RATE[CURRENCY + '-' + worse_currency]) +\
+               ' ==>\n    ' + op + '\n    ' +\
+             GiveTip('Buy', better, swap_cash * EX_RATE[CURRENCY + '-' + better_currency]) +\
+             ' due to valuation ratio = %.3f'%(valuation_ratio)
   return ''
 
 def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True, buy_condition = lambda code: True):
@@ -98,11 +129,7 @@ def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True
 def ScoreBanks(banks):
   scores ={}
   for bank in banks:
-    finance = FINANCAIL_DATA_ADVANCE[bank]
-    mp  = GetMarketPrice(bank)
-    ttme3 = (mp / finance['p/ttme3']) if 'p/ttme3' in finance else 0
-    bv = mp / (finance['p/worst-book-value'] if 'p/worst-book-value' in finance else (2 * finance['p/book-value']))
-    scores[bank] = finance['p/bv3'] if 'p/bv3' in finance else mp / (ttme3 * 3 + bv)
+    scores[bank] = FINANCAIL_DATA_ADVANCE[bank]['p/bv3'] if 'p/bv3' in FINANCAIL_DATA_ADVANCE[bank] else 100.0
   banks.sort(key = lambda code: scores[code])
   for bank in banks:
     sys.stderr.write('%s: %f\n'%(CODE_TO_NAME[bank], scores[bank]))
@@ -111,16 +138,12 @@ def ScoreBanks(banks):
 def FilterBanks(banks):
   return filter(lambda code:
                   code in FINANCAIL_DATA_ADVANCE
-                  and 'p/book-value' in FINANCAIL_DATA_ADVANCE[code]
-                  and 'roe3' in FINANCAIL_DATA_ADVANCE[code]
-                  and FINANCAIL_DATA_ADVANCE[code]['p/book-value'] < FINANCAIL_DATA_ADVANCE[code]['roe3'] / 0.1, banks)
+                  and FINANCAIL_DATA_ADVANCE[code]['p/bv3'] < 1.1, banks)
 
 def NoBuyBanks(banks):
   return filter(lambda code:
                   code in FINANCAIL_DATA_ADVANCE
-                  and 'p/book-value' in FINANCAIL_DATA_ADVANCE[code]
-                  and 'roe3' in FINANCAIL_DATA_ADVANCE[code]
-                  and FINANCAIL_DATA_ADVANCE[code]['p/book-value'] > FINANCAIL_DATA_ADVANCE[code]['roe3'] / 0.14, banks)
+                  and FINANCAIL_DATA_ADVANCE[code]['p/bv3'] > 0.8, banks)
 
 def GetPercent(code,holding_asset_percent):
   percent = holding_asset_percent[code]
@@ -133,39 +156,44 @@ def KeepBanks(targetPercent):
   min_txn_percent = max(0.02, MIN_TXN_PERCENT)
   swap_percent_delta = 0.03
   max_swap_percent = 0.1
-  normal_valuation_delta = 0.12
+  normal_valuation_delta = 0.1
   a2h_discount = max(normal_valuation_delta, 0.5 * MACRO_DATA['ah-premium'])
   h2a_discount = normal_valuation_delta
   same_h2a_discount = 0.05
-  overflow_valuation_delta = 0.02
-  overflow_percent = 0.15
+  overflow_valuation_delta = -0.01
+  overflow_percent = targetPercent * 0.2
   max_bank_percent = {
-    '建设银行': 0.3,
-    '建设银行H': 0.3,
-    '工商银行': 0.25,
-    '工商银行H': 0.25,
     '招商银行': 0.5,
     '招商银行H': 0.5,
-    '中国银行': 0.3,
-    '中国银行H': 0.3,
-    '浦发银行': 0.25,
-    '兴业银行': 0.25,
-    '交通银行': 0.2,
-    '交通银行H': 0.2,
-    '农业银行': 0.2,
-    '农业银行H': 0.2,
+    '浦发银行': 0.3,
+    '兴业银行': 0.3,
+
+    # 建行资产风险在大行中最小
+    '建设银行': 0.25,
+    '建设银行H': 0.25,
+
+    '工商银行': 0.2,
+    '工商银行H': 0.2,
+    '中国银行': 0.2,
+    '中国银行H': 0.2,
+    '农业银行': 0.15,
+    '农业银行H': 0.15,
+
+    '交通银行': 0.15,
+    '交通银行H': 0.15,
+
     '中信银行': 0.15,
     '中信银行H': 0.15,
-    '平安银行': 0.1,
     '民生银行': 0.15,
     '民生银行H': 0.15,
     '华夏银行': 0.1,
+    '平安银行': 0.1,
   }
   backup = [
     '中海油服H',
     '上证红利ETF',
     '南方A50ETF',
-  ] + GetCashEquivalence()
+  ] + GetCashEquivalence(0.1)
   max_bank_percent = {NAME_TO_CODE[name] : max_bank_percent[name] for name in max_bank_percent.keys()}
   all_banks = max_bank_percent.keys()
   holding_asset_percent = {
@@ -173,7 +201,7 @@ def KeepBanks(targetPercent):
   }
   currentPercent = sum(map(lambda code: holding_asset_percent[code], all_banks))
   sys.stderr.write('bank holding percents: %s\n'%(str(holding_asset_percent)))
-  sys.stderr.write('total bank percent = %.3f\n'%(currentPercent))
+  sys.stderr.write('total bank percent = %.3f target percent = %.3f\n'%(currentPercent, targetPercent))
   sys.stderr.write('total bank market value = %.0f\n'%(currentPercent * ACCOUNT_INFO['ALL']['net']))
   banks = FilterBanks(all_banks)
 
@@ -186,6 +214,10 @@ def KeepBanks(targetPercent):
   
   no_buy_banks = set(NoBuyBanks(banks))
   sys.stderr.write('No buy banks: %s \n'%(', '.join([CODE_TO_NAME[code] for code in no_buy_banks])))
+  
+  if len(banks) == 0:
+    sys.stderr.write('No banks to consider!')
+    return ''
 
   banks, valuation = ScoreBanks(banks) 
 
@@ -204,12 +236,23 @@ def KeepBanks(targetPercent):
       return op + GiveTip(' ==> Buy', code, cash)
 
   banks.reverse()
-  for code in banks:
-    currency = STOCK_INFO[code]['currency']
-    sub_percent = min(currentPercent - targetPercent, holding_asset_percent[code])
-    if sub_percent > overflow_percent:
-      return GiveTip('Sell', code, sub_percent * NET * EX_RATE[CURRENCY + '-' + currency])
-  
+  def OverflowSell(reduce_percent, overflow_valuation_delta = normal_valuation_delta, except_bank = None):
+    if reduce_percent < MIN_TXN_PERCENT: return ''
+    sys.stderr.write('Sell overflow %f\n'%(reduce_percent))
+    worst = filter(lambda code: holding_asset_percent[code] > 0 and code != except_bank, banks)[0]
+    banks_to_sell = filter(lambda code: valuation[worst] / valuation[code] < 1 + overflow_valuation_delta and holding_asset_percent[code] > 0 and except_bank != code, banks)
+    sys.stderr.write('Banks to sell: %s \n'%(', '.join([CODE_TO_NAME[code] for code in banks_to_sell])))
+    percent_sum = sum([holding_asset_percent[code] for code in banks_to_sell])
+    ret = ''
+    for code in banks_to_sell:
+      currency = STOCK_INFO[code]['currency']
+      sub_percent = reduce_percent * holding_asset_percent[code] / percent_sum
+      ret += GiveTip('Sell', code, sub_percent * NET * EX_RATE[CURRENCY + '-' + currency]) + '\n    '
+    return ret
+ 
+  if currentPercent > targetPercent + overflow_percent:
+    return OverflowSell(currentPercent - targetPercent)
+
   valuation_delta = 100
   
   swap_pairs = [] 
@@ -219,18 +262,21 @@ def KeepBanks(targetPercent):
       better = banks[b]
       swap_pairs += [(worse, better, valuation[worse] / valuation[better])]
   swap_pairs.sort(key = lambda triple: triple[2], reverse = True)
+
   for bank in banks:
-    if 'hcode' in STOCK_INFO[bank]:
-      swap_pairs = [(bank, STOCK_INFO[bank]['hcode'], 1.0),
-                    (STOCK_INFO[bank]['hcode'], bank, 1.0)] + swap_pairs
+    if 'hcode' in STOCK_INFO[bank] and STOCK_INFO[bank]['hcode'] in valuation:
+      swap_pairs += [(bank, STOCK_INFO[bank]['hcode'], 1.0),
+                    (STOCK_INFO[bank]['hcode'], bank, 1.0)]
   for pr in swap_pairs:
     worse = pr[0]
     better = pr[1]
     worse_currency = STOCK_INFO[worse]['currency']
     better_currency = STOCK_INFO[better]['currency']
     valuation_delta = normal_valuation_delta
+    between_ah = False
     if STOCK_INFO[worse]['currency'] == 'hkd' and STOCK_INFO[better]['currency'] == 'cny' and 'hcode' in STOCK_INFO[better] and STOCK_INFO[better]['hcode'] == worse:
       valuation_delta = same_h2a_discount
+      between_ah = True
     elif STOCK_INFO[worse]['currency'] == 'cny' and STOCK_INFO[better]['currency'] == 'hkd':
       valuation_delta = a2h_discount
     elif STOCK_INFO[worse]['currency'] == 'hkd' and STOCK_INFO[better]['currency'] == 'cny':
@@ -238,19 +284,20 @@ def KeepBanks(targetPercent):
     if holding_asset_percent[worse] > max_bank_percent[worse]:
       valuation_delta = overflow_valuation_delta
     valuation_ratio = valuation[worse] / valuation[better]
-    sys.stderr.write('%s ==> %s delta = %.3f valuation ratio %.2f > threshold %.2f\n'%(
-                     CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_delta, valuation_ratio, valuation_delta))
-    if valuation_ratio < (1 + valuation_delta): continue
     swap_percent = min(holding_asset_percent[worse], max_bank_percent[better] - GetPercent(better, holding_asset_percent))
     swap_percent = min(swap_percent, max_swap_percent)
     swap_cash = swap_percent * NET
+    sys.stderr.write('%s ==> %s delta = %.3f valuation ratio %.2f > threshold %.2f seap percent = %.2f\n'%(
+                     CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_delta, valuation_ratio, 1 + valuation_delta, swap_percent))
+    if valuation_ratio < (1 + valuation_delta): continue
     if swap_percent < swap_percent_delta: continue
+    op = ''
     if worse_currency != better_currency:
       avail_cash, op = GetCashAndOp(currency_to_account[better_currency], better_currency, swap_percent, backup)
       swap_cash = EX_RATE[better_currency + '-' + CURRENCY] * avail_cash
-    if swap_cash < MIN_TXN_PERCENT * ACCOUNT_INFO['ALL']['net']: continue
-    return GiveTip('Sell', worse, swap_cash * EX_RATE[CURRENCY + '-' + worse_currency]) +\
-             ' ==>\n    ' + op + '\n    ' +\
+    swap_percent = swap_cash / ACCOUNT_INFO['ALL']['net']
+    if swap_percent < MIN_TXN_PERCENT: continue
+    return OverflowSell(swap_percent, 0.02, better) + op + '    ' +\
            GiveTip('Buy', better, swap_cash * EX_RATE[CURRENCY + '-' + better_currency]) +\
            ' due to valuation ratio = %.3f'%(valuation_ratio)
   return ''
@@ -291,7 +338,7 @@ def FenJiClassA():
   for worse in range(len(codes)):
     if FINANCAIL_DATA_ADVANCE[best]['sdv/p'] - FINANCAIL_DATA_ADVANCE[codes[worse]]['sdv/p'] >= yield_delta and \
         holding_market_value[codes[worse]] > 0 and \
-        holding_market_value[codes[better]] < 100000:
+        holding_market_value[best] < 200000:
       return GiveTip('Sell', codes[worse], holding_market_value[codes[worse]]) + \
                 ' due to interest rate drops to %.4f'%(FINANCAIL_DATA_ADVANCE[codes[worse]]['sdv/p']) + \
              GiveTip(' Buy', best, holding_market_value[codes[worse]]) + ' interest rate: %.4f'%(FINANCAIL_DATA_ADVANCE[best]['sdv/p'])
@@ -383,26 +430,30 @@ def BalanceAHBanks():
   res += KeepBanks(target_bank_percent)
   return res
 
-STRATEGY_FUNCS = [
-  FenJiClassA,
-  lambda: BuyETFDiscount('南方A50ETF'),
+STRATEGY_FUNCS = {
+  '分级基金': FenJiClassA,
+  '南方A50': lambda: BuyETFDiscount('南方A50ETF'),
 
-  lambda: KeepPercentIf('Weibo', 0.12,
+  'Weibo': lambda: KeepPercentIf('Weibo', 0.12,
                         hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.5,
                         buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.05
                        ),
-  lambda: KeepPercentIf('Sina', 0.1,
+  'Sina': lambda: KeepPercentIf('Sina', 0.15,
                         hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.5,
                         buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 0.99
                        ),
 
-  lambda: KeepPercentIf('中海油服H', 0.2,
+  '中海油服H': lambda: KeepPercentIf('中海油服H', 0.2,
                         hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.7,
                         buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.6 and FINANCAIL_DATA_ADVANCE[code]['sdv/p'] > 0.035 \
                                                      and FINANCAIL_DATA_ADVANCE[code]['p/sbv'] < 0.7,
                        ),
+  '海螺水泥': lambda: KeepPercentIf('海螺水泥', 0.1,
+                        hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 1.1,
+                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.7,
+                       ),
 
-  KeepCnyCapital,
-  YahooAndAlibaba,
-  lambda: KeepBanks(356000.0 / ACCOUNT_INFO['ALL']['net']),
-]
+  'A股最少资金': KeepCnyCapital,
+  'Yahoo - Alibaba': YahooAndAlibaba,
+  '银行股': lambda: KeepBanks(400000.0 / ACCOUNT_INFO['ALL']['net']),
+}

@@ -5,6 +5,8 @@
 "\r                                        new line
 ":10go                                     jump to the position of byte offset 10
 ":%s/^\([^a-z]\+\)\([a-z]\+\)/\1\U\2       Replace the first lower word to upper 
+"%g/^zhuhcheng/s/$/zhucheng                Append 'zhucheng' to the line starting with 'zhucheng'
+"%s/^/\=repeat(' ', 10)                    Insert 10 whitespaces in the front of every line.
 "-----------------
 set smartindent
 set tabstop=2
@@ -100,3 +102,7 @@ let g:ctrlp_clear_cache_on_exit = 0
 au FocusLost * silent! wa
 
 command GenerateTags !ctags -R *
+
+"automatic completion & correction
+iab zhuhcheng@ zhuhcheng@gmail.com
+

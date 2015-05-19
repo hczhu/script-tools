@@ -36,7 +36,7 @@ au FileType php,cpp,python map <F4> 0dwi<BS><CR><Esc>
 
 
 "au FileType php,cpp map <C-u> :w<CR>:!g++ -o %:r -g -O0 -Wall -lprofiler -lpthread %
-au FileType php,cpp map <C-u> :w<CR>:!g++ -o %:r -g -O0 -Wall %<CR>
+au FileType php,cpp map <C-u> :w<CR>:!g++ -o %:r -g -O0 -Wall -std=c++0x %<CR>
 "au FileType php,c map <C-u> :w<CR>:!gcc -o %:r -g -O0 -Wall -lpthread %
 au FileType php,cpp,c map <F5> :!./%:r
 au FileType php,python map <F5> :!./%

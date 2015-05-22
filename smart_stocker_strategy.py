@@ -165,8 +165,8 @@ def KeepBanks(targetPercent):
   max_bank_percent = {
     '招商银行': 0.5,
     '招商银行H': 0.5,
-    '浦发银行': 0.2,
-    '兴业银行': 0.2,
+    '浦发银行': 0.15,
+    '兴业银行': 0.15,
 
     # 建行资产风险在大行中最小
     '建设银行': 0.25,
@@ -455,5 +455,5 @@ STRATEGY_FUNCS = {
 
   'A股最少资金': KeepCnyCapital,
   'Yahoo - Alibaba': YahooAndAlibaba,
-  '银行股': lambda: KeepBanks(400000.0 / ACCOUNT_INFO['ALL']['net']),
+  '银行股': lambda: KeepBanks(350000.0 / ACCOUNT_INFO['ALL']['net']),
 }

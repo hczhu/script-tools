@@ -160,6 +160,7 @@ def KeepBanks(targetPercent):
   a2h_discount = max(normal_valuation_delta, 0.5 * MACRO_DATA['ah-premium'])
   h2a_discount = normal_valuation_delta
   same_h2a_discount = 0.05
+  same_a2h_discount = 0.03
   overflow_valuation_delta = -0.01
   overflow_percent = targetPercent * 0.2
   max_bank_percent = {
@@ -273,10 +274,10 @@ def KeepBanks(targetPercent):
     worse_currency = STOCK_INFO[worse]['currency']
     better_currency = STOCK_INFO[better]['currency']
     valuation_delta = normal_valuation_delta
-    between_ah = False
     if STOCK_INFO[worse]['currency'] == 'hkd' and STOCK_INFO[better]['currency'] == 'cny' and 'hcode' in STOCK_INFO[better] and STOCK_INFO[better]['hcode'] == worse:
       valuation_delta = same_h2a_discount
-      between_ah = True
+    elif STOCK_INFO[worse]['currency'] == 'cny' and STOCK_INFO[better]['currency'] == 'hdk' and 'hcode' in STOCK_INFO[worse] and STOCK_INFO[worse]['hcode'] == better:
+      valuation_delta = same_a2h_discount
     elif STOCK_INFO[worse]['currency'] == 'cny' and STOCK_INFO[better]['currency'] == 'hkd':
       valuation_delta = a2h_discount
     elif STOCK_INFO[worse]['currency'] == 'hkd' and STOCK_INFO[better]['currency'] == 'cny':

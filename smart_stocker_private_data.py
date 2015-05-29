@@ -15,18 +15,17 @@ import dateutil.parser
 from table_printer import *
 from smart_stocker_global import *
 
-def LoginMyGoogle(email_file, password_file):
-  # Connect to Google
-  gd_client = gdata.spreadsheet.service.SpreadsheetsService()
-  gd_client.email = file(email_file).readline().strip()
-  gd_client.password = file(password_file).readline().strip()
-  gd_client.source = 'smart-stocker'
-  try:
-    gd_client.ProgrammaticLogin()
-    return gd_client
-  except Exception, e:
-    sys.stderr.write('Failed to login google account. Exception ' + str(e) +'\n')
-  return None
+import json
+import gspread
+import oauth2client
+from oauth2client.client import SignedJwtAssertionCredentials
+
+def LoginMyGoogle(google_account_filename):
+  json_key = json.load(open(google_account_filename))
+  scope = ['https://spreadsheets.google.com/feeds']
+  
+  credentials = SignedJwtAssertionCredentials(json_key['client_email'], json_key['private_key'], scope)
+  return gspread.authorize(credentials)
     
 def GetTable(gd_client, table_key, worksheet_key = 'od6', value_transformer = lambda x: x):
   if gd_client is None:
@@ -69,7 +68,6 @@ def MergeAllSheets(gd_client, ws_key, primary_key, value_transformer = lambda x:
     except Exception, e:
       sys.stderr.write('Failed to get data from worksheet: %s with exception [%s]\n'%(ws.title.text, str(e)))
   return records
-  
 
 def GetTransectionRecords(gd_client):
   table_key, worksheet_key = '0Akv9eeSdKMP0dHBzeVIzWTY1VUlQcFVKOWFBZkdDeWc', 'od6'
@@ -100,8 +98,7 @@ def GetFinancialValue(value_str):
 
 def LoginMyGoogleWithFiles():
   home = os.path.expanduser("~")
-  return LoginMyGoogle(home + '/.smart-stocker-google-email.txt',
-                       home + '/.smart-stocker-google-password.txt')
+  return LoginMyGoogle(home + '/.smart-stocker-google-api.json')
 
 def GetStockPool(client):
   ws_key = '1Ita0nLCH5zpt6FgpZwOshZFXwIcNeOFvJ3ObGze2UBs'
@@ -207,6 +204,9 @@ def PrintData(names):
 
 if __name__ == "__main__":
   client = LoginMyGoogleWithFiles()
+  rows = client.open_by_key('1xw6xPiyE6zOmbHmNo9L2HCPknidj4vPdwU9PubZZtCs').get_worksheet(0).get_all_values()
+  for row in rows:
+    print '------', '\t'.join([value.encode('utf-8') for value in row])
   GetStockPool(client)
   GetFinancialData(client)
   PrintData(','.join(sys.argv[1:]).split(','))

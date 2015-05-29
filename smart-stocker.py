@@ -54,6 +54,7 @@ def InitAll():
   global GD_CLIENT
   GD_CLIENT = LoginMyGoogle(home + '/.smart-stocker-google-email.txt',
                             home + '/.smart-stocker-google-password.txt')
+  GD_CLIENT.ssl = False
 
 def ReadRecords():
   records = GetTransectionRecords(GD_CLIENT)

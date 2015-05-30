@@ -177,6 +177,7 @@ def GetMarketPriceFromSina(code):
     suffix = pr + code.lower()
     url = url_prefix + suffix
     try:
+      sys.stderr.write('Getting value from url: %s\n'%(url))
       values = GetValueFromUrl(url, 'hq_str_%s="'%(suffix), '"', str, reg_exp = '[^"]+')
       sys.stderr.write('Get string for %s: [%s] from url: %s\n'%(code, [values], url))
       if len(values) == 0: continue
@@ -214,6 +215,7 @@ def GetMarketPrice(code):
   if code in MARKET_PRICE_FUNC:
     func = MARKET_PRICE_FUNC[code] 
   try:
+    sys.stderr.write('Crawling market price for %s\n'%(code))
     data = func()
     data[0] = max(data[0], MIN_MP)
     MARKET_PRICE_CACHE[code] = data

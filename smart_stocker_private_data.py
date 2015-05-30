@@ -20,59 +20,6 @@ import gspread
 import oauth2client
 from oauth2client.client import SignedJwtAssertionCredentials
 
-def LoginMyGoogle(google_account_filename):
-  json_key = json.load(open(google_account_filename))
-  scope = ['https://spreadsheets.google.com/feeds']
-  
-  credentials = SignedJwtAssertionCredentials(json_key['client_email'], json_key['private_key'], scope)
-  return gspread.authorize(credentials)
-    
-def GetTable(gd_client, table_key, worksheet_key = 'od6', value_transformer = lambda x: x):
-  if gd_client is None:
-    return []
-  try:
-    feeds = gd_client.GetListFeed(table_key, worksheet_key)
-    title= feeds.title.text
-    entries = feeds.entry
-    rows = []
-    for row in entries:
-      if 'disabled' in row.custom and row.custom['disabled'].text is not None: continue
-      rows.append({key : row.custom[key].text for key in row.custom.keys()})
-      for key in rows[-1].keys():
-        if rows[-1][key] is not None:
-          rows[-1][key] = value_transformer(rows[-1][key].encode('utf-8'))
-    return rows
-  except Exception, e:
-    sys.stderr.write('Failed to read worksheet [%s] with exception [%s]\n'%(title, str(e)))
-  return []
-
-def MergeAllSheets(gd_client, ws_key, primary_key, value_transformer = lambda x: x):
-  records = collections.defaultdict(dict)
-  worksheets = gd_client.GetWorksheetsFeed(ws_key).entry
-  for ws in worksheets:
-    sys.stderr.write('Reading worksheet: %s\n'%(ws.title.text))
-    try:
-      ws_id = ws.id.text.split('/')[-1]
-      time.sleep(1)
-      sheet_table = GetTable(gd_client, ws_key, ws_id, value_transformer)
-      for row in sheet_table:
-        if primary_key not in row:
-          sys.stderr.write('Missing primary key: [%s]\n'%(primary_key))
-          continue
-        elif row[primary_key] is None:
-          sys.stderr.write('None value for primary key: [%s]\n'%(primary_key))
-          continue
-        record = records[row[primary_key]]
-        for key, value in row.items():
-          record[key] = value
-    except Exception, e:
-      sys.stderr.write('Failed to get data from worksheet: %s with exception [%s]\n'%(ws.title.text, str(e)))
-  return records
-
-def GetTransectionRecords(gd_client):
-  table_key, worksheet_key = '0Akv9eeSdKMP0dHBzeVIzWTY1VUlQcFVKOWFBZkdDeWc', 'od6'
-  return GetTable(gd_client, table_key, worksheet_key)
-
 def GetFinancialValue(value_str):
   integer_re = '0|([1-9][0-9]*)'
   float_re = '(%s)|((%s)?\.[0-9]+)'%(integer_re, integer_re)
@@ -96,29 +43,70 @@ def GetFinancialValue(value_str):
   except Exception, e:
     raise Exception('Failed to parse financial value [%s] by type [%s] with exception %s'%(value_str, type_str, str(e)))
 
+def LoginMyGoogle(google_account_filename):
+  json_key = json.load(open(google_account_filename))
+  scope = ['https://spreadsheets.google.com/feeds']
+  
+  credentials = SignedJwtAssertionCredentials(json_key['client_email'], json_key['private_key'], scope)
+  return gspread.authorize(credentials)
+
 def LoginMyGoogleWithFiles():
   home = os.path.expanduser("~")
   return LoginMyGoogle(home + '/.smart-stocker-google-api.json')
+    
+def ParseWorkSheetHorizontal(worksheet, header = 0, skip_rows = [], global_transformer = lambda x: x, transformers = {}):
+  matrix = worksheet.get_all_values()
+  row_count = len(matrix)
+  skip_row_set = set([row if row >= 0 else row_count + row for row in skip_rows])
+  skip_row_set |= set([header])
+  GetTransformer = lambda key: transformers[key] if key in transformers else global_transformer
+  keys = [value.strip().lower() for value in matrix[header]]
+  records = []
+  for idx in range(row_count):
+    if idx in skip_row_set: continue
+    record = dict(zip(keys, matrix[idx]))
+    for key, value in record.items():
+      record[key] = GetTransformer(key)(value.strip().encode('utf-8'))
+    records.append(record)
+  return records
 
-def GetStockPool(client):
-  ws_key = '1Ita0nLCH5zpt6FgpZwOshZFXwIcNeOFvJ3ObGze2UBs'
-  ws_id = 'ofub021'
-  try:
-    sys.stderr.write('Reading stock pool worksheet.\n')
-    feeds = client.GetListFeed(ws_key, ws_id).entry
-    for row in feeds:
-      info = {key : row.custom[key].text for key in row.custom.keys()}
-      assert 'code' in info and info['code'] is not None
-      for key in info.keys():
-        if info[key] is None: del info[key]
-        else: info[key] = info[key].encode('utf-8')
-      STOCK_INFO[info['code']] = info
-  except Exception, e:
-    sys.stderr.write('Failed to read stock pool worksheet. Exception ' + str(e) +'\n')
-  GetClassA(client)
-  all_code = STOCK_INFO.keys()
-  for code in all_code:
-    info = STOCK_INFO[code]
+def ParseWorkSheetVertical(worksheet, global_transformer = lambda x: x, transformers = {}):
+  GetTransformer = lambda key: transformers[key] if key in transformers else global_transformer
+  matrix = worksheet.get_all_values()
+  record = collections.defaultdict(list)
+
+  for row in matrix:
+    record[row[0].lower()] += filter(lambda x: x != '', map(lambda x: x.encode('utf-8'), row[1:]))
+
+  record = {key : map(GetTransformer(key), value) for key, value in record.items()}
+  record = {key : value[0] if len(value) == 1 else value for key, value in record.items()}
+  return record
+
+def MergeAllHorizontalWorkSheets(gd_client, ss_key, primary_key, value_transformer = lambda x: x):
+  records = collections.defaultdict(dict)
+  worksheets = gd_client.open_by_key(ss_key).worksheets()
+  for ws in worksheets:
+    sys.stderr.write('Merging worksheet %s\n'%(ws.title.encode('utf-8')))
+    rows = ParseWorkSheetHorizontal(ws, global_transformer = value_transformer)
+    for row in rows:
+      if primary_key not in row: continue
+      for key, value in row.items():
+        records[row[primary_key]][key] = value
+  return records
+
+def GetTransectionRecords(gd_client):
+  ss_key = '1oxtcfl2V4ff3eUMW4954IChpx9eFAoB83QMrZERPSgA'
+  return ParseWorkSheetHorizontal(gd_client.open_by_key(ss_key).get_worksheet(0))
+
+def GetStockPool(gd_client):
+  ss_key = '1Ita0nLCH5zpt6FgpZwOshZFXwIcNeOFvJ3ObGze2UBs'
+  stocks = MergeAllHorizontalWorkSheets(gd_client, ss_key, 'code')
+  GetClassA(gd_client)
+  for code in stocks.keys():
+    info = stocks[code]
+    for key, value in info.items():
+      if value == '': del info[key]
+    STOCK_INFO[code] = info
     CODE_TO_NAME[code] = info['name']
     NAME_TO_CODE[info['name']] = code
     if 'hcode' in info:
@@ -142,55 +130,39 @@ def GetStockPool(client):
       }
  
 def GetClassA(client):
-  table_key = '1ER4HZD-_UUZF7ph5RkgPu8JftY9jwFVJtpd2tUwz_ac'
-  sys.stderr.write('Reading class A table.\n')
-  table = GetTable(client, table_key, value_transformer = GetFinancialValue)
+  ws = client.open_by_key('1ER4HZD-_UUZF7ph5RkgPu8JftY9jwFVJtpd2tUwz_ac').get_worksheet(0)
+  table = ParseWorkSheetHorizontal(ws, global_transformer = GetFinancialValue, transformers = {'code' : lambda x: x})
   for row in table:
-    code = str(int(row['code']))
+    code = row['code']
     FINANCAIL_DATA_BASE[code] = STOCK_INFO[code] = row
-    sys.stderr.write('Class A %s data: %s\n'%(STOCK_INFO[code]['name'], str(FINANCAIL_DATA_BASE[code])))
+    CODE_TO_NAME[code] = row['name']
+    CODE_TO_NAME[row['name']] = code
 
 def GetBankData(client):
   sys.stderr.write('Reading bank data.\n')
-  bank_data = MergeAllSheets(client, '1xw6xPiyE6zOmbHmNo9L2HCPknidj4vPdwU9PubZZtCs', 'name', GetFinancialValue)
+  bank_data = MergeAllHorizontalWorkSheets(client, '1xw6xPiyE6zOmbHmNo9L2HCPknidj4vPdwU9PubZZtCs', 'name', GetFinancialValue)
   sys.stderr.write('Got bank data:\n%s\n'%(str(bank_data)))
   for name, value in bank_data.items():
     if name not in NAME_TO_CODE:
       sys.stderr.write('unknown stock name: %s\n'%(name))
+      continue
     sys.stderr.write('Added financial data for %s(%s)\n'%(name, NAME_TO_CODE[name]))
     FINANCAIL_DATA_BASE[NAME_TO_CODE[name]] = value
 
 def GetFinancialData(client):
-  ws_key = '14pJTivMAHd-Gqpc9xboV4Kl7WbK51TrOc9QzgXBFRgw'
-  worksheets = client.GetWorksheetsFeed(ws_key).entry
+  ss_key = '14pJTivMAHd-Gqpc9xboV4Kl7WbK51TrOc9QzgXBFRgw'
+  worksheets = client.open_by_key(ss_key).worksheets()
   for ws in worksheets:
-    sys.stderr.write('Reading worksheet: %s\n'%(ws.title.text))
-    try:
-      name = ws.title.text.strip()
-      if name not in NAME_TO_CODE:
-        raise Exception('name: [%s] not in stock pool'%(name))
-      code = NAME_TO_CODE[name]
-      financial_data = FINANCAIL_DATA_BASE[code]
-      financial_data['name'] = name
-      ws_id = ws.id.text.split('/')[-1]
-      time.sleep(1)
-      feeds = client.GetListFeed(ws_key, ws_id).entry
-      for row in feeds:
-        if row.title is None: continue
-        financial_key = row.title.text
-        if financial_key not in FINANCIAL_KEYS: continue
-        values = row.content.text.split(', ')
-        financial_value = GetFinancialValue(values[0].split(': ')[1])
-        if financial_key == 'cross-share':
-          assert len(values) == 2
-          if 'cross-share' not in financial_data:
-            financial_data['cross-share'] = []
-          financial_data['cross-share'] += [(financial_value, values[1].split(': ')[1])]
-        else:
-          financial_data[financial_key] = financial_value
-      sys.stderr.write('Basic financial data for %s:%s\n'%(name, str(financial_data)))
-    except Exception, e:
-      sys.stderr.write('Failed to get data from worksheet: %s with exception [%s]\n'%(ws.title.text, str(e)))
+    sys.stderr.write('Reading worksheet: %s\n'%(ws.title.encode('utf-8')))
+    name = ws.title.strip().encode('utf-8')
+    if name not in NAME_TO_CODE:
+      raise Exception('name: [%s] not in stock pool'%(name))
+    code = NAME_TO_CODE[name]
+    FINANCAIL_DATA_BASE[code] = ParseWorkSheetVertical(ws, GetFinancialValue)
+    FINANCAIL_DATA_BASE[code]['name'] = name
+    if 'cross-share' in FINANCAIL_DATA_BASE[code]:
+      cross_share =  FINANCAIL_DATA_BASE[code]['cross-share'];
+      FINANCAIL_DATA_BASE[code]['cross-share'] = {cross_share[idx + 1] : cross_share[idx] for idx in range(0, len(cross_share), 2)} 
 
 def PrintData(names):
   tableMap = []
@@ -204,10 +176,9 @@ def PrintData(names):
 
 if __name__ == "__main__":
   client = LoginMyGoogleWithFiles()
-  rows = client.open_by_key('1xw6xPiyE6zOmbHmNo9L2HCPknidj4vPdwU9PubZZtCs').get_worksheet(0).get_all_values()
-  for row in rows:
-    print '------', '\t'.join([value.encode('utf-8') for value in row])
   GetStockPool(client)
+  GetTransectionRecords(client)
   GetFinancialData(client)
+  GetBankData(client)
   PrintData(','.join(sys.argv[1:]).split(','))
  

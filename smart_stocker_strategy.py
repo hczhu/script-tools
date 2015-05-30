@@ -365,11 +365,10 @@ def YahooAndAlibaba():
   
   kUnit = 100
   ratio = 0
-  for cross in financial_date['cross-share']:
-    name = cross[1]
+  for name, amount in financial_date['cross-share'].items():
     code = NAME_TO_CODE[name]
     price = GetMarketPrice(name)
-    per_share = cross[0] * (1.0 - financial_date['tax-rate']) / financial_date['shares']
+    per_share = amount * (1.0 - financial_date['tax-rate']) / financial_date['shares']
     added_value = price * EX_RATE[STOCK_INFO[code]['currency'] + '-' + STOCK_INFO[codeY]['currency']] * per_share
     if code == codeA:
       ratio = per_share
@@ -456,5 +455,5 @@ STRATEGY_FUNCS = {
 
   'A股最少资金': KeepCnyCapital,
   'Yahoo - Alibaba': YahooAndAlibaba,
-  '银行股': lambda: KeepBanks(350000.0 / ACCOUNT_INFO['ALL']['net']),
+  '银行股': lambda: KeepBanks(300000.0 / ACCOUNT_INFO['ALL']['net']),
 }

@@ -52,9 +52,7 @@ def InitAll():
   InitExRate()
   home = os.path.expanduser("~")
   global GD_CLIENT
-  GD_CLIENT = LoginMyGoogle(home + '/.smart-stocker-google-email.txt',
-                            home + '/.smart-stocker-google-password.txt')
-  GD_CLIENT.ssl = False
+  GD_CLIENT = LoginMyGoogleWithFiles()
 
 def ReadRecords():
   records = GetTransectionRecords(GD_CLIENT)
@@ -69,7 +67,7 @@ def ReadRecords():
   for record in records:
     record['extra'] = 0.0
     price, buy_shares = float(record['price']), int(record['amount'])
-    fee = float(record['commission']) if record['commission'] is not None else (
+    fee = float(record['commission']) if record['commission'] != '' else (
       buy_fee * abs(buy_shares * price) if buy_shares > 0 else sell_fee * abs(buy_shares * price))
     record['price'], record['amount'], record['commission'] = price, buy_shares, fee
   return records

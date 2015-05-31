@@ -148,6 +148,12 @@ def GetXueqiuInfo(code, market):
       continue
   return {}
 
+def GetNAVFromHeXun(code):
+  return GetValueFromUrl('http://jingzhi.funds.hexun.com/%s.shtml'%(code),
+                         ['最新净值', '<font>'],
+                         '<', float, False,
+                         default_value = 100.0)
+
 def GetEasyMoneyInfo(code, market):
   url = 'http://quote.eastmoney.com/%s.html'%(market+code)
   try:
@@ -307,7 +313,7 @@ def PopulateFinancialData():
       h_adv_data['ah-ratio'] = 1.0 / adv_data['ah-ratio']
       FINANCAIL_DATA_ADVANCE[info['hcode']] = h_adv_data
     if 'class-b' in data:
-      data['sbv'] = adv_data['sbv'] = 1.0 + (datetime.date.today() - data['last-date']).days / 365.0 * data['last-rate']
+      data['sbv'] = adv_data['sbv'] = GetNAVFromHeXun(code)
       adv_data['p/sbv'] = mp / data['sbv']
       adv_data['sdv/p'] = data['next-rate'] / (1.0 - (adv_data['sbv'] - mp))
 

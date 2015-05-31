@@ -304,6 +304,11 @@ def KeepBanks(targetPercent):
   return ''
 
 def FenJiClassA():
+  lowest_discount = 0.99
+  sell_discount = -0.03
+  no_buy_discount = 0
+  want_rate = 7.1 / 100
+  sell_rate = 6.5 / 100
   codes = GetClassA()
   discount_ones = [NAME_TO_CODE[name] for name in []]
   codes = filter(lambda code: code not in set(discount_ones), codes)
@@ -312,20 +317,25 @@ def FenJiClassA():
     code : EX_RATE[CURRENCY + '-' + STOCK_INFO[code]['currency']] * ACCOUNT_INFO['ALL']['holding-value'][code] for code in codes + discount_ones
   }
 
-  lowest_discount = 0.99
   for code in discount_ones:
     if FINANCAIL_DATA_ADVANCE[code]['p/sbv'] > lowest_discount and holding_market_value[code] > 0:
       print 'Sell %s(%s) @%.3f due to discount = %.3f'%(code, CODE_TO_NAME[code], GetMarketPrice(code), FINANCAIL_DATA_ADVANCE[code]['p/sbv'])
-
+  
   codes.sort(key = lambda code: FINANCAIL_DATA_ADVANCE[code]['sdv/p']) 
-  want_rate = 7.0 / 100
-  sell_rate = 6.0 / 100
+  # Check discount respect to NAV.
+  for code in codes:
+    if holding_market_value[code] > 0 and FINANCAIL_DATA_ADVANCE[code]['p/sbv'] > (1 - sell_discount):
+      print 'Buy %s(%s) @%.3f due to p/sbv = %.3f'%(
+          CODE_TO_NAME[code], code, GetMarketPrice(code), FINANCAIL_DATA_ADVANCE[code]['p/sbv'])
+
+  no_buy = set(filter(lambda code: FINANCAIL_DATA_ADVANCE[code]['p/sbv'] > (1 + no_buy_discount), codes))
+   
   for code in codes:
     sbv = FINANCAIL_DATA_ADVANCE[code]['sbv']
     rate = FINANCAIL_DATA_BASE[code]['next-rate']
     want_price = sbv - 1.0 + rate / want_rate
     price = GetMarketPrice(code)
-    if want_price > price and ACCOUNT_INFO['a']['buying-power-percent'] > 0.01:
+    if want_price > price and ACCOUNT_INFO['a']['buying-power-percent'] > 0.01 and code not in no_buy:
       print 'Buy %s(%s) @%.3f'%(CODE_TO_NAME[code], code, price)
 
   for code in codes:
@@ -334,8 +344,12 @@ def FenJiClassA():
       return GiveTip('Sell', code, holding_market_value[code]) + ' due to interest rate drops to %.4f'%(adv_data['sdv/p'])
 
   if len(codes) == 0: return ''
-  best = codes[-1]
-  yield_delta = 0.003
+  best = -1
+  for idx in range(len(codes) - 1, -1, -1):
+    if codes[idx] not in no_buy:
+      best = codes[idx]
+  if best == -1: return ''
+  yield_delta = 30 / 10000.0
   for worse in range(len(codes)):
     if FINANCAIL_DATA_ADVANCE[best]['sdv/p'] - FINANCAIL_DATA_ADVANCE[codes[worse]]['sdv/p'] >= yield_delta and \
         holding_market_value[codes[worse]] > 0 and \

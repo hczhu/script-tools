@@ -308,7 +308,7 @@ def FenJiClassA():
   sell_discount = -0.03
   no_buy_discount = 0
   want_rate = 7.1 / 100
-  sell_rate = 6.5 / 100
+  sell_rate = 6.6 / 100
   codes = GetClassA()
   discount_ones = [NAME_TO_CODE[name] for name in []]
   codes = filter(lambda code: code not in set(discount_ones), codes)

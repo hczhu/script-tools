@@ -453,7 +453,7 @@ STRATEGY_FUNCS = {
                         buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.05
                        ),
   'Sina': lambda: KeepPercentIf('Sina', 0.15,
-                        hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.5,
+                        hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 2,
                         buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 0.99
                        ),
 

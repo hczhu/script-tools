@@ -162,7 +162,7 @@ def GetNAVFromHeXun(code):
 
 def GetNAVFromEasyMoney(code):
   return GetValueFromUrl('http://fund.eastmoney.com/%s.html'%(code),
-                         ['单位净值', '<span class=', '<span class=', '>'],
+                         ['按照基金持仓和指数走势估算', '单位净值', '<span class=', '<span class=', '>'],
                          '<', float, False,
                          default_value = .01, encoding = 'gbk')
 

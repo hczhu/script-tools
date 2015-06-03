@@ -49,14 +49,20 @@ def AppannieScore(company, country = 'japan'):
       idx = content.find(company)
   return res
 
-def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True, reg_exp = '[0-9.]+', default_value = None):
+def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True, reg_exp = '[0-9.]+', default_value = None, encoding = ''):
   try:
     if url not in URL_CONTENT_CACHE:
+      sys.stderr.write('Crawling url: %s\n'%(url))
       request = urllib2.Request(url)
       URL_CONTENT_CACHE[url] = urllib2.urlopen(request).read()
     content = URL_CONTENT_CACHE[url]
+    if encoding != '':
+      content = content.decode(encoding).encode('utf-8')
     for fs in feature_str:
-      content = content[len(fs) + content.find(fs):]
+      pos = content.find(fs)
+      if pos == -1:
+        raise Exception('feature str [%s] not found.'%(fs))
+      content = content[len(fs) + pos:]
     pat = re.compile(reg_exp)
     match = pat.search(content) 
     if match is None: raise Exception('reg exp [%s] not found'%(reg_exp))
@@ -152,7 +158,13 @@ def GetNAVFromHeXun(code):
   return GetValueFromUrl('http://jingzhi.funds.hexun.com/%s.shtml'%(code),
                          ['最新净值', '<font>'],
                          '<', float, False,
-                         default_value = 100.0)
+                         default_value = .01, encoding = 'gbk')
+
+def GetNAVFromEasyMoney(code):
+  return GetValueFromUrl('http://fund.eastmoney.com/%s.html'%(code),
+                         ['单位净值', '<span class=', '<span class=', '>'],
+                         '<', float, False,
+                         default_value = .01, encoding = 'gbk')
 
 def GetEasyMoneyInfo(code, market):
   url = 'http://quote.eastmoney.com/%s.html'%(market+code)
@@ -263,9 +275,10 @@ def InitExRate():
     else:
       EX_RATE[CURRENCY + '-' + cur] = GetValueFromUrl(
         template_url%(CURRENCY, cur),
-        ['<meta itemprop="exchange" content="CURRENCY',
-         '<span class=" price">'],
-        '<span class=', float, throw_exp = True)
+        ['<meta itemprop="exchange"',
+         '<meta itemprop="price" content="',],
+         '"',
+        float, throw_exp = True)
   for pr in EX_RATE.keys():
     currencies = pr.split('-')
     assert(len(currencies) == 2)
@@ -313,7 +326,7 @@ def PopulateFinancialData():
       h_adv_data['ah-ratio'] = 1.0 / adv_data['ah-ratio']
       FINANCAIL_DATA_ADVANCE[info['hcode']] = h_adv_data
     if 'class-b' in data:
-      data['sbv'] = adv_data['sbv'] = GetNAVFromHeXun(code)
+      data['sbv'] = adv_data['sbv'] = GetNAVFromEasyMoney(code)
       adv_data['p/sbv'] = mp / data['sbv']
       adv_data['sdv/p'] = data['next-rate'] / (1.0 - (adv_data['sbv'] - mp))
 

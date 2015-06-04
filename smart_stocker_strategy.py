@@ -177,11 +177,11 @@ def KeepBanks(targetPercent):
     '工商银行H': 0.2,
     '中国银行': 0.2,
     '中国银行H': 0.2,
-    '农业银行': 0.15,
-    '农业银行H': 0.15,
+    '农业银行': 0.2,
+    '农业银行H': 0.2,
 
-    '交通银行': 0.15,
-    '交通银行H': 0.15,
+    '交通银行': 0.2,
+    '交通银行H': 0.2,
 
     '中信银行': 0.05,
     '中信银行H': 0.05,
@@ -469,5 +469,5 @@ STRATEGY_FUNCS = {
 
   'A股最少资金': KeepCnyCapital,
   'Yahoo - Alibaba': YahooAndAlibaba,
-  '银行股': lambda: KeepBanks(300000.0 / ACCOUNT_INFO['ALL']['net']),
+  '银行股': lambda: KeepBanks(400000.0 / ACCOUNT_INFO['ALL']['net']),
 }

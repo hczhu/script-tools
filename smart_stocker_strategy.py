@@ -119,7 +119,7 @@ def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True
   currency = STOCK_INFO[code]['currency']
   percent = percent if hold_condition(code) else 0
   holding_percent = ACCOUNT_INFO['ALL']['holding-percent-all'][code]
-  if holding_percent - percent > delta:
+  if holding_percent - percent > delta and sell_condition(code):
     return GiveTip('Sell', code,
         (holding_percent - percent) * ACCOUNT_INFO['ALL']['net'] * EX_RATE[CURRENCY + '-' + currency])
   cash, op = GetCashAndOp(ACCOUNT_INFO.keys(), currency, percent - holding_percent, backup)
@@ -456,7 +456,7 @@ STRATEGY_FUNCS = {
   'Sina': lambda: KeepPercentIf('Sina', 0.15,
                         hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 3,
                         buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 0.99,
-                        sell_condition = lambda code: (datetime.date.today() - dateutil.parse('2016-04-01').date()).days > 0,
+                        sell_condition = lambda code: (datetime.date.today() - dateutil.parser.parse('2016-04-01').date()).days > 0,
                        ),
 
   '中海油服H': lambda: KeepPercentIf('中海油服H', 0.2,

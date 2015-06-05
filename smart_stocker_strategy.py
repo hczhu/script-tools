@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import sys
 import datetime
+import dateutil
 import collections
 import urllib2
 import traceback
@@ -112,7 +113,7 @@ def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_co
              ' due to valuation ratio = %.3f'%(valuation_ratio)
   return ''
 
-def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True, buy_condition = lambda code: True):
+def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True, buy_condition = lambda code: True, sell_condition = lambda code: True):
   delta = MIN_TXN_PERCENT
   code = NAME_TO_CODE[name]
   currency = STOCK_INFO[code]['currency']
@@ -454,7 +455,8 @@ STRATEGY_FUNCS = {
                        ),
   'Sina': lambda: KeepPercentIf('Sina', 0.15,
                         hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 3,
-                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 0.99
+                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 0.99,
+                        sell_condition = lambda code: (datetime.date.today() - dateutil.parse('2016-04-01').date()).days > 0,
                        ),
 
   '中海油服H': lambda: KeepPercentIf('中海油服H', 0.2,

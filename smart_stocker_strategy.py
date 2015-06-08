@@ -162,7 +162,7 @@ def KeepBanks(targetPercent):
   h2a_discount = normal_valuation_delta
   same_h2a_discount = 0.05
   same_a2h_discount = 0.03
-  overflow_valuation_delta = -0.01
+  overflow_valuation_delta = 0.01
   overflow_percent = targetPercent * 0.2
   max_bank_percent = {
     '招商银行': 0.5,
@@ -238,11 +238,11 @@ def KeepBanks(targetPercent):
       return op + GiveTip(' ==> Buy', code, cash)
 
   banks.reverse()
-  def OverflowSell(reduce_percent, overflow_valuation_delta = normal_valuation_delta, except_bank = None):
+  def OverflowSell(reduce_percent, overflow_valuation_delta = normal_valuation_delta, except_bank = None, candidates = None):
     if reduce_percent < MIN_TXN_PERCENT: return ''
     sys.stderr.write('Sell overflow %f\n'%(reduce_percent))
     worst = filter(lambda code: holding_asset_percent[code] > 0 and code != except_bank, banks)[0]
-    banks_to_sell = filter(lambda code: valuation[worst] / valuation[code] < 1 + overflow_valuation_delta and holding_asset_percent[code] > 0 and except_bank != code, banks)
+    banks_to_sell = filter(lambda code: valuation[worst] / valuation[code] < 1 + overflow_valuation_delta and holding_asset_percent[code] > 0 and except_bank != code and (candidates is None or code in candidates), banks)
     sys.stderr.write('Banks to sell: %s \n'%(', '.join([CODE_TO_NAME[code] for code in banks_to_sell])))
     percent_sum = sum([holding_asset_percent[code] for code in banks_to_sell])
     ret = ''
@@ -274,20 +274,25 @@ def KeepBanks(targetPercent):
     better = pr[1]
     worse_currency = STOCK_INFO[worse]['currency']
     better_currency = STOCK_INFO[better]['currency']
+
     valuation_delta = normal_valuation_delta
+    sell_candidates = None
     if STOCK_INFO[worse]['currency'] == 'hkd' and STOCK_INFO[better]['currency'] == 'cny' and 'hcode' in STOCK_INFO[better] and STOCK_INFO[better]['hcode'] == worse:
       valuation_delta = same_h2a_discount
+      sell_candidates = set([worse])
     elif STOCK_INFO[worse]['currency'] == 'cny' and STOCK_INFO[better]['currency'] == 'hdk' and 'hcode' in STOCK_INFO[worse] and STOCK_INFO[worse]['hcode'] == better:
       valuation_delta = same_a2h_discount
-    elif STOCK_INFO[worse]['currency'] == 'cny' and STOCK_INFO[better]['currency'] == 'hkd':
-      valuation_delta = a2h_discount
-    elif STOCK_INFO[worse]['currency'] == 'hkd' and STOCK_INFO[better]['currency'] == 'cny':
-      valuation_delta = h2a_discount
-    if holding_asset_percent[worse] > max_bank_percent[worse]:
-      valuation_delta = overflow_valuation_delta
+      sell_candidates = set([worse])
+
     valuation_ratio = valuation[worse] / valuation[better]
     swap_percent = min(holding_asset_percent[worse], max_bank_percent[better] - GetPercent(better, holding_asset_percent))
     swap_percent = min(swap_percent, max_swap_percent)
+
+    if holding_asset_percent[worse] > max_bank_percent[worse]:
+      valuation_delta = overflow_valuation_delta
+      swap_percent = min(swap_percent, GetPercent(worse, holding_asset_percent) - max_bank_percent[worse])
+      sell_candidates = set([worse])
+
     swap_cash = swap_percent * NET
     sys.stderr.write('%s ==> %s delta = %.3f valuation ratio %.2f > threshold %.2f seap percent = %.2f\n'%(
                      CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_delta, valuation_ratio, 1 + valuation_delta, swap_percent))
@@ -299,7 +304,7 @@ def KeepBanks(targetPercent):
       swap_cash = EX_RATE[better_currency + '-' + CURRENCY] * avail_cash
     swap_percent = swap_cash / ACCOUNT_INFO['ALL']['net']
     if swap_percent < MIN_TXN_PERCENT: continue
-    return OverflowSell(swap_percent, 0.02, better) + op + '    ' +\
+    return OverflowSell(swap_percent, 0.02, better, sell_candidates) + op + '    ' +\
            GiveTip('Buy', better, swap_cash * EX_RATE[CURRENCY + '-' + better_currency]) +\
            ' due to valuation ratio = %.3f'%(valuation_ratio)
   return ''

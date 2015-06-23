@@ -272,6 +272,7 @@ def KeepBanks(targetPercent):
   for pr in swap_pairs:
     worse = pr[0]
     better = pr[1]
+    if holding_asset_percent[worse] == 0: continue
     worse_currency = STOCK_INFO[worse]['currency']
     better_currency = STOCK_INFO[better]['currency']
 
@@ -286,6 +287,7 @@ def KeepBanks(targetPercent):
 
     valuation_ratio = valuation[worse] / valuation[better]
     swap_percent = min(holding_asset_percent[worse], max_bank_percent[better] - GetPercent(better, holding_asset_percent))
+    sys.stderr.write('%s ==> %s swap percent = %.3f\n'%(CODE_TO_NAME[worse], CODE_TO_NAME[better], swap_percent))
     swap_percent = min(swap_percent, max_swap_percent)
 
     if holding_asset_percent[worse] > max_bank_percent[worse]:
@@ -294,7 +296,7 @@ def KeepBanks(targetPercent):
       sell_candidates = set([worse])
 
     swap_cash = swap_percent * NET
-    sys.stderr.write('%s ==> %s delta = %.3f valuation ratio %.2f > threshold %.2f seap percent = %.2f\n'%(
+    sys.stderr.write('%s ==> %s delta = %.3f valuation ratio %.2f > threshold %.2f swap percent = %.2f\n'%(
                      CODE_TO_NAME[worse], CODE_TO_NAME[better], valuation_delta, valuation_ratio, 1 + valuation_delta, swap_percent))
     if valuation_ratio < (1 + valuation_delta): continue
     if swap_percent < swap_percent_delta: continue

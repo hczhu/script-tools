@@ -299,9 +299,9 @@ def KeepBanks(targetPercent):
     if valuation_ratio < (1 + valuation_delta): continue
     if swap_percent < swap_percent_delta: continue
     op = ''
-    if worse_currency != better_currency:
-      avail_cash, op = GetCashAndOp(currency_to_account[better_currency], better_currency, swap_percent, backup)
-      swap_cash = EX_RATE[better_currency + '-' + CURRENCY] * avail_cash
+#    if worse_currency != better_currency:
+#      avail_cash, op = GetCashAndOp(currency_to_account[better_currency], better_currency, swap_percent, backup)
+#      swap_cash = EX_RATE[better_currency + '-' + CURRENCY] * avail_cash
     swap_percent = swap_cash / ACCOUNT_INFO['ALL']['net']
     if swap_percent < MIN_TXN_PERCENT: continue
     return OverflowSell(swap_percent, 0.02, better, sell_candidates) + op + '    ' +\

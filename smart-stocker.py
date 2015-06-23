@@ -188,6 +188,7 @@ def PrintHoldingSecurities():
     'Chg': 0.0,
     'Percent': 0.0,
     'Stock name': 'Summary',
+    'sdv/p': 0.0,
   }
   holding_shares = ACCOUNT_INFO['ALL']['holding-shares']
   holding_value = ACCOUNT_INFO['ALL']['holding-value']
@@ -203,15 +204,19 @@ def PrintHoldingSecurities():
         'MV': str(myround(holding_value[ticker] * EX_RATE[CURRENCY + '-' + currency] / 1000.0, 0)) + 'K',
         'Currency': currency,
         'Chg': chg,
+        'sdv/p': myround(FINANCAIL_DATA_ADVANCE[ticker]['sdv/p'] * 100, 1) if 'sdv/p' in FINANCAIL_DATA_ADVANCE[ticker] else 0.0,
         'Stock name': name + '(' + ticker + ')',
     }
     stat_records_map.append(record)
   
   for record in stat_records_map:
     summation['Percent'] += record['Percent']
+    summation['sdv/p'] += record['Percent'] * record['sdv/p']
     for col in ['Chg']:
       summation[col] += record['Percent'] * record['Chg']
 
+  summation['sdv/p'] /= max(1.0, summation['Percent'])
+  summation['sdv/p'] = myround(summation['sdv/p'], 1)
   stat_records_map.append(summation)
   stat_records_map.sort(reverse = True, key = lambda record: record.get('Percent', 0))
 
@@ -225,6 +230,7 @@ def PrintHoldingSecurities():
     'Shares',
     'MV',
     'Chg',
+    'sdv/p',
     'Stock name',
   ]
   PrintTableMap(table_header, stat_records_map, truncate_float = False)

@@ -156,7 +156,7 @@ def GetPercent(code,holding_asset_percent):
 def KeepBanks(targetPercent):
   min_txn_percent = max(0.02, MIN_TXN_PERCENT)
   swap_percent_delta = 0.03
-  max_swap_percent = 0.1
+  max_swap_percent = 0.2
   normal_valuation_delta = 0.1
   a2h_discount = max(normal_valuation_delta, 0.5 * MACRO_DATA['ah-premium'])
   h2a_discount = normal_valuation_delta

@@ -295,6 +295,10 @@ def PopulateFinancialData():
     info = STOCK_INFO[code]
     data = FINANCAIL_DATA_BASE[code]
     adv_data = FINANCAIL_DATA_ADVANCE[code]
+    if 'class-b' in info:
+      if 'sdv/p' in info:
+        adv_data['sdv/p'] = max(0.0, info['sdv/p'])
+      continue
     mp = GetMarketPrice(code)
     if mp < 0 and 'hcode' in info:
       # A股涨停，按H股价格计算

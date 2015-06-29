@@ -144,7 +144,7 @@ def FilterBanks(banks):
 def NoBuyBanks(banks):
   return filter(lambda code:
                   code in FINANCAIL_DATA_ADVANCE
-                  and FINANCAIL_DATA_ADVANCE[code]['p/bv3'] > 0.8, banks)
+                  and FINANCAIL_DATA_ADVANCE[code]['p/bv3'] > 0.75, banks)
 
 def GetPercent(code,holding_asset_percent):
   percent = holding_asset_percent[code]
@@ -453,7 +453,6 @@ def BalanceAHBanks():
   return res
 
 STRATEGY_FUNCS = {
-  '分级基金': FenJiClassA,
   '南方A50': lambda: BuyETFDiscount('南方A50ETF'),
 
   'Weibo': lambda: KeepPercentIf('Weibo', 0.12,
@@ -473,7 +472,7 @@ STRATEGY_FUNCS = {
                        ),
   '海螺水泥': lambda: KeepPercentIf('海螺水泥', 0.1,
                         hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 1.1,
-                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.7,
+                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.8 and FINANCAIL_DATA_ADVANCE[code]['p/ttm'] < 13,
                        ),
 
   'A股最少资金': KeepCnyCapital,

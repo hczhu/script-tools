@@ -23,7 +23,7 @@ def GetNAV(code):
   'http://www.cninfo.com.cn/information/fund/netvalue/%s.html'%(code),
   ['<td', '单位资产净值',
    '<tr>', '<td', '<td', '>'],
-  '<', float, throw_exp = False, default_value = -1.0, encoding = 'gbk')
+  '<', float, throw_exp = True, default_value = -100.0, encoding = 'gbk')
 
 if __name__ == "__main__":
   client = LoginMyGoogleWithFiles()
@@ -32,6 +32,7 @@ if __name__ == "__main__":
   row_idx = 1
   nav_column = 'J'
   parent_nav_column = 'I'
+  price_column = 'S'
   for row in table:
     row_idx += 1
     code = row['code']
@@ -39,16 +40,22 @@ if __name__ == "__main__":
     if 'class-b' not in row:
       sys.stderr.write('No class-b code for class-a %s(%s)\n'%(code, row['name']))
       continue
-    a_nav = GetNAV(code)
-    time.sleep(3)
-    b_nav = GetNAV(row['class-b'])
-    time.sleep(3)
-    sys.stderr.write('%s(%s - %s) nav: %.4f B: %.4f parent %.4f\n'%(row['name'], code, row['class-b'], a_nav, b_nav, (a_nav + b_nav) / 2))
+    try:
+      a_nav = GetNAV(code)
+      time.sleep(5)
+      b_nav = GetNAV(row['class-b'])
+      time.sleep(5)
+    except:
+      sys.stderr.write('Failed to get NAV for %s(%s)\n'%(code, row['name'])) 
+      continue
+    global STOCK_INFO  
+    STOCK_INFO[code] = row
+    pr = GetMarketPrice(code)
+    if pr <= 0.001:
+      sys.stderr.write('Failed to get price for %s(%s)\n'%(code, row['name'])) 
+      continue
+    print '%s(%s - %s) nav: %.4f B: %.4f parent %.4f price = %.4f\n'%(row['name'], code, row['class-b'], a_nav, b_nav, (a_nav + b_nav) / 2, pr)
     ws.update_acell(nav_column + str(row_idx), str(a_nav))
     ws.update_acell(parent_nav_column + str(row_idx), str((a_nav + b_nav) / 2))
-
-  # header = list(set(table[0].keys()) - set(['name'])) + ['name']
-
-  # print '\n'.join([row['last-date'] for row in table])
-
-  # PrintTableMap(header, table)
+    ws.update_acell(price_column + str(row_idx), str(pr))
+    

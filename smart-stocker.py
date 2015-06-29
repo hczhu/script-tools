@@ -198,6 +198,7 @@ def PrintHoldingSecurities():
     chg = GetMarketPriceChange(ticker)
     currency = STOCK_INFO[ticker]['currency']
     name = STOCK_INFO[ticker]['name']
+    sys.stderr.write('Collecting info for %s(%s)\n'%(ticker, name))
     record = {
         'Percent': holding_percent[ticker],
         'Shares': shares,

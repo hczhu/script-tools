@@ -21,8 +21,8 @@ import oauth2client
 from oauth2client.client import SignedJwtAssertionCredentials
 
 def GetFinancialValue(value_str):
-  integer_re = '0|([1-9][0-9]*)'
-  float_re = '(%s)|((%s)?\.[0-9]+)'%(integer_re, integer_re)
+  integer_re = '-?(0|([1-9][0-9]*))'
+  float_re = '-?((%s)|((%s)?\.[0-9]+))'%(integer_re, integer_re)
   type_str = ''
   try:
     if re.match('[1-9][0-9]{0,2}(,[0-9]{3})*$', value_str) is not None:
@@ -135,7 +135,7 @@ def GetClassA(client):
   for row in table:
     code = row['code']
     if code == '': continue
-    STOCK_INFO[code] = row
+    FINANCAIL_DATA_BASE[code] = STOCK_INFO[code] = row
     CODE_TO_NAME[code] = row['name']
     CODE_TO_NAME[row['name']] = code
 

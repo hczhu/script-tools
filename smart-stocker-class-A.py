@@ -16,26 +16,39 @@ from smart_stocker_private_data import *
 from smart_stocker_public_data import *
 from smart_stocker_global import *
 
+import gspread
+
 def GetNAV(code):
-  return GetValueFromUrl('http://jingzhi.funds.hexun.com/%s.shtml'%(code),
-                  ['最新净值', '<font>'], '<', float, False, default_value = 100.0)
+  return GetValueFromUrl(
+  'http://www.cninfo.com.cn/information/fund/netvalue/%s.html'%(code),
+  ['<td', '单位资产净值',
+   '<tr>', '<td', '<td', '>'],
+  '<', float, throw_exp = False, default_value = -1.0, encoding = 'gbk')
 
-client = LoginMyGoogleWithFiles()
-table_key = sys.argv[1] if len(sys.argv) > 1 else '1ER4HZD-_UUZF7ph5RkgPu8JftY9jwFVJtpd2tUwz_ac'
+if __name__ == "__main__":
+  client = LoginMyGoogleWithFiles()
+  ws = client.open_by_key('1ER4HZD-_UUZF7ph5RkgPu8JftY9jwFVJtpd2tUwz_ac').get_worksheet(0)
+  table = ParseWorkSheetHorizontal(ws, global_transformer = GetFinancialValue, transformers = {'code' : lambda x: x, 'class-b': lambda x: x})
+  row_idx = 1
+  nav_column = 'J'
+  parent_nav_column = 'I'
+  for row in table:
+    row_idx += 1
+    code = row['code']
+    if code == '': continue
+    if 'class-b' not in row:
+      sys.stderr.write('No class-b code for class-a %s(%s)\n'%(code, row['name']))
+      continue
+    a_nav = GetNAV(code)
+    time.sleep(3)
+    b_nav = GetNAV(row['class-b'])
+    time.sleep(3)
+    sys.stderr.write('%s(%s - %s) nav: %.4f B: %.4f parent %.4f\n'%(row['name'], code, row['class-b'], a_nav, b_nav, (a_nav + b_nav) / 2))
+    ws.update_acell(nav_column + str(row_idx), str(a_nav))
+    ws.update_acell(parent_nav_column + str(row_idx), str((a_nav + b_nav) / 2))
 
-table = GetTable(client, table_key)
+  # header = list(set(table[0].keys()) - set(['name'])) + ['name']
 
-for row in table:
-  code = row['code']
-  nav = row['nav'] = GetNAV(code)
-  last_rate = GetFinancialValue(row['last-rate'])
-  last_date = datetime.date.today() - datetime.timedelta(
-                days = int((nav - 1.0) / last_rate * 365))
-  row['last-date'] = last_date.strftime('%m/%d/%Y')
+  # print '\n'.join([row['last-date'] for row in table])
 
-
-header = list(set(table[0].keys()) - set(['name'])) + ['name']
-
-print '\n'.join([row['last-date'] for row in table])
-
-PrintTableMap(header, table)
+  # PrintTableMap(header, table)

@@ -134,7 +134,8 @@ def GetClassA(client):
   table = ParseWorkSheetHorizontal(ws, global_transformer = GetFinancialValue, transformers = {'code' : lambda x: x})
   for row in table:
     code = row['code']
-    FINANCAIL_DATA_BASE[code] = STOCK_INFO[code] = row
+    if code == '': continue
+    STOCK_INFO[code] = row
     CODE_TO_NAME[code] = row['name']
     CODE_TO_NAME[row['name']] = code
 

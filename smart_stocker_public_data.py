@@ -325,10 +325,6 @@ def PopulateFinancialData():
           h_adv_data[key] *= adv_data['ah-ratio']
       h_adv_data['ah-ratio'] = 1.0 / adv_data['ah-ratio']
       FINANCAIL_DATA_ADVANCE[info['hcode']] = h_adv_data
-    if 'class-b' in data:
-      data['sbv'] = adv_data['sbv'] = GetNAVFromEasyMoney(code)
-      adv_data['p/sbv'] = mp / data['sbv']
-      adv_data['sdv/p'] = data['next-rate'] / (1.0 - (adv_data['sbv'] - mp))
 
 def PopulateMacroData():
   try:

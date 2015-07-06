@@ -155,13 +155,13 @@ def GetPercent(code,holding_asset_percent):
 
 def KeepBanks(targetPercent):
   min_txn_percent = max(0.02, MIN_TXN_PERCENT)
-  swap_percent_delta = 0.03
+  swap_percent_delta = 0.005
   max_swap_percent = 0.2
   normal_valuation_delta = 0.1
   a2h_discount = max(normal_valuation_delta, 0.5 * MACRO_DATA['ah-premium'])
   h2a_discount = normal_valuation_delta
   same_h2a_discount = 0.05
-  same_a2h_discount = 0.03
+  same_a2h_discount = 0.05
   overflow_valuation_delta = 0.01
   overflow_percent = targetPercent * 0.2
   max_bank_percent = {
@@ -178,14 +178,14 @@ def KeepBanks(targetPercent):
     '工商银行H': 0.2,
     '中国银行': 0.2,
     '中国银行H': 0.2,
-    '农业银行': 0.2,
-    '农业银行H': 0.2,
+    '农业银行': 0.55,
+    '农业银行H': 0.55,
 
     '交通银行': 0.15,
     '交通银行H': 0.15,
 
-    '中信银行': 0.05,
-    '中信银行H': 0.05,
+    '中信银行': 0.15,
+    '中信银行H': 0.15,
     '民生银行': 0.1,
     '民生银行H': 0.1,
     '华夏银行': 0.05,
@@ -243,6 +243,8 @@ def KeepBanks(targetPercent):
     sys.stderr.write('Sell overflow %f\n'%(reduce_percent))
     worst = filter(lambda code: holding_asset_percent[code] > 0 and code != except_bank and (candidates is None or code in candidates), banks)[0]
     banks_to_sell = filter(lambda code: valuation[worst] / valuation[code] < 1 + overflow_valuation_delta and holding_asset_percent[code] > 0 and except_bank != code and (candidates is None or code in candidates), banks)
+    if candidates is not None:
+      banks_to_sell = candidates
     sys.stderr.write('Banks to sell: %s \n'%(', '.join([CODE_TO_NAME[code] for code in banks_to_sell])))
     percent_sum = sum([holding_asset_percent[code] for code in banks_to_sell])
     ret = ''
@@ -278,10 +280,10 @@ def KeepBanks(targetPercent):
 
     valuation_delta = normal_valuation_delta
     sell_candidates = None
-    if STOCK_INFO[worse]['currency'] == 'hkd' and STOCK_INFO[better]['currency'] == 'cny' and 'hcode' in STOCK_INFO[better] and STOCK_INFO[better]['hcode'] == worse:
+    if 'hcode' in STOCK_INFO[better] and STOCK_INFO[better]['hcode'] == worse:
       valuation_delta = same_h2a_discount
       sell_candidates = set([worse])
-    elif STOCK_INFO[worse]['currency'] == 'cny' and STOCK_INFO[better]['currency'] == 'hdk' and 'hcode' in STOCK_INFO[worse] and STOCK_INFO[worse]['hcode'] == better:
+    elif 'hcode' in STOCK_INFO[worse] and STOCK_INFO[worse]['hcode'] == better:
       valuation_delta = same_a2h_discount
       sell_candidates = set([worse])
 
@@ -320,7 +322,7 @@ def FenJiClassA():
       rate_sum += FINANCAIL_DATA_BASE[code]['sdv/p']
       count += 1
   rate_sum /= max(1, count)
-  sys.stderr.write('Average rate: %.2%% for class A.\n'%(rate_sum * 100))
+  print 'Average rate: %.2%% for class A.'%(rate_sum * 100)
   
   holding_market_value = {
     code : EX_RATE[CURRENCY + '-' + STOCK_INFO[code]['currency']] * ACCOUNT_INFO['ALL']['holding-value'][code] for code in codes
@@ -329,11 +331,18 @@ def FenJiClassA():
   candidates = []
   for code in codes:
     finance = FINANCAIL_DATA_BASE[code]
-    if finance['p/dbv0'] > 1.098:
+    if finance['p/dbv0'] > 1.11:
       if holding_market_value[code] > 0:
-        return 'Clear %s(%s) due to p/sdv0 = %.3f\n'%(CODE_TO_NAME[code], code, finance['p/sdv0'])
+        print 'Clear %s(%s) due to p/sdv0 = %.3f\n'%(CODE_TO_NAME[code], code, finance['p/dbv0'])
     else:
       candidates += [code]
+  candidates.sort(key = lambda code: FINANCAIL_DATA_BASE[code]['score'])
+  if len(candidates) == 0: return ''
+  delta = 0.03
+  best = candidates[0]
+  for code in candidates:
+    if FINANCAIL_DATA_BASE[code]['score'] / FINANCAIL_DATA_BASE[best]['score'] > 1 + delta and holding_market_value[code] > 0:
+      print '%s(%s) ==> %s(%s)'%(CODE_TO_NAME[code], code, CODE_TO_NAME[best], best)
   return ''
 
 def KeepCnyCapital():

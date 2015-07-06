@@ -224,7 +224,7 @@ ACCOUNT_INFO = {
   },
 }
 
-MIN_TXN_PERCENT = 0.095
+MIN_TXN_PERCENT = 0.0095
 
 #----------Begining of global variables------------------
 

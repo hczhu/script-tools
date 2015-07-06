@@ -44,10 +44,10 @@ if __name__ == "__main__":
     global STOCK_INFO  
     STOCK_INFO[code] = row
     pr = GetMarketPrice(code)
-    ws.update_acell(price_column + str(row_idx), str(pr))
     if pr <= 0.4:
       sys.stderr.write('Failed to get price for %s(%s)\n'%(code, row['name'])) 
       continue
+    ws.update_acell(price_column + str(row_idx), str(pr))
     if len(sys.argv) > 1:
       try:
         a_nav = GetNAV(code)

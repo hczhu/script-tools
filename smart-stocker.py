@@ -205,7 +205,7 @@ def PrintHoldingSecurities():
         'MV': str(myround(holding_value[ticker] * EX_RATE[CURRENCY + '-' + currency] / 1000.0, 0)) + 'K',
         'Currency': currency,
         'Chg': chg,
-        'sdv/p': myround(FINANCAIL_DATA_ADVANCE[ticker]['sdv/p'] * 100, 1) if 'sdv/p' in FINANCAIL_DATA_ADVANCE[ticker] else 0.0,
+        'sdv/p': myround(FINANCAIL_DATA_ADVANCE[ticker]['sdv/p'] * 100, 2) if 'sdv/p' in FINANCAIL_DATA_ADVANCE[ticker] else 0.0,
         'Stock name': name + '(' + ticker + ')',
     }
     stat_records_map.append(record)

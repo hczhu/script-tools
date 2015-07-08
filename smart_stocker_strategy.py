@@ -157,7 +157,7 @@ def KeepBanks(targetPercent):
   min_txn_percent = max(0.02, MIN_TXN_PERCENT)
   swap_percent_delta = 0.005
   max_swap_percent = 0.2
-  normal_valuation_delta = 0.1
+  normal_valuation_delta = 0.08
   a2h_discount = max(normal_valuation_delta, 0.5 * MACRO_DATA['ah-premium'])
   h2a_discount = normal_valuation_delta
   same_h2a_discount = 0.05
@@ -178,16 +178,16 @@ def KeepBanks(targetPercent):
     '工商银行H': 0.2,
     '中国银行': 0.2,
     '中国银行H': 0.2,
-    '农业银行': 0.55,
-    '农业银行H': 0.55,
+    '农业银行': 0.85,
+    '农业银行H': 0.85,
 
     '交通银行': 0.15,
     '交通银行H': 0.15,
 
-    '中信银行': 0.15,
-    '中信银行H': 0.15,
-    '民生银行': 0.1,
-    '民生银行H': 0.1,
+    '中信银行': 0.25,
+    '中信银行H': 0.25,
+    '民生银行': 0.15,
+    '民生银行H': 0.15,
     '华夏银行': 0.05,
     '平安银行': 0.05,
   }
@@ -322,20 +322,13 @@ def FenJiClassA():
       rate_sum += FINANCAIL_DATA_BASE[code]['sdv/p']
       count += 1
   rate_sum /= max(1, count)
-  print 'Average rate: %.2%% for class A.'%(rate_sum * 100)
+  print 'Average rate: %.2f%% for class A.'%(rate_sum * 100)
   
   holding_market_value = {
     code : EX_RATE[CURRENCY + '-' + STOCK_INFO[code]['currency']] * ACCOUNT_INFO['ALL']['holding-value'][code] for code in codes
   }
 
-  candidates = []
-  for code in codes:
-    finance = FINANCAIL_DATA_BASE[code]
-    if finance['p/dbv0'] > 1.11:
-      if holding_market_value[code] > 0:
-        print 'Clear %s(%s) due to p/sdv0 = %.3f\n'%(CODE_TO_NAME[code], code, finance['p/dbv0'])
-    else:
-      candidates += [code]
+  candidates = codes
   candidates.sort(key = lambda code: FINANCAIL_DATA_BASE[code]['score'])
   if len(candidates) == 0: return ''
   delta = 0.03

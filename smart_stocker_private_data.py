@@ -137,7 +137,7 @@ def GetClassA(client):
     if code == '': continue
     FINANCAIL_DATA_BASE[code] = STOCK_INFO[code] = row
     CODE_TO_NAME[code] = row['name']
-    CODE_TO_NAME[row['name']] = code
+    NAME_TO_CODE[row['name']] = code
 
 def GetBankData(client):
   sys.stderr.write('Reading bank data.\n')

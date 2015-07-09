@@ -178,8 +178,8 @@ def KeepBanks(targetPercent):
     '工商银行H': 0.2,
     '中国银行': 0.2,
     '中国银行H': 0.2,
-    '农业银行': 0.85,
-    '农业银行H': 0.85,
+    '农业银行': 0.65,
+    '农业银行H': 0.65,
 
     '交通银行': 0.15,
     '交通银行H': 0.15,
@@ -443,7 +443,7 @@ STRATEGY_FUNCS = {
                        ),
   '海螺水泥': lambda: KeepPercentIf('海螺水泥', 0.1,
                         hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 1.1,
-                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.8 and FINANCAIL_DATA_ADVANCE[code]['p/ttm'] < 13,
+                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.8 and FINANCAIL_DATA_ADVANCE[code]['p/ttme'] < 13,
                        ),
 
   'A股最少资金': KeepCnyCapital,

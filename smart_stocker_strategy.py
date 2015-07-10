@@ -130,7 +130,8 @@ def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True
 def ScoreBanks(banks):
   scores ={}
   for bank in banks:
-    scores[bank] = FINANCAIL_DATA_ADVANCE[bank]['p/bv3'] if 'p/bv3' in FINANCAIL_DATA_ADVANCE[bank] else 100.0
+    finance = FINANCAIL_DATA_ADVANCE[bank]
+    scores[bank] = finance['p/bv3'] / (1 + finance['sdv/p'] * 0.8) if 'p/bv3' in finance and 'sdv/p' in finance else 100.0
   banks.sort(key = lambda code: scores[code])
   for bank in banks:
     sys.stderr.write('%s: %f\n'%(CODE_TO_NAME[bank], scores[bank]))
@@ -160,8 +161,8 @@ def KeepBanks(targetPercent):
   normal_valuation_delta = 0.08
   a2h_discount = max(normal_valuation_delta, 0.5 * MACRO_DATA['ah-premium'])
   h2a_discount = normal_valuation_delta
-  same_h2a_discount = 0.05
-  same_a2h_discount = 0.05
+  same_h2a_discount = 0.04
+  same_a2h_discount = 0.04
   overflow_valuation_delta = 0.01
   overflow_percent = targetPercent * 0.2
   max_bank_percent = {
@@ -171,15 +172,15 @@ def KeepBanks(targetPercent):
     '兴业银行': 0.15,
 
     # 建行资产风险在大行中最小
-    '建设银行': 0.25,
-    '建设银行H': 0.25,
+    '建设银行': 0.35,
+    '建设银行H': 0.35,
 
     '工商银行': 0.2,
     '工商银行H': 0.2,
     '中国银行': 0.2,
     '中国银行H': 0.2,
-    '农业银行': 0.65,
-    '农业银行H': 0.65,
+    '农业银行': 0.35,
+    '农业银行H': 0.35,
 
     '交通银行': 0.15,
     '交通银行H': 0.15,
@@ -448,6 +449,6 @@ STRATEGY_FUNCS = {
 
   'A股最少资金': KeepCnyCapital,
   'Yahoo - Alibaba': YahooAndAlibaba,
-  '银行股': lambda: KeepBanks(400000.0 / ACCOUNT_INFO['ALL']['net']),
+  '银行股': lambda: KeepBanks(500000.0 / ACCOUNT_INFO['ALL']['net']),
   '分级A': FenJiClassA,
 }

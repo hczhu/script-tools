@@ -296,8 +296,9 @@ def PopulateFinancialData():
     data = FINANCAIL_DATA_BASE[code]
     adv_data = FINANCAIL_DATA_ADVANCE[code]
     if 'class-b' in info:
-      if 'sdv/p' in info:
-        adv_data['sdv/p'] = max(0.0, info['sdv/p'])
+      for key in ['sdv/p', 'ddv/p']:
+        if key in info:
+          adv_data[key] = max(0.0, info[key])
       continue
     mp = GetMarketPrice(code)
     if mp < 0 and 'hcode' in info:
@@ -312,10 +313,11 @@ def PopulateFinancialData():
     for key in FINANCIAL_KEYS:
       if key.find('p/') != -1 and key[2:] in data and isinstance(data[key[2:]], float) and data[key[2:]] > 0:
         adv_data[key] = mp / data[key[2:]]
-      elif key.find('/p') != -1 and key[0:-2] in data and isinstance(data[key[0:-2]], float) and data[key[0:-2]] > 0:
+      elif key.find('/p') != -1 and key[0:-2] in data and isinstance(data[key[0:-2]], float):
         adv_data[key] = data[key[0:-2]] / mp
       elif key in extra_key and key in data:
         adv_data[key] = data[key]
+    sys.stderr.write('Populated adv financial data for %s(%s): %s\n'%(CODE_TO_NAME[code], code, str(adv_data)))
     # Populate corresponding h-share.
     if 'hcode' in info:
       hmp = GetMarketPrice(info['hcode'])

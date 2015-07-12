@@ -14,6 +14,7 @@ import dateutil.parser
 
 from table_printer import *
 from smart_stocker_global import *
+from smart_stocker_public_data import *
 
 import json
 import gspread
@@ -61,6 +62,7 @@ def ParseWorkSheetHorizontal(worksheet, header = 0, skip_rows = [], global_trans
   skip_row_set |= set([header])
   GetTransformer = lambda key: transformers[key] if key in transformers else global_transformer
   keys = [value.strip().lower() for value in matrix[header]]
+  key_to_column = { matrix[header][idx]: chr(idx + ord('A')) for idx in range(len(matrix[header]))}
   records = []
   for idx in range(row_count):
     if idx in skip_row_set: continue
@@ -68,7 +70,7 @@ def ParseWorkSheetHorizontal(worksheet, header = 0, skip_rows = [], global_trans
     for key, value in record.items():
       record[key] = GetTransformer(key)(value.strip().encode('utf-8'))
     records.append(record)
-  return records
+  return records, key_to_column
 
 def ParseWorkSheetVertical(worksheet, global_transformer = lambda x: x, transformers = {}):
   GetTransformer = lambda key: transformers[key] if key in transformers else global_transformer
@@ -87,7 +89,7 @@ def MergeAllHorizontalWorkSheets(gd_client, ss_key, primary_key, value_transform
   worksheets = gd_client.open_by_key(ss_key).worksheets()
   for ws in worksheets:
     sys.stderr.write('Merging worksheet %s\n'%(ws.title.encode('utf-8')))
-    rows = ParseWorkSheetHorizontal(ws, global_transformer = value_transformer)
+    rows, _ = ParseWorkSheetHorizontal(ws, global_transformer = value_transformer)
     for row in rows:
       if primary_key not in row: continue
       for key, value in row.items():
@@ -96,12 +98,30 @@ def MergeAllHorizontalWorkSheets(gd_client, ss_key, primary_key, value_transform
 
 def GetTransectionRecords(gd_client):
   ss_key = '1oxtcfl2V4ff3eUMW4954IChpx9eFAoB83QMrZERPSgA'
-  return ParseWorkSheetHorizontal(gd_client.open_by_key(ss_key).get_worksheet(0))
+  return ParseWorkSheetHorizontal(gd_client.open_by_key(ss_key).get_worksheet(0))[0]
 
+def GetCategorizedStocks(gd_client):
+  ss_key = '1VNmr6UVL1zA07fKWUgHc64eXYEArdg4GzkcEiLCria4'
+  worksheets = gd_client.open_by_key(ss_key).worksheets()
+  for ws in worksheets:
+    records, key_to_column = ParseWorkSheetHorizontal(ws, global_transformer = GetFinancialValue, transformers = {'code' : lambda x: x})
+    row_idx = 1
+    for row in records:
+      row_idx += 1
+      if 'code' in row and 'name' in row:
+        code, name = row['code'], row['name']
+        sys.stderr.write('Got categorized stock %s(%s)\n'%(name, code))
+        FINANCAIL_DATA_BASE[code] = STOCK_INFO[code] = row
+        NAME_TO_CODE[name], CODE_TO_NAME[code] = code, name
+        if 'price' in row:
+          pr = GetMarketPrice(code) 
+          ws.update_acell(key_to_column['price'] + str(row_idx), str(pr))
+      
 def GetStockPool(gd_client):
   ss_key = '1Ita0nLCH5zpt6FgpZwOshZFXwIcNeOFvJ3ObGze2UBs'
   stocks = MergeAllHorizontalWorkSheets(gd_client, ss_key, 'code')
   GetClassA(gd_client)
+  GetCategorizedStocks(gd_client)
   for code in stocks.keys():
     info = stocks[code]
     for key, value in info.items():
@@ -131,7 +151,7 @@ def GetStockPool(gd_client):
  
 def GetClassA(client):
   ws = client.open_by_key('1ER4HZD-_UUZF7ph5RkgPu8JftY9jwFVJtpd2tUwz_ac').get_worksheet(0)
-  table = ParseWorkSheetHorizontal(ws, global_transformer = GetFinancialValue, transformers = {'code' : lambda x: x})
+  table, _ = ParseWorkSheetHorizontal(ws, global_transformer = GetFinancialValue, transformers = {'code' : lambda x: x})
   for row in table:
     code = row['code']
     if code == '': continue

@@ -49,7 +49,7 @@ def AppannieScore(company, country = 'japan'):
       idx = content.find(company)
   return res
 
-def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True, reg_exp = '[0-9.]+', default_value = None, encoding = ''):
+def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True, reg_exp = '[0-9.,]+%?', default_value = None, encoding = ''):
   try:
     if url not in URL_CONTENT_CACHE:
       sys.stderr.write('Crawling url: %s\n'%(url))
@@ -63,10 +63,15 @@ def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True, reg_exp =
       if pos == -1:
         raise Exception('feature str [%s] not found.'%(fs))
       content = content[len(fs) + pos:]
-    pat = re.compile(reg_exp)
-    match = pat.search(content) 
-    if match is None: raise Exception('reg exp [%s] not found'%(reg_exp))
-    return func(match.group(0))
+    if reg_exp is None:
+      pos = content.find(end_str)
+      if pos < 0: raise Exception('end str [%s] not found'%(end_str))
+      return content[0:pos]
+    else:
+      pat = re.compile(reg_exp)
+      match = pat.search(content) 
+      if match is None: raise Exception('reg exp [%s] not found'%(reg_exp))
+      return func(match.group(0))
   except Exception, e:
     sys.stderr.write('Exception ' + str(e) +'\n')
     sys.stderr.write('Failed to open url: ' + url + '\n')

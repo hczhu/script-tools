@@ -25,57 +25,68 @@ def GetParentCode(a_code):
             end_str = ' ',
             func = lambda s: s,
             throw_exp = True,
-            default_value = '')
+            default_value = ''), GetValueFromUrl(
+            'http://www.jisilu.cn/data/sfnew/detail/%s'%(a_code),
+            feature_str = ['<th nowrap>仓位估值'] + ['<td'] * 6 + ['>'],
+            end_str = '<',
+            func = GetFinancialValue,
+            throw_exp = True,
+            default_value = 1.0)
+        
 
-def GetRealNAV(code):
-  return GetValueFromUrl(
+def GetRealNAV(code, stock_percent = 1.0):
+  inflated_nav =  GetValueFromUrl(
     'http://www.howbuy.com/fund/ajax/gmfund/valuation/valuationnav.htm?jjdm=%s'%(code),
     ['<span class=', '>'], '<', float, throw_exp = True, default_value = -100.0)
+  inflated_increase = GetValueFromUrl(
+    'http://www.howbuy.com/fund/ajax/gmfund/valuation/valuationnav.htm?jjdm=%s'%(code),
+    ['<span class='] * 2 + ['>'] , '<', float, throw_exp = True, default_value = -100.0)
+  return inflated_nav - inflated_increase * (1 - stock_percent)
 
 if __name__ == "__main__":
   client = LoginMyGoogleWithFiles()
   ws = client.open_by_key('1ER4HZD-_UUZF7ph5RkgPu8JftY9jwFVJtpd2tUwz_ac').get_worksheet(0)
-  table = ParseWorkSheetHorizontal(ws, global_transformer = GetFinancialValue, transformers = {'code' : lambda x: x, 'class-b': lambda x: x, 'parent-code': lambda x: x})
+  table, _ = ParseWorkSheetHorizontal(ws, global_transformer = GetFinancialValue, transformers = {'code' : lambda x: x, 'class-b': lambda x: x, 'parent-code': lambda x: x})
   row_idx = 1
   price_column = 'B'
   nav_column = 'C'
   parent_nav_column = 'D'
   parent_code_column = 'E'
-  premium_column = 'F'
+  parent_stock_hold_percent = 'F'
+  premium_column = 'G'
   for row in table:
+    sys.stderr.write('------------------------\n')
     row_idx += 1
     code = row['code']
     if code == '': continue
     if 'class-b' not in row:
       sys.stderr.write('No class-b code for class-a %s(%s)\n'%(code, row['name']))
       continue
-
     b_code = row['class-b']
     global STOCK_INFO  
     STOCK_INFO[code] = row
     try:
+      parent_code, parent_percent = GetParentCode(code)
+      ws.update_acell(parent_code_column + str(row_idx), parent_code)
+      ws.update_acell(parent_stock_hold_percent + str(row_idx), parent_percent)
+      sys.stderr.write('Got parent %s for %s with percent %.3f\n'%(parent_code, code, parent_percent))
+      parent_nav = GetRealNAV(parent_code, parent_percent)
+      time.sleep(0)
+      a_nav = GetRealNAV(code)
+      time.sleep(0)
+      ws.update_acell(nav_column + str(row_idx), str(a_nav))
+      ws.update_acell(parent_nav_column + str(row_idx), str(parent_nav))
+      STOCK_INFO[b_code] = row
+
       pr = GetMarketPrice(code)
+      print '%s(%s - %s) nav: %.4f parent %.4f price = %.4f\n'%(row['name'], code, row['class-b'], a_nav, parent_nav, pr)
       if pr <= 0.4:
         sys.stderr.write('Failed to get price for %s(%s)\n'%(code, row['name'])) 
         continue
       ws.update_acell(price_column + str(row_idx), str(pr))
-      parent_code = row['parent-code']
-      if parent_code == '':
-        sys.stderr.write('existing parent %s for %s\n'%(parent_code, code))
-        parent_code = GetParentCode(code)
-        sys.stderr.write('Got parent %s for %s\n'%(parent_code, code))
-        ws.update_acell(parent_code_column + str(row_idx), parent_code)
-      parent_nav = GetRealNAV(parent_code)
-      time.sleep(0)
-      a_nav = GetRealNAV(code)
-      time.sleep(0)
-      print '%s(%s - %s) nav: %.4f parent %.4f price = %.4f\n'%(row['name'], code, row['class-b'], a_nav, parent_nav, pr)
-      ws.update_acell(nav_column + str(row_idx), str(a_nav))
-      ws.update_acell(parent_nav_column + str(row_idx), str(parent_nav))
-      STOCK_INFO[b_code] = row
       b_price = GetMarketPrice(b_code)
       if b_price > 0.01:
-        premium = (pr + b_price) / (2*parent_nav) - 1
+        premium = (pr + b_price) / (2 * parent_nav) - 1
         ws.update_acell(premium_column + str(row_idx), str(premium))
     except Exception, e:
       sys.stderr.write('Failed to fill %s(%s) [%s]\n'%(row['name'], code, str(e)))

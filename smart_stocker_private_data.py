@@ -110,6 +110,7 @@ def GetCategorizedStocks(gd_client):
       row_idx += 1
       if 'code' in row and 'name' in row:
         code, name = row['code'], row['name']
+        if code == '' or name == '': continue
         sys.stderr.write('Got categorized stock %s(%s)\n'%(name, code))
         FINANCAIL_DATA_BASE[code] = STOCK_INFO[code] = row
         NAME_TO_CODE[name], CODE_TO_NAME[code] = code, name

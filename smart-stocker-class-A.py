@@ -66,9 +66,11 @@ if __name__ == "__main__":
     global STOCK_INFO  
     STOCK_INFO[code] = row
     try:
-      parent_code, parent_percent = GetParentCode(code)
-      ws.update_acell(parent_code_column + str(row_idx), parent_code)
-      ws.update_acell(parent_stock_hold_percent + str(row_idx), parent_percent)
+      parent_code, parent_percent = row['parent-code'], row['parent-percent']
+      if len(sys.argv) == 1:
+        parent_code, parent_percent = GetParentCode(code)
+        ws.update_acell(parent_code_column + str(row_idx), parent_code)
+        ws.update_acell(parent_stock_hold_percent + str(row_idx), parent_percent)
       sys.stderr.write('Got parent %s for %s with percent %.3f\n'%(parent_code, code, parent_percent))
       parent_nav = GetRealNAV(parent_code, parent_percent)
       time.sleep(0)

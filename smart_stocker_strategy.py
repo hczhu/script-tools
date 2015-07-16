@@ -333,7 +333,6 @@ def FenJiClassA():
     better = candidates[a]
     for b in range(len(candidates) - 1, a, -1):
       worse = candidates[b]
-      print better, worse
       if FINANCAIL_DATA_BASE[worse][score_key] / FINANCAIL_DATA_BASE[better][score_key] > 1 + delta \
         and holding_market_value[worse] > 0:
         print '%s(%s) @%.3f [%.3f] ==> %s(%s) @%.3f [%.3f]'%(

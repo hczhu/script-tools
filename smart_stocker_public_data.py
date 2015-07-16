@@ -49,7 +49,7 @@ def AppannieScore(company, country = 'japan'):
       idx = content.find(company)
   return res
 
-def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True, reg_exp = '[0-9.,]+%?', default_value = None, encoding = ''):
+def GetValueFromUrl(url, feature_str, end_str, func, throw_exp = True, reg_exp = '-?[0-9.,]+%?', default_value = None, encoding = ''):
   try:
     if url not in URL_CONTENT_CACHE:
       sys.stderr.write('Crawling url: %s\n'%(url))

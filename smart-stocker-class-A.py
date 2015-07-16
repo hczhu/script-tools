@@ -33,7 +33,6 @@ def GetParentCode(a_code):
             throw_exp = True,
             default_value = 1.0)
         
-
 def GetRealNAV(code, stock_percent = 1.0):
   inflated_nav =  GetValueFromUrl(
     'http://www.howbuy.com/fund/ajax/gmfund/valuation/valuationnav.htm?jjdm=%s'%(code),
@@ -41,6 +40,7 @@ def GetRealNAV(code, stock_percent = 1.0):
   inflated_increase = GetValueFromUrl(
     'http://www.howbuy.com/fund/ajax/gmfund/valuation/valuationnav.htm?jjdm=%s'%(code),
     ['<span class='] * 2 + ['>'] , '<', float, throw_exp = True, default_value = -100.0)
+  sys.stderr.write('realtime estimated nav = %.3f index increase = %.4f stock percent = %.3f\n'%(inflated_nav, inflated_increase, stock_percent))
   return inflated_nav - inflated_increase * (1 - stock_percent)
 
 if __name__ == "__main__":

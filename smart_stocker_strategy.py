@@ -317,7 +317,7 @@ def FenJiClassA():
   holding_market_value = {
     code : EX_RATE[CURRENCY + '-' + STOCK_INFO[code]['currency']] * ACCOUNT_INFO['ALL']['holding-value'][code] for code in codes
   }
-  score_key = 'sdv/p'
+  score_key = 'score'
   candidates = codes
   candidates.sort(key = lambda code: FINANCAIL_DATA_BASE[code]['sdv/p'])
   if len(candidates) == 0: return ''
@@ -325,16 +325,18 @@ def FenJiClassA():
   for code in candidates:
     if holding_market_value[code] <= 0: continue
     if FINANCAIL_DATA_BASE[code]['sdv/p'] < average_sdv_p:
-      print 'Clear %s(%s) @.3f due to sdv/p = %.3f < average %.3f'%(
+      print 'Clear %s(%s) @%.3f due to sdv/p = %.3f < average %.3f'%(
         CODE_TO_NAME[code], code, GetMarketPrice(code),
         FINANCAIL_DATA_BASE[code]['sdv/p'], average_sdv_p)
+
   for a in range(len(candidates)):
     better = candidates[a]
     for b in range(len(candidates) - 1, a, -1):
       worse = candidates[b]
+      print better, worse
       if FINANCAIL_DATA_BASE[worse][score_key] / FINANCAIL_DATA_BASE[better][score_key] > 1 + delta \
-        and holding_market_value[better] > 0 and holding_market_value[worse] > 0:
-        print '%s(%s) @.3f [%.3f] ==> %s(%s) @.3f [%.3f]'%(
+        and holding_market_value[worse] > 0:
+        print '%s(%s) @%.3f [%.3f] ==> %s(%s) @%.3f [%.3f]'%(
                 CODE_TO_NAME[worse], worse, GetMarketPrice(worse), FINANCAIL_DATA_BASE[worse][score_key],
                 CODE_TO_NAME[better], better, GetMarketPrice(better), FINANCAIL_DATA_BASE[better][score_key])
   return ''

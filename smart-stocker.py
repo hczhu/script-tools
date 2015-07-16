@@ -72,11 +72,15 @@ def ReadRecords():
     record['price'], record['amount'], record['commission'] = price, buy_shares, fee
   return records
 
-def ProcessRecords(all_records, accounts = set([])):
+def ProcessRecords(all_records, accounts = set([]), goback = 0):
   all_records.sort(key = lambda record: record['date'])
+  cutoff_date = datetime.date.today() - (datetime.timedelta(days = goback))
+  sys.stderr.write('cut off date = %s\n'%(str(cutoff_date)))
   for record in all_records:
     account = record['account']
     if len(accounts) > 0 and account not in accounts:
+      continue
+    if record['date'] > cutoff_date:
       continue
     account_info = ACCOUNT_INFO[account]
     ticker = record['ticker']
@@ -264,8 +268,14 @@ def PrintStocks(names):
 
 try:
   args = set(sys.argv[1:])
+
+  goback = filter(lambda arg: arg.find('goback=') == 0, args)
+  args = args - set(goback)
+  goback = 0 if len(goback) == 0 else int(goback[0].split('=')[1])
+
   prices = filter(lambda arg: arg.find('=') != -1, args)
   args = args - set(prices)
+
   accounts = filter(lambda arg: arg.find('accounts:') == 0, args)
   args = args - set(accounts)
   if len(accounts) > 0:
@@ -285,7 +295,7 @@ try:
   GetFinancialData(GD_CLIENT) 
   GetBankData(GD_CLIENT)
   PopulateFinancialData()
-  ProcessRecords(ReadRecords(), accounts)
+  ProcessRecords(ReadRecords(), accounts, goback)
   PrintAccountInfo()
   PrintHoldingSecurities()
   if len(target_names) > 0:

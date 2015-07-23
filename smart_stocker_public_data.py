@@ -191,6 +191,18 @@ def GetSinaUrlPrefix(code):
     'hk': ['hk'],
     'us': ['gb_'],
   }
+  if 'market' in STOCK_INFO[code]:
+    return market2prefix[STOCK_INFO[code]['market']]
+
+  if 'currency' not in STOCK_INFO[code]:
+    return ['sh', 'hk', 'sz', 'gb_']
+
+  if STOCK_INFO[code]['currency'] == 'cny':
+    return ['sh', 'sz']
+  if STOCK_INFO[code]['currency'] == 'hkd':
+    return ['hk']
+  if STOCK_INFO[code]['currency'] == 'usd':
+    return ['gb_']
   return market2prefix[STOCK_INFO[code]['market']]
 
 def GetMarketPriceFromSina(code):
@@ -234,7 +246,7 @@ def GetMarketPrice(code):
   sys.stderr.write('Getting market price for ' + code + '\n')
   if code in MARKET_PRICE_CACHE:
     return MARKET_PRICE_CACHE[code][0]
-  func = lambda: GetMarketPriceFromSina(code) if STOCK_INFO[code]['market'] != 'jp' else GetJapanStockPriceAndChange(code)
+  func = lambda: GetMarketPriceFromSina(code)
   if code in MARKET_PRICE_FUNC:
     func = MARKET_PRICE_FUNC[code] 
   try:

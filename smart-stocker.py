@@ -85,6 +85,12 @@ def ProcessRecords(all_records, accounts = set([]), goback = 0):
     account_info = ACCOUNT_INFO[account]
     ticker = record['ticker']
     currency = record['currency'].lower()
+    name = record['name']
+    if goback > 0 and name != '':
+      STOCK_INFO[ticker]['currency'] = currency
+      STOCK_INFO[ticker]['name'] = name
+      NAME_TO_CODE[name] = ticker
+      CODE_TO_NAME[ticker] = name
     base_currency = ACCOUNT_INFO[account]['currency']
     ex_rate = EX_RATE[currency + '-' + base_currency]
     trans_date = record['date']
@@ -283,7 +289,8 @@ try:
 
   target_names = args
   InitAll()
-  GetStockPool(GD_CLIENT)
+  if goback == 0:
+    GetStockPool(GD_CLIENT)
 
   if len(prices) > 0:
     for pr in prices:
@@ -291,18 +298,22 @@ try:
       MARKET_PRICE_CACHE[NAME_TO_CODE[info[0]]] = (float(info[1]), 0, 0)
     sys.stderr.write('market data cache = %s\n'%(str(MARKET_PRICE_CACHE)))
 
-  PopulateMacroData()
-  GetFinancialData(GD_CLIENT) 
-  GetBankData(GD_CLIENT)
-  PopulateFinancialData()
+  if goback == 0:
+    PopulateMacroData()
+    GetFinancialData(GD_CLIENT) 
+    GetBankData(GD_CLIENT)
+    PopulateFinancialData()
+
   ProcessRecords(ReadRecords(), accounts, goback)
   PrintAccountInfo()
   PrintHoldingSecurities()
-  if len(target_names) > 0:
-    names = ','.join(target_names).split(',')
-    PrintStocks(names)
-  if len(accounts) == 0:
-    RunStrategies()
+
+  if goback == 0:
+    if len(target_names) > 0:
+      names = ','.join(target_names).split(',')
+      PrintStocks(names)
+    if len(accounts) == 0:
+      RunStrategies()
 except Exception as ins:
   print 'Run time error: ', ins
   traceback.print_exc(file=sys.stdout)

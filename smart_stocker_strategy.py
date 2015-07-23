@@ -443,9 +443,9 @@ STRATEGY_FUNCS = {
                         buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.6 and FINANCAIL_DATA_ADVANCE[code]['sdv/p'] > 0.035 \
                                                      and FINANCAIL_DATA_ADVANCE[code]['p/sbv'] < 0.7,
                        ),
-  '海螺水泥': lambda: KeepPercentIf('海螺水泥', 0.1,
+  '海螺水泥': lambda: KeepPercentIf('海螺水泥', 0.15,
                         hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 1.1,
-                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.8 and FINANCAIL_DATA_ADVANCE[code]['p/ttme'] < 13,
+                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.7 or FINANCAIL_DATA_ADVANCE[code]['p/ttme'] < 13,
                        ),
 
   'A股最少资金': KeepCnyCapital,

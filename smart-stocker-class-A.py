@@ -27,7 +27,7 @@ def GetParentCode(a_code):
             throw_exp = True,
             default_value = ''), GetValueFromUrl(
             'http://www.jisilu.cn/data/sfnew/detail/%s'%(a_code),
-            feature_str = ['<th nowrap>仓位估值'] + ['<td'] * 6 + ['>'],
+            feature_str = ['<thead>', '仓位', '</tr>'] + ['<td'] * 6 + ['>'],
             end_str = '<',
             func = GetFinancialValue,
             throw_exp = True,

@@ -145,7 +145,7 @@ def FilterBanks(banks):
 def NoBuyBanks(banks):
   return filter(lambda code:
                   code in FINANCAIL_DATA_ADVANCE
-                  and FINANCAIL_DATA_ADVANCE[code]['p/bv3'] > 0.75, banks)
+                  and FINANCAIL_DATA_ADVANCE[code]['p/bv3'] > 0.75 and FINANCAIL_DATA_ADVANCE[code]['p/bv'] < 1.0, banks)
 
 def KeepBanks(targetPercent):
   min_txn_percent = max(0.02, MIN_TXN_PERCENT)

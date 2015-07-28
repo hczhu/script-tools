@@ -145,18 +145,18 @@ def FilterBanks(banks):
 def NoBuyBanks(banks):
   return filter(lambda code:
                   code in FINANCAIL_DATA_ADVANCE
-                  and FINANCAIL_DATA_ADVANCE[code]['p/bv3'] > 0.75 and FINANCAIL_DATA_ADVANCE[code]['p/bv'] < 1.0, banks)
+                  and FINANCAIL_DATA_ADVANCE[code]['p/bv3'] > 0.75 or FINANCAIL_DATA_ADVANCE[code]['p/book-value'] > 1.0, banks)
 
 def KeepBanks(targetPercent):
   min_txn_percent = max(0.02, MIN_TXN_PERCENT)
   swap_percent_delta = 0.005
   max_swap_percent = 0.1
-  normal_valuation_delta = 0.07
+  normal_valuation_delta = 0.05
   a2h_discount = max(normal_valuation_delta, 0.4 * MACRO_DATA['ah-premium'])
   h2a_discount = normal_valuation_delta
   same_h2a_discount = 0.04
   same_a2h_discount = 0.04
-  overflow_valuation_delta = 0.01
+  overflow_valuation_delta = 0.02
   overflow_percent = targetPercent * 0.2
   group_max_percent = [
     (['农业银行', '建设银行', '工商银行', '中国银行'],  0.4),
@@ -226,7 +226,7 @@ def KeepBanks(targetPercent):
     if code in no_buy_banks: continue
     currency = STOCK_INFO[code]['currency']
     add_percent = min(targetPercent - currentPercent, budget_percent[code])
-    cash, op = GetCashAndOp('ib', currency, add_percent)
+    cash, op = GetCashAndOp(['ib'], currency, add_percent)
     if add_percent > min_txn_percent and cash > 0:
       return op + GiveTip(' ==> Buy', code, cash)
 

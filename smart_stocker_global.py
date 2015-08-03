@@ -226,6 +226,8 @@ ACCOUNT_INFO = {
 
 MIN_TXN_PERCENT = 0.0095
 
+CATEGORIZED_STOCKS = collections.defaultdict(list)
+
 #----------Begining of global variables------------------
 
 def IsLambda(v):

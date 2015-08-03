@@ -264,8 +264,11 @@ def PrintStocks(names):
   tableMap = []
   header = [col for col in (FINANCIAL_KEYS - set(['name']))]
   header += ['name']
+  stocks_from_category = set([])
+  for name in names: stocks_from_category |= set(CATEGORIZED_STOCKS[name])
+
   for code in FINANCAIL_DATA_ADVANCE.keys():
-    if any([CODE_TO_NAME[code].find(name) != -1 for name in names]):
+    if any([CODE_TO_NAME[code].find(name) != -1 or code in stocks_from_category for name in names]):
       data = dict(FINANCAIL_DATA_ADVANCE[code])
       data['name'] = ('*' if code in ACCOUNT_INFO['ALL']['holding-shares'] else '') + CODE_TO_NAME[code]
       tableMap.append(data)

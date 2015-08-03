@@ -104,6 +104,7 @@ def GetCategorizedStocks(gd_client):
   ss_key = '1VNmr6UVL1zA07fKWUgHc64eXYEArdg4GzkcEiLCria4'
   worksheets = gd_client.open_by_key(ss_key).worksheets()
   for ws in worksheets:
+    category = ws.title.encode('utf-8')
     records, key_to_column = ParseWorkSheetHorizontal(ws, global_transformer = GetFinancialValue, transformers = {'code' : lambda x: x})
     row_idx = 1
     for row in records:
@@ -114,6 +115,8 @@ def GetCategorizedStocks(gd_client):
         sys.stderr.write('Got categorized stock %s(%s)\n'%(name, code))
         FINANCAIL_DATA_BASE[code] = STOCK_INFO[code] = row
         NAME_TO_CODE[name], CODE_TO_NAME[code] = code, name
+        CATEGORIZED_STOCKS[category] += [code]
+        STOCK_INFO[code]['category'] = category
         if 'price' in row:
           pr = GetMarketPrice(code) 
           ws.update_acell(key_to_column['price'] + str(row_idx), str(pr))

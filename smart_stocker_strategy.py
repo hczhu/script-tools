@@ -131,7 +131,7 @@ def ScoreBanks(banks):
   scores ={}
   for bank in banks:
     finance = FINANCAIL_DATA_ADVANCE[bank]
-    scores[bank] = finance['p/bv3'] / (1 + finance['sdv/p'] * 0.8) if 'p/bv3' in finance and 'sdv/p' in finance else 100.0
+    scores[bank] = finance['p/bv3'] / (1 + 0.8 * finance['ddv/p']) if 'p/bv3' in finance and 'sdv/p' in finance else 100.0
   banks.sort(key = lambda code: scores[code])
   for bank in banks:
     sys.stderr.write('%s: %f\n'%(CODE_TO_NAME[bank], scores[bank]))
@@ -312,7 +312,15 @@ def FenJiClassA():
       rate_sum += FINANCAIL_DATA_BASE[code]['sdv/p']
       count += 1
   average_sdv_p = rate_sum / max(1, count)
-  print 'Average rate: %.2f%% for class A.'%(average_sdv_p * 100)
+  sys.stderr.write('Average rate: %.2f%% for class A.\n'%(average_sdv_p * 100))
+
+  arbitrage = filter(lambda code: code in CODE_TO_NAME and CODE_TO_NAME[code].find('银-行') != -1, codes)
+  if len(arbitrage) > 0:
+    arbitrage.sort(key = lambda code: FINANCAIL_DATA_BASE[code]['premium'])
+    wanted_premium = -0.04
+    best = arbitrage[0]
+    if FINANCAIL_DATA_BASE[best]['premium'] < wanted_premium:
+      return 'Arbitrage on %s(%s) due to premium = %.3f'%(CODE_TO_NAME[best], best, FINANCAIL_DATA_BASE[best]['premium'])
   
   holding_market_value = {
     code : EX_RATE[CURRENCY + '-' + STOCK_INFO[code]['currency']] * ACCOUNT_INFO['ALL']['holding-value'][code] for code in codes
@@ -450,6 +458,6 @@ STRATEGY_FUNCS = {
 
   'A股最少资金': KeepCnyCapital,
   'Yahoo - Alibaba': YahooAndAlibaba,
-  '银行股': lambda: KeepBanks(500000.0 / ACCOUNT_INFO['ALL']['net']),
+  '银行股': lambda: KeepBanks(400000.0 / ACCOUNT_INFO['ALL']['net']),
   '分级A': FenJiClassA,
 }

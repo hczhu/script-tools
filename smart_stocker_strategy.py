@@ -71,6 +71,7 @@ def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_co
   currency_to_account = {
     'hkd': ['ib'],
     'cny': ['a'],
+    'usd': ['ib', 'schwab'],
   }
   for code in codes:
     if not hold_cond[code](code):
@@ -433,6 +434,7 @@ def BalanceAHBanks():
   res += KeepBanks(target_bank_percent)
   return res
 
+
 STRATEGY_FUNCS = {
   '南方A50': lambda: BuyETFDiscount('南方A50ETF'),
 
@@ -460,4 +462,5 @@ STRATEGY_FUNCS = {
   'Yahoo - Alibaba': YahooAndAlibaba,
   '银行股': lambda: KeepBanks(400000.0 / ACCOUNT_INFO['ALL']['net']),
   '分级A': FenJiClassA,
+  # '中概私有化套利': UsChinaStockGoPrivate,
 }

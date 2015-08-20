@@ -244,7 +244,7 @@ def KeepBanks(targetPercent):
     ret = ''
     for code in banks_to_sell:
       currency = STOCK_INFO[code]['currency']
-      sub_percent = reduce_percent * holding_asset_percent[code] / percent_sum
+      sub_percent = min(1.0, reduce_percent / percent_sum) * holding_asset_percent[code]
       ret += GiveTip('Sell', code, sub_percent * NET * EX_RATE[CURRENCY + '-' + currency]) + '\n    '
     return ret
  
@@ -434,19 +434,22 @@ def BalanceAHBanks():
   res += KeepBanks(target_bank_percent)
   return res
 
-
+def CategorizedStocks():
+  valuation_key = 'valuation'
+  for cate, stocks in CATEGORIZED_STOCKS.items():
+    sys.stderr.write('Going through category: %s\n'%(cate))
+    for code in stocks:
+      finance = FINANCAIL_DATA_BASE[code] 
+      if valuation_key not in finance: continue
+      valuation = finance[valuation_key]
+      if not (isinstance(valuation, float) or isinstance(valuation, int)): continue
+      hold, buy, percent = finance['hold'], finance['buy'], finance['max-percent']
+      msg = KeepPercentIf(CODE_TO_NAME[code], percent, hold_condition = lambda code: valuation < hold, buy_condition = lambda code: valuation < buy)
+      if msg != '': return msg
+  return ''
+    
 STRATEGY_FUNCS = {
   '南方A50': lambda: BuyETFDiscount('南方A50ETF'),
-
-  'Weibo': lambda: KeepPercentIf('Weibo', 0.12,
-                        hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.5,
-                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 1.05
-                       ),
-  'Sina': lambda: KeepPercentIf('Sina', 0.15,
-                        hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 3,
-                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['p/dbv'] < 0.99,
-                        sell_condition = lambda code: (datetime.date.today() - dateutil.parser.parse('2016-04-01').date()).days > 0,
-                       ),
 
   '中海油服H': lambda: KeepPercentIf('中海油服H', 0.2,
                         hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.7,
@@ -460,7 +463,7 @@ STRATEGY_FUNCS = {
 
   'A股最少资金': KeepCnyCapital,
   'Yahoo - Alibaba': YahooAndAlibaba,
-  '银行股': lambda: KeepBanks(400000.0 / ACCOUNT_INFO['ALL']['net']),
+  '银行股': lambda: KeepBanks(200000.0 / ACCOUNT_INFO['ALL']['net']),
   '分级A': FenJiClassA,
-  # '中概私有化套利': UsChinaStockGoPrivate,
+  '分主题': CategorizedStocks,
 }

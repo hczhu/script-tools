@@ -439,6 +439,7 @@ def BalanceAHBanks():
   return res
 
 def CategorizedStocks():
+  allMsg = []
   valuation_key = 'valuation'
   for cate, stocks in CATEGORIZED_STOCKS.items():
     sys.stderr.write('Going through category: %s\n'%(cate))
@@ -449,8 +450,8 @@ def CategorizedStocks():
       if not (isinstance(valuation, float) or isinstance(valuation, int)): continue
       hold, buy, percent = finance['hold'], finance['buy'], finance['max-percent']
       msg = KeepPercentIf(CODE_TO_NAME[code], percent, hold_condition = lambda code: valuation < hold, buy_condition = lambda code: valuation < buy)
-      if msg != '': return msg
-  return ''
+      if msg != '': allMsg += [msg]
+  return '\n'.join(allMsg)
     
 STRATEGY_FUNCS = {
   '南方A50': lambda: BuyETFDiscount('南方A50ETF'),

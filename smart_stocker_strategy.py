@@ -162,16 +162,18 @@ def KeepBanks(targetPercent):
   group_max_percent = [
     (['农业银行', '建设银行', '工商银行', '中国银行'],  0.4),
     (['招商银行', '兴业银行', '浦发银行', '民生银行'],  0.6),
-    (['中信银行', '平安银行', '交通银行', '华夏银行'],  0.3),
+    (['中信银行', '平安银行', '交通银行'], 0.3),
   ]
   all_banks = []
   for pr in group_max_percent:
     group, percent = pr[0], pr[1]
-    for name in group:
+    for idx in range(len(group)):
+      name = group[idx]
       code = NAME_TO_CODE[name]
       all_banks += [code]
       if 'hcode' in STOCK_INFO[code]:
         all_banks += [STOCK_INFO[code]['hcode']]
+        group += [CODE_TO_NAME[STOCK_INFO[code]['hcode']]]
 
   holding_asset_percent = {
     bank: ACCOUNT_INFO['ALL']['holding-percent-all'][bank] for bank in all_banks
@@ -190,14 +192,11 @@ def KeepBanks(targetPercent):
     hold_percent_sum = 0.0
     for name in group:
       code = NAME_TO_CODE[name]
-      hold_percent_sum += GetPercent(code)
+      hold_percent_sum += holding_asset_percent[code]
     sys.stderr.write('Bank group: %s percent %.1f%% max %.1f%%\n'%(', '.join(group), hold_percent_sum * 100, percent * 100))
     for name in group:
       code = NAME_TO_CODE[name]
       budget_percent[code] = percent - hold_percent_sum
-      if 'hcode' in STOCK_INFO[code]:
-        budget_percent[STOCK_INFO[code]['hcode']] = percent - hold_percent_sum
-        
 
   currentPercent = sum(map(lambda code: holding_asset_percent[code], all_banks))
   sys.stderr.write('bank holding percents: %s\n'%(str(holding_asset_percent)))
@@ -237,8 +236,6 @@ def KeepBanks(targetPercent):
     sys.stderr.write('Sell overflow %f\n'%(reduce_percent))
     worst = filter(lambda code: holding_asset_percent[code] > 0 and code != except_bank and (candidates is None or code in candidates), banks)[0]
     banks_to_sell = filter(lambda code: valuation[worst] / valuation[code] < 1 + overflow_valuation_delta and holding_asset_percent[code] > 0 and except_bank != code and (candidates is None or code in candidates), banks)
-    if candidates is not None:
-      banks_to_sell = candidates
     sys.stderr.write('Banks to sell: %s \n'%(', '.join([CODE_TO_NAME[code] for code in banks_to_sell])))
     percent_sum = sum([holding_asset_percent[code] for code in banks_to_sell])
     ret = ''
@@ -248,6 +245,13 @@ def KeepBanks(targetPercent):
       ret += GiveTip('Sell', code, sub_percent * NET * EX_RATE[CURRENCY + '-' + currency]) + '\n    '
     return ret
  
+  for pr in group_max_percent:
+    group, max_percent = pr[0], pr[1]
+    percent = sum([holding_asset_percent[NAME_TO_CODE[name]] for name in group])
+    if percent + MIN_TXN_PERCENT > max_percent:
+      sell = OverflowSell(percent - max_percent, candidates = set([NAME_TO_CODE[name] for name in group]))
+      if sell != '': return sell
+    
   if currentPercent > targetPercent + overflow_percent:
     return OverflowSell(currentPercent - targetPercent)
 

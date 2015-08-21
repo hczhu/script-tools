@@ -105,6 +105,7 @@ def GetCategorizedStocks(gd_client):
   worksheets = gd_client.open_by_key(ss_key).worksheets()
   for ws in worksheets:
     category = ws.title.encode('utf-8')
+    sys.stderr.write('Processing category: %s\n'%(category))
     records, key_to_column = ParseWorkSheetHorizontal(ws, global_transformer = GetFinancialValue, transformers = {'code' : lambda x: x})
     row_idx = 1
     for row in records:

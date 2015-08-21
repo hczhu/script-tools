@@ -280,7 +280,7 @@ try:
 
   goback = filter(lambda arg: arg.find('goback=') == 0, args)
   args = args - set(goback)
-  goback = 0 if len(goback) == 0 else int(goback[0].split('=')[1])
+  goback = -1 if len(goback) == 0 else int(goback[0].split('=')[1])
 
   prices = filter(lambda arg: arg.find('=') != -1, args)
   args = args - set(prices)
@@ -292,7 +292,7 @@ try:
 
   target_names = args
   InitAll()
-  if goback == 0:
+  if goback <= 0:
     GetStockPool(GD_CLIENT)
 
   if len(prices) > 0:
@@ -301,7 +301,7 @@ try:
       MARKET_PRICE_CACHE[NAME_TO_CODE[info[0]]] = (float(info[1]), 0, 0)
     sys.stderr.write('market data cache = %s\n'%(str(MARKET_PRICE_CACHE)))
 
-  if goback == 0:
+  if goback <= 0:
     PopulateMacroData()
     GetFinancialData(GD_CLIENT) 
     GetBankData(GD_CLIENT)
@@ -311,7 +311,7 @@ try:
   PrintAccountInfo()
   PrintHoldingSecurities()
 
-  if goback == 0:
+  if goback <= 0:
     if len(target_names) > 0:
       names = ','.join(target_names).split(',')
       PrintStocks(names)

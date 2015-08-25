@@ -156,7 +156,7 @@ def KeepBanks(targetPercent):
   a2h_discount = max(normal_valuation_delta, 0.4 * MACRO_DATA['ah-premium'])
   h2a_discount = normal_valuation_delta
   same_h2a_discount = 0.04
-  same_a2h_discount = 0.04
+  same_a2h_discount = -0.02
   overflow_valuation_delta = 0.02
   overflow_percent = targetPercent * 0.2
   group_max_percent = [
@@ -448,9 +448,10 @@ def CategorizedStocks():
       if valuation_key not in finance: continue
       valuation = finance[valuation_key]
       if not (isinstance(valuation, float) or isinstance(valuation, int)): continue
+      sys.stderr.write('Processing %s(%s): %s\n'%(CODE_TO_NAME[code], code, str(finance)))
       hold, buy, percent = finance['hold'], finance['buy'], finance['max-percent']
       msg = KeepPercentIf(CODE_TO_NAME[code], percent, hold_condition = lambda code: valuation < hold, buy_condition = lambda code: valuation < buy)
-      if msg != '': allMsg += [msg]
+      if msg != '': allMsg += [msg + ' due to valuation=%.1f'%(valuation)]
   return '\n'.join(allMsg)
     
 STRATEGY_FUNCS = {
@@ -468,7 +469,7 @@ STRATEGY_FUNCS = {
 
   'A股最少资金': KeepCnyCapital,
   'Yahoo - Alibaba': YahooAndAlibaba,
-  '银行股': lambda: KeepBanks(200000.0 / ACCOUNT_INFO['ALL']['net']),
+  '银行股': lambda: KeepBanks(130000.0 / ACCOUNT_INFO['ALL']['net']),
   '分级A': FenJiClassA,
   '分主题': CategorizedStocks,
 }

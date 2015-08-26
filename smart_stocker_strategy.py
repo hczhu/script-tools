@@ -449,7 +449,7 @@ def CategorizedStocks():
       valuation = finance[valuation_key]
       if not (isinstance(valuation, float) or isinstance(valuation, int)): continue
       sys.stderr.write('Processing %s(%s): %s\n'%(CODE_TO_NAME[code], code, str(finance)))
-      if 'hold' in finance and 'buy' in finance and 'max-percent' in finance: continue
+      if not ('hold' in finance and 'buy' in finance and 'max-percent' in finance): continue
       hold, buy, percent = finance['hold'], finance['buy'], finance['max-percent']
       msg = KeepPercentIf(CODE_TO_NAME[code], percent, hold_condition = lambda code: valuation < hold, buy_condition = lambda code: valuation < buy)
       if msg != '': allMsg += [msg + ' due to valuation=%.1f'%(valuation)]

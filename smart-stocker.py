@@ -318,5 +318,4 @@ try:
     if len(accounts) == 0:
       RunStrategies()
 except Exception as ins:
-  print 'Run time error: ', ins
-  traceback.print_exc(file=sys.stdout)
+  traceback.print_exc(file=sys.stderr)

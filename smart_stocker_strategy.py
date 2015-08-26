@@ -452,7 +452,7 @@ def CategorizedStocks():
       if not ('hold' in finance and 'buy' in finance and 'max-percent' in finance): continue
       hold, buy, percent = finance['hold'], finance['buy'], finance['max-percent']
       msg = KeepPercentIf(CODE_TO_NAME[code], percent, hold_condition = lambda code: valuation < hold, buy_condition = lambda code: valuation < buy)
-      if msg != '': allMsg += [msg + ' due to valuation=%.1f'%(valuation)]
+      if msg != '': allMsg += [msg + ' due to valuation=%.3f'%(valuation)]
   return '\n'.join(allMsg)
     
 STRATEGY_FUNCS = {

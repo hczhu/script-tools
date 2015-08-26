@@ -110,23 +110,28 @@ def GetCategorizedStocks(gd_client):
     row_idx = 1
     for row in records:
       row_idx += 1
-      if 'code' in row and 'name' in row:
+      if 'name' in row:
+        if 'code' not in row:
+          if row['name'] not in NAME_TO_CODE: continue
+          row['code'] =  NAME_TO_CODE[row['name']]
         code, name = row['code'], row['name']
         if code == '' or name == '': continue
         sys.stderr.write('Got categorized stock %s(%s)\n'%(name, code))
-        FINANCAIL_DATA_BASE[code] = STOCK_INFO[code] = row
+        MergeDictTo(row, FINANCAIL_DATA_BASE[code])
+        MergeDictTo(row, STOCK_INFO[code])
         NAME_TO_CODE[name], CODE_TO_NAME[code] = code, name
         CATEGORIZED_STOCKS[category] += [code]
         STOCK_INFO[code]['category'] = category
         if 'price' in row:
           pr = GetMarketPrice(code) 
+          # HK stock
+          if 'acode' in STOCK_INFO[code]: pr *= EX_RATE['hkd-cny']
           ws.update_acell(key_to_column['price'] + str(row_idx), str(pr))
       
 def GetStockPool(gd_client):
   ss_key = '1Ita0nLCH5zpt6FgpZwOshZFXwIcNeOFvJ3ObGze2UBs'
   stocks = MergeAllHorizontalWorkSheets(gd_client, ss_key, 'code')
   GetClassA(gd_client)
-  GetCategorizedStocks(gd_client)
   for code in stocks.keys():
     info = stocks[code]
     for key, value in info.items():
@@ -153,6 +158,7 @@ def GetStockPool(gd_client):
         'currency': info['currency'],
         'market': info['market'],
       }
+  GetCategorizedStocks(gd_client)
  
 def GetClassA(client):
   ws = client.open_by_key('1ER4HZD-_UUZF7ph5RkgPu8JftY9jwFVJtpd2tUwz_ac').get_worksheet(0)

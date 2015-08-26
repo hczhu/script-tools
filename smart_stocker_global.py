@@ -242,3 +242,9 @@ def myround(x, n):
   if n == 0:
     return int(x)
   return round(x, n)
+
+def MergeDictTo(a, b):
+  for k, v in a.items():
+    if k not in b:
+      b[k] = v
+  return b

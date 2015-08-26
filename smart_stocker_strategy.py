@@ -160,9 +160,9 @@ def KeepBanks(targetPercent):
   overflow_valuation_delta = 0.02
   overflow_percent = targetPercent * 0.2
   group_max_percent = [
-    (['农业银行', '建设银行', '工商银行', '中国银行'],  0.4),
-    (['招商银行', '兴业银行', '浦发银行', '民生银行'],  0.6),
-    (['中信银行', '平安银行', '交通银行'], 0.3),
+    (['农业银行', '建设银行', '工商银行', '中国银行'],  0.3),
+    (['招商银行', '兴业银行', '浦发银行', '民生银行'],  0.5),
+    (['中信银行', '平安银行', '交通银行'], 0.2),
   ]
   all_banks = []
   for pr in group_max_percent:
@@ -449,6 +449,7 @@ def CategorizedStocks():
       valuation = finance[valuation_key]
       if not (isinstance(valuation, float) or isinstance(valuation, int)): continue
       sys.stderr.write('Processing %s(%s): %s\n'%(CODE_TO_NAME[code], code, str(finance)))
+      if 'hold' in finance and 'buy' in finance and 'max-percent' in finance: continue
       hold, buy, percent = finance['hold'], finance['buy'], finance['max-percent']
       msg = KeepPercentIf(CODE_TO_NAME[code], percent, hold_condition = lambda code: valuation < hold, buy_condition = lambda code: valuation < buy)
       if msg != '': allMsg += [msg + ' due to valuation=%.1f'%(valuation)]

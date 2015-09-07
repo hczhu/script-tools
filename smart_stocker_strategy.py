@@ -129,10 +129,11 @@ def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True
   return '' 
 
 def ScoreBanks(banks):
+  key = 'valuation'
   scores ={}
   for bank in banks:
-    finance = FINANCAIL_DATA_ADVANCE[bank]
-    scores[bank] = finance['p/bv3'] / (1 + 0.8 * finance['ddv/p']) if 'p/bv3' in finance and 'sdv/p' in finance else 100.0
+    finance = FINANCAIL_DATA_BASE[bank]
+    scores[bank] = finance[key] if key in finance else 100.0
   banks.sort(key = lambda code: scores[code])
   for bank in banks:
     sys.stderr.write('%s: %f\n'%(CODE_TO_NAME[bank], scores[bank]))
@@ -140,13 +141,13 @@ def ScoreBanks(banks):
 
 def FilterBanks(banks):
   return filter(lambda code:
-                  code in FINANCAIL_DATA_ADVANCE
-                  and FINANCAIL_DATA_ADVANCE[code]['p/bv3'] < 1.1, banks)
+                  code in FINANCAIL_DATA_BASE
+                  and FINANCAIL_DATA_BASE[code]['valuation'] < 1.8, banks)
 
 def NoBuyBanks(banks):
   return filter(lambda code:
-                  code in FINANCAIL_DATA_ADVANCE
-                  and FINANCAIL_DATA_ADVANCE[code]['p/bv3'] > 0.75 or FINANCAIL_DATA_ADVANCE[code]['p/book-value'] > 1.0, banks)
+                  code in FINANCAIL_DATA_BASE
+                  and FINANCAIL_DATA_BASE[code]['valuation'] > 0.9, banks)
 
 def KeepBanks(targetPercent):
   min_txn_percent = max(0.02, MIN_TXN_PERCENT)
@@ -161,8 +162,8 @@ def KeepBanks(targetPercent):
   overflow_percent = targetPercent * 0.2
   group_max_percent = [
     (['农业银行', '建设银行', '工商银行', '中国银行'],  0.3),
-    (['招商银行', '兴业银行', '浦发银行', '民生银行'],  0.5),
-    (['中信银行', '平安银行', '交通银行'], 0.2),
+    (['招商银行', '兴业银行', '浦发银行', '民生银行'],  0.4),
+    (['中信银行', '平安银行', '交通银行'], 0.3),
   ]
   all_banks = []
   for pr in group_max_percent:
@@ -456,21 +457,7 @@ def CategorizedStocks():
   return '\n'.join(allMsg)
     
 STRATEGY_FUNCS = {
-  '南方A50': lambda: BuyETFDiscount('南方A50ETF'),
-
-  '中海油服H': lambda: KeepPercentIf('中海油服H', 0.2,
-                        hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.7,
-                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.6 and FINANCAIL_DATA_ADVANCE[code]['sdv/p'] > 0.035 \
-                                                     and FINANCAIL_DATA_ADVANCE[code]['p/sbv'] < 0.7,
-                       ),
-  '海螺水泥': lambda: KeepPercentIf('海螺水泥', 0.15,
-                        hold_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 1.1,
-                        buy_condition = lambda code: FINANCAIL_DATA_ADVANCE[code]['ah-ratio'] < 0.7 or FINANCAIL_DATA_ADVANCE[code]['p/ttme'] < 13,
-                       ),
-
-  'A股最少资金': KeepCnyCapital,
-  'Yahoo - Alibaba': YahooAndAlibaba,
-  '银行股': lambda: KeepBanks(130000.0 / ACCOUNT_INFO['ALL']['net']),
+  '银行股': lambda: KeepBanks(200000.0 / ACCOUNT_INFO['ALL']['net']),
   '分级A': FenJiClassA,
   '分主题': CategorizedStocks,
 }

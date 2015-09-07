@@ -179,7 +179,7 @@ def GetBankData(client):
       sys.stderr.write('unknown stock name: %s\n'%(name))
       continue
     sys.stderr.write('Added financial data for %s(%s)\n'%(name, NAME_TO_CODE[name]))
-    FINANCAIL_DATA_BASE[NAME_TO_CODE[name]] = value
+    MergeDictTo(value, FINANCAIL_DATA_BASE[NAME_TO_CODE[name]])
 
 def GetFinancialData(client):
   ss_key = '14pJTivMAHd-Gqpc9xboV4Kl7WbK51TrOc9QzgXBFRgw'

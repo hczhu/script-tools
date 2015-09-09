@@ -442,6 +442,7 @@ def BalanceAHBanks():
 def CategorizedStocks():
   allMsg = []
   valuation_key = 'valuation'
+  max_increase = 0.01
   for cate, stocks in CATEGORIZED_STOCKS.items():
     sys.stderr.write('Going through category: %s\n'%(cate))
     for code in stocks:
@@ -452,7 +453,7 @@ def CategorizedStocks():
       sys.stderr.write('Processing %s(%s): %s\n'%(CODE_TO_NAME[code], code, str(finance)))
       if not ('hold' in finance and 'buy' in finance and 'max-percent' in finance): continue
       hold, buy, percent = finance['hold'], finance['buy'], finance['max-percent']
-      msg = KeepPercentIf(CODE_TO_NAME[code], percent, hold_condition = lambda code: valuation < hold, buy_condition = lambda code: valuation < buy)
+      msg = KeepPercentIf(CODE_TO_NAME[code], percent, hold_condition = lambda code: valuation < hold, buy_condition = lambda code: valuation < buy and GetMarketPriceChange(code) < max_increase)
       if msg != '': allMsg += [msg + ' due to valuation=%.3f'%(valuation)]
   return '\n'.join(allMsg)
     

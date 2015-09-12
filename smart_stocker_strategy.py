@@ -139,17 +139,7 @@ def ScoreBanks(banks):
     sys.stderr.write('%s: %f\n'%(CODE_TO_NAME[bank], scores[bank]))
   return banks, scores
 
-def FilterBanks(banks):
-  return filter(lambda code:
-                  code in FINANCAIL_DATA_BASE
-                  and FINANCAIL_DATA_BASE[code]['valuation'] < 1.8, banks)
-
-def NoBuyBanks(banks):
-  return filter(lambda code:
-                  code in FINANCAIL_DATA_BASE
-                  and FINANCAIL_DATA_BASE[code]['valuation'] > 0.9, banks)
-
-def KeepBanks(targetPercent):
+def KeepBanks():
   min_txn_percent = max(0.02, MIN_TXN_PERCENT)
   swap_percent_delta = 0.005
   max_swap_percent = 0.1
@@ -161,9 +151,9 @@ def KeepBanks(targetPercent):
   overflow_valuation_delta = 0.02
   overflow_percent = targetPercent * 0.2
   group_max_percent = [
-    (['农业银行', '建设银行', '工商银行', '中国银行'],  0.3),
-    (['招商银行', '兴业银行', '浦发银行', '民生银行'],  0.4),
-    (['中信银行', '平安银行', '交通银行'], 0.3),
+    (['农业银行', '建设银行', '工商银行', '中国银行'],  0.5),
+    (['招商银行', '兴业银行', '浦发银行', '民生银行'],  0.6),
+    (['中信银行', '平安银行', '交通银行'], 0.4),
   ]
   all_banks = []
   for pr in group_max_percent:
@@ -201,20 +191,9 @@ def KeepBanks(targetPercent):
 
   currentPercent = sum(map(lambda code: holding_asset_percent[code], all_banks))
   sys.stderr.write('bank holding percents: %s\n'%(str(holding_asset_percent)))
-  sys.stderr.write('total bank percent = %.3f target percent = %.3f\n'%(currentPercent, targetPercent))
   sys.stderr.write('total bank market value = %.0f\n'%(currentPercent * ACCOUNT_INFO['ALL']['net']))
-  banks = FilterBanks(all_banks)
+  banks = all_banks
 
-  drop_banks = set(all_banks) - set(banks)
-  sys.stderr.write('Drop banks: %s \n'%(', '.join([CODE_TO_NAME[code] for code in drop_banks])))
-  for bank in drop_banks:
-    currency = STOCK_INFO[bank]['currency']
-    if holding_asset_percent[bank] > 0.0:
-      return 'Clear %s(%s)'%(CODE_TO_NAME[bank], bank)
-  
-  no_buy_banks = set(NoBuyBanks(banks))
-  sys.stderr.write('No buy banks: %s \n'%(', '.join([CODE_TO_NAME[code] for code in no_buy_banks])))
-  
   if len(banks) == 0:
     sys.stderr.write('No banks to consider!')
     return ''
@@ -223,14 +202,6 @@ def KeepBanks(targetPercent):
 
   NET = ACCOUNT_INFO['ALL']['net']
   
-  for code in banks:
-    if code in no_buy_banks: continue
-    currency = STOCK_INFO[code]['currency']
-    add_percent = min(targetPercent - currentPercent, budget_percent[code])
-    cash, op = GetCashAndOp(['ib'], currency, add_percent)
-    if add_percent > min_txn_percent and cash > 0:
-      return op + GiveTip(' ==> Buy', code, cash)
-
   banks.reverse()
   def OverflowSell(reduce_percent, overflow_valuation_delta = normal_valuation_delta, except_bank = None, candidates = None):
     if reduce_percent < MIN_TXN_PERCENT: return ''
@@ -458,7 +429,7 @@ def CategorizedStocks():
   return '\n'.join(allMsg)
     
 STRATEGY_FUNCS = {
-  '银行股': lambda: KeepBanks(200000.0 / ACCOUNT_INFO['ALL']['net']),
+  '银行股': lambda: KeepBanks(),
   '分级A': FenJiClassA,
   '分主题': CategorizedStocks,
 }

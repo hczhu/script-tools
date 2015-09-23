@@ -149,7 +149,6 @@ def KeepBanks():
   same_h2a_discount = 0.04
   same_a2h_discount = -0.02
   overflow_valuation_delta = 0.02
-  overflow_percent = targetPercent * 0.2
   group_max_percent = [
     (['农业银行', '建设银行', '工商银行', '中国银行'],  0.5),
     (['招商银行', '兴业银行', '浦发银行', '民生银行'],  0.6),
@@ -224,9 +223,6 @@ def KeepBanks():
       sell = OverflowSell(percent - max_percent, candidates = set([NAME_TO_CODE[name] for name in group]))
       if sell != '': return sell
     
-  if currentPercent > targetPercent + overflow_percent:
-    return OverflowSell(currentPercent - targetPercent)
-
   valuation_delta = 100
   
   swap_pairs = [] 

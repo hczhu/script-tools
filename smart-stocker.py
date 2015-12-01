@@ -72,7 +72,7 @@ def ReadRecords():
     record['price'], record['amount'], record['commission'] = price, buy_shares, fee
   return records
 
-def ProcessRecords(all_records, accounts = set([]), goback = 0):
+def ProcessRecords(all_records, accounts = set([]), goback = 0, tickers = set([])):
   all_records.sort(key = lambda record: record['date'])
   cutoff_date = datetime.date.today() - (datetime.timedelta(days = goback))
   sys.stderr.write('cut off date = %s\n'%(str(cutoff_date)))
@@ -84,8 +84,11 @@ def ProcessRecords(all_records, accounts = set([]), goback = 0):
       continue
     account_info = ACCOUNT_INFO[account]
     ticker = record['ticker']
-    currency = record['currency'].lower()
     name = record['name']
+    if len(tickers) > 0 and ticker not in tickers and ticker != 'investment':
+      continue
+    currency = record['currency'].lower()
+    # sys.stderr.write('record: %s\n'%(str(record)))
     if goback > 0 and name != '':
       STOCK_INFO[ticker]['currency'] = currency
       STOCK_INFO[ticker]['name'] = name
@@ -147,6 +150,7 @@ def PrintAccountInfo():
   header = [
     'account',
     'currency',
+    'market-value',
     'investment',
     'net',
     'buying-power',
@@ -285,11 +289,15 @@ try:
   prices = filter(lambda arg: arg.find('=') != -1, args)
   args = args - set(prices)
 
-  accounts = filter(lambda arg: arg.find('accounts:') == 0, args)
-  args = args - set(accounts)
-  if len(accounts) > 0:
-    accounts = set(accounts[0][len('accounts:'):].split(','))
-
+  input_args = collections.defaultdict(set)
+  for name in ['accounts', 'tickers']:
+    values = filter(lambda arg: arg.find(name + ':') == 0, args)
+    args = args - set(values)
+    if len(values) > 0:
+      input_args[name] = set(values[0][len(name + ':'):].split(','))
+  sys.stderr.write('input args: %s\n'%(str(input_args)))
+  accounts = input_args['accounts']
+  tickers = input_args['tickers']
   target_names = args
   InitAll()
   if goback <= 0:
@@ -307,7 +315,7 @@ try:
     GetBankData(GD_CLIENT)
     PopulateFinancialData()
 
-  ProcessRecords(ReadRecords(), accounts, goback)
+  ProcessRecords(ReadRecords(), input_args['accounts'], goback, input_args['tickers'])
   PrintAccountInfo()
   PrintHoldingSecurities()
 

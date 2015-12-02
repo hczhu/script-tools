@@ -151,8 +151,8 @@ def PrintAccountInfo():
   header = [
     'account',
     'currency',
-    'market-value',
-    # 'investment',
+    # 'market-value',
+    'investment',
     'net',
     'buying-power',
     'leverage',

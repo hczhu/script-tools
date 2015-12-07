@@ -103,7 +103,7 @@ def ProcessRecords(all_records, accounts = set([]), goback = 0, tickers = set([]
     fee = record['commission'] * ex_rate
     inflow = price * buy_shares * (1.0 if ticker in account_info else -1.0)
     inflow -= fee
-    account_info['txn-fee'] += fee
+    account_info['txn-fee'] += fee if fee >0 else 0
     account_info['free-cash'] += inflow
     if ticker == 'investment':
       account_info['cash-flow'] += [(record['date'], inflow)]
@@ -240,8 +240,8 @@ def PrintHoldingSecurities():
   summation['ddv/p'] /= max(1.0, summation['Percent'])
   summation['ddv/p'] = myround(summation['ddv/p'], 1)
 
-  stat_records_map.append(summation)
   stat_records_map.sort(reverse = True, key = lambda record: record.get('Percent', 0))
+  stat_records_map.insert(0, summation)
 
   for record in stat_records_map:
     record['Percent'] = str(myround(record['Percent'] * 100, 0)) + '%'

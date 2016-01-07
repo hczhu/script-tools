@@ -292,7 +292,7 @@ try:
   args = args - set(prices)
 
   input_args = collections.defaultdict(set)
-  for name in ['accounts', 'tickers', 'name']:
+  for name in ['accounts', 'tickers', 'names']:
     values = filter(lambda arg: arg.find(name + ':') == 0, args)
     args = args - set(values)
     if len(values) > 0:
@@ -316,7 +316,7 @@ try:
     GetBankData(GD_CLIENT)
     PopulateFinancialData()
 
-  ProcessRecords(ReadRecords(), input_args['accounts'], goback, input_args['tickers'], input_args['name'])
+  ProcessRecords(ReadRecords(), input_args['accounts'], goback, input_args['tickers'], input_args['names'])
   PrintAccountInfo()
   PrintHoldingSecurities()
 

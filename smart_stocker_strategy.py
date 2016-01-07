@@ -425,7 +425,7 @@ def CategorizedStocks():
   return '\n'.join(allMsg)
     
 STRATEGY_FUNCS = {
-  '银行股': lambda: KeepBanks(),
-  '分级A': FenJiClassA,
+  # '银行股': lambda: KeepBanks(),
+  # '分级A': FenJiClassA,
   '分主题': CategorizedStocks,
 }

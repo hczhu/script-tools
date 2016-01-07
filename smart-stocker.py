@@ -72,10 +72,12 @@ def ReadRecords():
     record['price'], record['amount'], record['commission'] = price, buy_shares, fee
   return records
 
-def ProcessRecords(all_records, accounts = set([]), goback = 0, tickers = set([])):
+def ProcessRecords(all_records, accounts = set([]), goback = 0, tickers = set([]), name_patterns = set([])):
   all_records.sort(key = lambda record: record['date'])
   cutoff_date = datetime.date.today() - (datetime.timedelta(days = goback))
   sys.stderr.write('cut off date = %s\n'%(str(cutoff_date)))
+  is_interested = lambda ticker, name: ticker in tickers or any([name.find(name_pattern) >= 0 for name_pattern in name_patterns]) or \
+                    ticker == 'investment' or (len(tickers) == 0 and len(name_patterns) == 0)
   for record in all_records:
     account = record['account']
     if len(accounts) > 0 and account not in accounts:
@@ -85,8 +87,7 @@ def ProcessRecords(all_records, accounts = set([]), goback = 0, tickers = set([]
     account_info = ACCOUNT_INFO[account]
     ticker = record['ticker']
     name = record['name']
-    if len(tickers) > 0 and ticker not in tickers and ticker != 'investment':
-      continue
+    if not is_interested(ticker, name): continue
     currency = record['currency'].lower()
     # sys.stderr.write('record: %s\n'%(str(record)))
     if goback > 0 and name != '':
@@ -291,7 +292,7 @@ try:
   args = args - set(prices)
 
   input_args = collections.defaultdict(set)
-  for name in ['accounts', 'tickers']:
+  for name in ['accounts', 'tickers', 'name']:
     values = filter(lambda arg: arg.find(name + ':') == 0, args)
     args = args - set(values)
     if len(values) > 0:
@@ -315,7 +316,7 @@ try:
     GetBankData(GD_CLIENT)
     PopulateFinancialData()
 
-  ProcessRecords(ReadRecords(), input_args['accounts'], goback, input_args['tickers'])
+  ProcessRecords(ReadRecords(), input_args['accounts'], goback, input_args['tickers'], input_args['name'])
   PrintAccountInfo()
   PrintHoldingSecurities()
 

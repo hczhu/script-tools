@@ -191,7 +191,7 @@ ACCOUNT_INFO = {
     'sma-discount': 0.8,
     'sma': 0.0,
     'sma-ratio': 0.0,
-    'min-sma-ratio': 0.2,
+    'min-sma-ratio': 0.15,
     'cash-flow': [],
     'dividend': 0,
     'interest-loss': 0,

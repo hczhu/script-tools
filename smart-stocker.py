@@ -112,6 +112,9 @@ def ProcessRecords(all_records, accounts = set([]), goback = 0, tickers = set([]
       account_info[ticker] += inflow
     else:
       account_info['holding-shares'][ticker] += buy_shares
+    if ticker.find('@') >= 0:  # options
+      STOCK_INFO[ticker]['name'] = ticker
+      STOCK_INFO[ticker]['currency'] = GetCurrency(ticker)
 
 def PrintAccountInfo():
   aggregated_accout_info = {
@@ -214,7 +217,7 @@ def PrintHoldingSecurities():
   for ticker, shares in holding_shares.items():
     if shares == 0: continue
     chg = GetMarketPriceChange(ticker)
-    currency = STOCK_INFO[ticker]['currency']
+    currency = GetCurrency(ticker)
     name = STOCK_INFO[ticker]['name']
     sys.stderr.write('Collecting info for %s(%s)\n'%(ticker, name))
     record = {

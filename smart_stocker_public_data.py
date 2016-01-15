@@ -108,6 +108,8 @@ NAV_FUNC = {
 }
 
 def GetCurrency(code):
+  if code.find('@') != -1:
+    code = re.split('[-@]', code)[0]
   return STOCK_INFO[code]['currency'] if code in STOCK_INFO else 'unknown'
 
 def GetXueqiuUrlPrefix(code):

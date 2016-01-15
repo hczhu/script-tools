@@ -144,7 +144,7 @@ def PrintAccountInfo():
         mv = GetMarketPrice(ticker) * EX_RATE[GetCurrency(ticker) + '-' + base_currency] * holding[ticker]
         account_info['market-value'] += mv
         account_info['holding-value'][ticker] = mv
-        if holding[ticker] > 0: account_info['sma'] += account_info['sma-discount'] * mv
+        if holding[ticker] > 0: account_info['sma'] += mv * (0 if ticker.find('@') >=0 else account_info['sma-discount'])
         else: account_info['sma'] += mv
     account_info['net'] = account_info['market-value'] + account_info['free-cash']
     account_info['buying-power'] = account_info['sma'] - account_info['min-sma-ratio'] * account_info['market-value']
@@ -152,11 +152,12 @@ def PrintAccountInfo():
   header = [
     'account',
     'currency',
-    # 'market-value',
+    'market-value',
     'investment',
     'net',
     'buying-power',
     'leverage',
+    'free-cash',
     'txn-fee-ratio',
     'sma-ratio',
     'IRR',

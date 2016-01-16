@@ -115,7 +115,7 @@ def ProcessRecords(all_records, accounts = set([]), goback = 0, tickers = set([]
       account_info[ticker] += inflow
     else:
       account_info['holding-shares'][ticker] += buy_shares
-      STOCK_INFO[ticker]['profit'] = inflow + STOCK_INFO[ticker].get('profit', 0.0)
+      STOCK_INFO[ticker]['profit'] = inflow / ex_rate + STOCK_INFO[ticker].get('profit', 0.0)
       STOCK_INFO[ticker]['holding-shares'] = buy_shares + STOCK_INFO[ticker].get('holding-shares', 0)
       if name not in STOCK_INFO[ticker]:
         STOCK_INFO[ticker]['name'] = name
@@ -298,7 +298,7 @@ def PrintProfitBreakDown():
       mv = STOCK_INFO[ticker]['holding-shares'] * GetMarketPrice(ticker)
     tableMap += [{
       'name': STOCK_INFO[ticker]['name'],
-      'profit': mv * EX_RATE[GetCurrency(ticker) + '-' + CURRENCY] + STOCK_INFO[ticker]['profit'],
+      'profit': EX_RATE[GetCurrency(ticker) + '-' + CURRENCY] *(mv + STOCK_INFO[ticker]['profit']),
     }]
   tableMap.sort(key = lambda recordMap: abs(recordMap['profit']))
   PrintTableMap(header, tableMap, float_precision = 0)

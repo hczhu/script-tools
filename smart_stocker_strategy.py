@@ -120,7 +120,9 @@ def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True
   currency = STOCK_INFO[code]['currency']
   percent = percent if hold_condition(code) else 0
   holding_percent = ACCOUNT_INFO['ALL']['holding-percent-all'][code]
-  if holding_percent - percent > delta and sell_condition(code):
+  if holding_percent > 0 and not hold_condition(code):
+    return GiveTip('Clear', code, holding_percent * ACCOUNT_INFO['ALL']['net'] * EX_RATE[CURRENCY + '-' + currency])
+  if holding_percent - percent > delta and sell_condition(code) and not buy_condition(code):
     return GiveTip('Sell', code,
         (holding_percent - percent) * ACCOUNT_INFO['ALL']['net'] * EX_RATE[CURRENCY + '-' + currency])
   cash, op = GetCashAndOp(ACCOUNT_INFO.keys(), currency, percent - holding_percent, backup)
@@ -412,6 +414,7 @@ def CategorizedStocks():
   max_increase = 0.01
   for cate, stocks in CATEGORIZED_STOCKS.items():
     sys.stderr.write('Going through category: %s\n'%(cate))
+    cate_msg = []
     for code in stocks:
       finance = FINANCAIL_DATA_BASE[code] 
       if valuation_key not in finance: continue
@@ -421,7 +424,8 @@ def CategorizedStocks():
       if not ('hold' in finance and 'buy' in finance and 'max-percent' in finance): continue
       hold, buy, percent = finance['hold'], finance['buy'], finance['max-percent']
       msg = KeepPercentIf(CODE_TO_NAME[code], percent, hold_condition = lambda code: valuation < hold, buy_condition = lambda code: valuation < buy and GetMarketPriceChange(code) < max_increase)
-      if msg != '': allMsg += [msg + ' due to valuation=%.3f'%(valuation)]
+      if msg != '': cate_msg += [msg + ' due to valuation=%.3f'%(valuation)]
+    if len(cate_msg) > 0: allMsg += ['\n'.join(['* ' + cate + ":"] + cate_msg)]
   return '\n'.join(allMsg)
     
 STRATEGY_FUNCS = {

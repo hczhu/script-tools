@@ -50,6 +50,7 @@ def GetIRR(final_net_value, inflow_records):
 
 def InitAll():
   InitExRate()
+  
   home = os.path.expanduser("~")
   global GD_CLIENT
   GD_CLIENT = LoginMyGoogleWithFiles()
@@ -123,12 +124,10 @@ def PrintAccountInfo():
     'investment': 0.0,
     'market-value': 0.0,
     'free-cash': 0.0,
-    'sma': 0.0,
     'net': 0.0,
     'dividend': 0,
     'interest-loss': 0,
     'margin-interest': 0,
-    'buying-power': 0,
     'txn-fee': 0,
     'cash-flow': [],
     'holding-shares': collections.defaultdict(int),
@@ -136,9 +135,9 @@ def PrintAccountInfo():
     'holding-percent-all': collections.defaultdict(float),
     'holding-value': collections.defaultdict(float),
     'support-currencies': [],
+    'buying-power': 0.0,
   }
   for account, account_info in ACCOUNT_INFO.items():
-    account_info['sma'] = account_info['free-cash']
     base_currency = ACCOUNT_INFO[account]['currency']
     holding = account_info['holding-shares']
     account_info['holding-shares'] = holding = {ticker: shares for ticker, shares in holding.items() if shares != 0}
@@ -147,10 +146,11 @@ def PrintAccountInfo():
         mv = GetMarketPrice(ticker) * EX_RATE[GetCurrency(ticker) + '-' + base_currency] * holding[ticker]
         account_info['market-value'] += mv
         account_info['holding-value'][ticker] = mv
-        if holding[ticker] > 0: account_info['sma'] += mv * (0 if ticker.find('@') >=0 else account_info['sma-discount'])
-        else: account_info['sma'] += mv
+        if holding[ticker] > 0: account_info['margin-requirement'] += mv * (1 if ticker.find('@') >=0 else account_info['margin-ratio'])
+        else: account_info['margin-requirement'] -= mv
     account_info['net'] = account_info['market-value'] + account_info['free-cash']
-    account_info['buying-power'] = account_info['sma'] - account_info['min-sma-ratio'] * account_info['market-value']
+    account_info['buying-power'] = (account_info['net'] - account_info['margin-requirement']) / account_info['margin-ratio']
+    account_info['cushion-ratio'] = (account_info['net'] - account_info['margin-requirement']) / account_info['market-value'] * 100.0
 
   header = [
     'account',
@@ -158,17 +158,16 @@ def PrintAccountInfo():
     'market-value',
     'investment',
     'net',
-    'buying-power',
+    'margin-requirement',
     'leverage',
     'free-cash',
-    'txn-fee-ratio',
-    'sma-ratio',
+    'cushion-ratio',
     'IRR',
   ]
   for account, account_info in ACCOUNT_INFO.items():
     base_currency = ACCOUNT_INFO[account]['currency']
     ex_rate = EX_RATE[base_currency + '-' + aggregated_accout_info['currency']]
-    for key in ['buying-power', 'net', 'investment', 'market-value', 'free-cash', 'sma', 'dividend', 'interest-loss', 'txn-fee',]:
+    for key in ['buying-power', 'net', 'investment', 'market-value', 'free-cash', 'dividend', 'interest-loss', 'txn-fee',]:
       aggregated_accout_info[key] += ex_rate * account_info[key]
     for key in ['cash-flow']:
       aggregated_accout_info[key] += map(lambda inflow: (inflow[0], inflow[1] * ex_rate), account_info[key])
@@ -188,7 +187,6 @@ def PrintAccountInfo():
 
   for account, account_info in ACCOUNT_INFO.items():
     ex_rate = EX_RATE[account_info['currency'] + '-' + ACCOUNT_INFO['ALL']['currency']] 
-    account_info['sma-ratio'] = account_info['sma'] / max(max(1, account_info['net']), account_info['market-value']) * 100
     account_info['txn-fee-ratio'] = account_info['txn-fee'] / max(max(1.0, account_info['net']), account_info['market-value']) * 1000
     account_info['leverage'] = 100.0 * account_info['market-value'] / max(1, account_info['net'])
     account_info['IRR'] = GetIRR(account_info['net'], account_info['cash-flow']) * 100

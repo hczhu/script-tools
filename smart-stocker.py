@@ -85,6 +85,8 @@ def ProcessRecords(all_records, accounts = set([]), goback = 0, tickers = set([]
       continue
     if record['date'] > cutoff_date:
       continue
+    if record.get('disabled', '0') == '1':
+      continue
     account_info = ACCOUNT_INFO[account]
     ticker = record['ticker']
     name = record['name']

@@ -417,11 +417,11 @@ def CategorizedStocks():
     cate_msg = []
     for code in stocks:
       finance = FINANCAIL_DATA_BASE[code] 
-      if valuation_key not in finance: continue
+      is_numeric_value = lambda name: isinstance(finance.get(name, ''), float) or isinstance(finance.get(name, ''), int)
+      if not is_numeric_value(valuation_key): continue
       valuation = finance[valuation_key]
-      if not (isinstance(valuation, float) or isinstance(valuation, int)): continue
       sys.stderr.write('Processing %s(%s): %s\n'%(CODE_TO_NAME[code], code, str(finance)))
-      if not ('hold' in finance and 'buy' in finance and 'max-percent' in finance): continue
+      if len(filter(is_numeric_value, ['hold', 'buy', 'max-percent'])) < 3: continue
       hold, buy, percent = finance['hold'], finance['buy'], finance['max-percent']
       msg = KeepPercentIf(CODE_TO_NAME[code], percent, hold_condition = lambda code: valuation < hold, buy_condition = lambda code: valuation < buy and GetMarketPriceChange(code) < max_increase)
       if msg != '': cate_msg += [msg + ' due to valuation=%.3f'%(valuation)]

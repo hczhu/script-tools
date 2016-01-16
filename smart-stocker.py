@@ -115,9 +115,11 @@ def ProcessRecords(all_records, accounts = set([]), goback = 0, tickers = set([]
       account_info[ticker] += inflow
     else:
       account_info['holding-shares'][ticker] += buy_shares
-    if ticker.find('@') >= 0:  # options
-      STOCK_INFO[ticker]['name'] = ticker
-      STOCK_INFO[ticker]['currency'] = GetCurrency(ticker)
+      STOCK_INFO[ticker]['profit'] = inflow + STOCK_INFO[ticker].get('profit', 0.0)
+      STOCK_INFO[ticker]['holding-shares'] = buy_shares + STOCK_INFO[ticker].get('holding-shares', 0)
+      if name not in STOCK_INFO[ticker]:
+        STOCK_INFO[ticker]['name'] = name
+        STOCK_INFO[ticker]['currency'] = currency
 
 def PrintAccountInfo():
   aggregated_accout_info = {
@@ -160,11 +162,12 @@ def PrintAccountInfo():
     'market-value',
     'investment',
     'net',
-    'margin-requirement',
+    # 'margin-requirement',
     'leverage',
     'free-cash',
     'cushion-ratio',
     'IRR',
+    'buying-power'
   ]
   for account, account_info in ACCOUNT_INFO.items():
     base_currency = ACCOUNT_INFO[account]['currency']
@@ -285,12 +288,31 @@ def PrintStocks(names):
   tableMap.sort(key = lambda recordMap: recordMap['p/book-value'] if 'p/book-value' in recordMap else 0)
   PrintTableMap(header, tableMap, float_precision = 3, header_transformer = lambda header: header.replace('book-value', 'bv'))
 
+def PrintProfitBreakDown():
+  tableMap = []
+  header = ['profit', 'name', ]
+  for ticker in STOCK_INFO.keys():
+    if 'profit' not in STOCK_INFO[ticker]: continue
+    mv = 0.0
+    if STOCK_INFO[ticker]['holding-shares'] > 0:
+      mv = STOCK_INFO[ticker]['holding-shares'] * GetMarketPrice(ticker)
+    tableMap += [{
+      'name': STOCK_INFO[ticker]['name'],
+      'profit': mv * EX_RATE[GetCurrency(ticker) + '-' + CURRENCY] + STOCK_INFO[ticker]['profit'],
+    }]
+  tableMap.sort(key = lambda recordMap: abs(recordMap['profit']))
+  PrintTableMap(header, tableMap, float_precision = 0)
+
 try:
   args = set(sys.argv[1:])
 
   goback = filter(lambda arg: arg.find('goback=') == 0, args)
   args = args - set(goback)
   goback = -1 if len(goback) == 0 else int(goback[0].split('=')[1])
+
+  profit = filter(lambda arg: arg.find('profit') == 0, args)
+  args = args - set(profit)
+  profit = len(profit) > 0
 
   prices = filter(lambda arg: arg.find('=') != -1, args)
   args = args - set(prices)
@@ -330,5 +352,7 @@ try:
       PrintStocks(names)
     if len(accounts) == 0:
       RunStrategies()
+  if profit:
+     PrintProfitBreakDown()
 except Exception as ins:
   traceback.print_exc(file=sys.stderr)

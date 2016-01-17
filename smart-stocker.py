@@ -336,7 +336,7 @@ try:
   if len(prices) > 0:
     for pr in prices:
       info = pr.split('=')
-      MARKET_PRICE_CACHE[NAME_TO_CODE[info[0]]] = (float(info[1]), 0, 0)
+      MARKET_PRICE_CACHE[info[0]] = (float(info[1]), 0, 0)
     sys.stderr.write('market data cache = %s\n'%(str(MARKET_PRICE_CACHE)))
 
   if goback <= 0 and len(tickers) == 0:

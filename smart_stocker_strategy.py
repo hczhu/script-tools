@@ -22,8 +22,8 @@ def FinancialValue(name, key):
 
 def GiveTip(op, code, money):
   return '%s %s(%s) %d units @%.3f cash %.0f %s'%(op, CODE_TO_NAME[code], code,
-                                     int(money / FINANCAIL_DATA_ADVANCE[code]['mp']),
-                                     FINANCAIL_DATA_ADVANCE[code]['mp'], money, STOCK_INFO[code]['currency'])
+                                     int(money / GetMarketPrice(code)),
+                                     GetMarketPrice(code), money, STOCK_INFO[code]['currency'])
 
 def GetCashAndOp(accounts, currency, max_percent, backup = []):
   NET = ACCOUNT_INFO['ALL']['net']

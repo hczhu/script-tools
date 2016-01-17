@@ -327,7 +327,10 @@ try:
   accounts = input_args['accounts']
   tickers = input_args['tickers']
   target_names = args
+
   InitAll()
+
+  ProcessRecords(ReadRecords(), input_args['accounts'], goback, input_args['tickers'], input_args['names'])
   GetStockPool(GD_CLIENT)
 
   if len(prices) > 0:
@@ -342,9 +345,10 @@ try:
     GetBankData(GD_CLIENT)
     PopulateFinancialData()
 
-  ProcessRecords(ReadRecords(), input_args['accounts'], goback, input_args['tickers'], input_args['names'])
   PrintAccountInfo()
   PrintHoldingSecurities()
+
+  GetCategorizedStocks(GD_CLIENT)
 
   if goback <= 0 and len(tickers) == 0:
     if len(target_names) > 0:

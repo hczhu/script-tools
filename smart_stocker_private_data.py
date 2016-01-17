@@ -127,6 +127,8 @@ def GetCategorizedStocks(gd_client):
           # HK stock
           if 'acode' in STOCK_INFO[code]: pr *= EX_RATE['hkd-cny']
           ws.update_acell(key_to_column['price'] + str(row_idx), str(pr))
+        if 'holding-percent' in row:
+          ws.update_acell(key_to_column['holding-percent'] + str(row_idx), str(ACCOUNT_INFO['ALL']['holding-percent'].get(code, 0)))
       
 def GetStockPool(gd_client):
   ss_key = '1Ita0nLCH5zpt6FgpZwOshZFXwIcNeOFvJ3ObGze2UBs'
@@ -158,7 +160,6 @@ def GetStockPool(gd_client):
         'currency': info['currency'],
         'market': info['market'],
       }
-  GetCategorizedStocks(gd_client)
  
 def GetClassA(client):
   ws = client.open_by_key('1ER4HZD-_UUZF7ph5RkgPu8JftY9jwFVJtpd2tUwz_ac').get_worksheet(0)

@@ -212,7 +212,7 @@ def PrintHoldingSecurities():
     'Percent': 0.0,
     'Stock name': 'Summary',
     'sdv/p': 0.0,
-    'ddv/p': 0.0,
+    # 'ddv/p': 0.0,
   }
   holding_shares = ACCOUNT_INFO['ALL']['holding-shares']
   holding_value = ACCOUNT_INFO['ALL']['holding-value']
@@ -347,8 +347,6 @@ try:
 
   PrintAccountInfo()
   PrintHoldingSecurities()
-
-  GetCategorizedStocks(GD_CLIENT)
 
   if goback <= 0 and len(tickers) == 0:
     if len(target_names) > 0:

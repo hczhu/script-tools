@@ -160,6 +160,7 @@ def GetStockPool(gd_client):
         'currency': info['currency'],
         'market': info['market'],
       }
+  GetCategorizedStocks(gd_client)
  
 def GetClassA(client):
   ws = client.open_by_key('1ER4HZD-_UUZF7ph5RkgPu8JftY9jwFVJtpd2tUwz_ac').get_worksheet(0)

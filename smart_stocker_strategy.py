@@ -415,6 +415,7 @@ def CategorizedStocks():
   for cate, stocks in CATEGORIZED_STOCKS.items():
     sys.stderr.write('Going through category: %s\n'%(cate))
     cate_msg = []
+    holding_percent = 0
     for code in stocks:
       finance = FINANCAIL_DATA_BASE[code] 
       is_numeric_value = lambda name: isinstance(finance.get(name, ''), float) or isinstance(finance.get(name, ''), int)
@@ -425,7 +426,9 @@ def CategorizedStocks():
       hold, buy, percent = finance['hold'], finance['buy'], finance['max-percent']
       msg = KeepPercentIf(CODE_TO_NAME[code], percent, hold_condition = lambda code: valuation < hold, buy_condition = lambda code: valuation < buy and GetMarketPriceChange(code) < max_increase)
       if msg != '': cate_msg += [msg + ' due to valuation=%.3f'%(valuation)]
-    if len(cate_msg) > 0: allMsg += ['\n'.join(['* ' + cate + ":"] + cate_msg)]
+      holding_percent += ACCOUNT_INFO['ALL']['holding-percent'].get(code, 0)
+    if len(cate_msg) > 0:
+      allMsg += ['\n'.join(['* ' + cate + ': ' + str(int(holding_percent * 100)) + '%'] + cate_msg)]
   return '\n'.join(allMsg)
     
 STRATEGY_FUNCS = {

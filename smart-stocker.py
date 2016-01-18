@@ -212,7 +212,7 @@ def PrintHoldingSecurities():
     'Percent': 0.0,
     'Stock name': 'Summary',
     'sdv/p': 0.0,
-    # 'ddv/p': 0.0,
+    'ddv/p': 0.0,
   }
   holding_shares = ACCOUNT_INFO['ALL']['holding-shares']
   holding_value = ACCOUNT_INFO['ALL']['holding-value']
@@ -262,7 +262,7 @@ def PrintHoldingSecurities():
     'MV',
     'Chg',
     'sdv/p',
-    'ddv/p',
+    # 'ddv/p',
     'Stock name',
   ]
   PrintTableMap(table_header, stat_records_map, truncate_float = False)
@@ -328,16 +328,15 @@ try:
   tickers = input_args['tickers']
   target_names = args
 
-  InitAll()
-
-  ProcessRecords(ReadRecords(), input_args['accounts'], goback, input_args['tickers'], input_args['names'])
-  GetStockPool(GD_CLIENT)
-
   if len(prices) > 0:
     for pr in prices:
       info = pr.split('=')
       MARKET_PRICE_CACHE[info[0]] = (float(info[1]), 0, 0)
     sys.stderr.write('market data cache = %s\n'%(str(MARKET_PRICE_CACHE)))
+
+  InitAll()
+  ProcessRecords(ReadRecords(), input_args['accounts'], goback, input_args['tickers'], input_args['names'])
+  GetStockPool(GD_CLIENT)
 
   if goback <= 0 and len(tickers) == 0:
     PopulateMacroData()

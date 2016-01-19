@@ -126,7 +126,7 @@ def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True
     return GiveTip('Sell %d%% of '%(100 * (holding_percent - percent)), code,
         (holding_percent - percent) * ACCOUNT_INFO['ALL']['net'] * EX_RATE[CURRENCY + '-' + currency])
   cash, op = GetCashAndOp(ACCOUNT_INFO.keys(), currency, percent - holding_percent, backup)
-  if percent - holding_percent > delta and cash > 0 and buy_condition(code):
+  if percent - holding_percent > delta and cash > 0 and buy_condition(code) and GetMarketPriceChange(code) < 0:
     return op + GiveTip(' ==> Buy', code, cash)
   return '' 
 
@@ -424,7 +424,9 @@ def CategorizedStocks():
       sys.stderr.write('Processing %s(%s): %s\n'%(CODE_TO_NAME[code], code, str(finance)))
       if len(filter(is_numeric_value, ['hold', 'buy', 'max-percent'])) < 3: continue
       hold, buy, percent = finance['hold'], finance['buy'], finance['max-percent']
-      msg = KeepPercentIf(CODE_TO_NAME[code], percent, hold_condition = lambda code: valuation < hold, buy_condition = lambda code: valuation < buy and GetMarketPriceChange(code) < max_increase)
+      msg = KeepPercentIf(CODE_TO_NAME[code], percent,
+          hold_condition = lambda code: valuation < hold,
+          buy_condition = lambda code: valuation < buy)
       if msg != '': cate_msg += [msg + ' due to valuation=%.3f'%(valuation)]
       holding_percent += ACCOUNT_INFO['ALL']['holding-percent'].get(code, 0)
     if len(cate_msg) > 0:

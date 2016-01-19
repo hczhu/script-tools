@@ -335,8 +335,8 @@ try:
     sys.stderr.write('market data cache = %s\n'%(str(MARKET_PRICE_CACHE)))
 
   InitAll()
-  ProcessRecords(ReadRecords(), input_args['accounts'], goback, input_args['tickers'], input_args['names'])
   GetStockPool(GD_CLIENT)
+  ProcessRecords(ReadRecords(), input_args['accounts'], goback, input_args['tickers'], input_args['names'])
 
   if goback <= 0 and len(tickers) == 0:
     PopulateMacroData()

@@ -114,7 +114,7 @@ def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_co
              ' due to valuation ratio = %.3f'%(valuation_ratio)
   return ''
 
-def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True, buy_condition = lambda code: True, sell_condition = lambda code: True):
+def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True, buy_condition = lambda code: True):
   delta = MIN_TXN_PERCENT
   code = NAME_TO_CODE[name]
   currency = STOCK_INFO[code]['currency']
@@ -122,8 +122,8 @@ def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True
   holding_percent = ACCOUNT_INFO['ALL']['holding-percent-all'][code]
   if holding_percent > 0 and not hold_condition(code):
     return GiveTip('Clear', code, holding_percent * ACCOUNT_INFO['ALL']['net'] * EX_RATE[CURRENCY + '-' + currency])
-  if holding_percent - percent > delta and sell_condition(code) and not buy_condition(code):
-    return GiveTip('Sell', code,
+  if holding_percent - percent > delta and not buy_condition(code):
+    return GiveTip('Sell %d%% of '%(100 * (holding_percent - percent)), code,
         (holding_percent - percent) * ACCOUNT_INFO['ALL']['net'] * EX_RATE[CURRENCY + '-' + currency])
   cash, op = GetCashAndOp(ACCOUNT_INFO.keys(), currency, percent - holding_percent, backup)
   if percent - holding_percent > delta and cash > 0 and buy_condition(code):

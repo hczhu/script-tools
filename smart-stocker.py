@@ -154,7 +154,7 @@ def PrintAccountInfo():
         else: account_info['margin-requirement'] -= mv
     account_info['net'] = account_info['market-value'] + account_info['free-cash']
     account_info['buying-power'] = (account_info['net'] - account_info['margin-requirement']) / account_info['margin-ratio']
-    account_info['cushion-ratio'] = (account_info['net'] - account_info['margin-requirement']) / account_info['market-value'] * 100.0
+    account_info['cushion-ratio'] = (account_info['net'] - account_info['margin-requirement']) / max(1, account_info['market-value']) * 100.0
 
   header = [
     'account',

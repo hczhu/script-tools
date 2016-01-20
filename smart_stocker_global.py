@@ -187,7 +187,7 @@ ACCOUNT_INFO = {
     'investment': 0.0,
     'market-value': 0.0,
     'free-cash': 0.0,
-    'margin-ratio': 0.4,
+    'margin-ratio': 0.26,
     'margin-requirement': 0.0,
     'cushion-ratio': 0.0,
     'cash-flow': [],

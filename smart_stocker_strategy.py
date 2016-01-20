@@ -417,6 +417,7 @@ def CategorizedStocks():
     cate_msg = []
     holding_percent = 0
     for code in stocks:
+      holding_percent += ACCOUNT_INFO['ALL']['holding-percent'].get(code, 0)
       finance = FINANCAIL_DATA_BASE[code] 
       is_numeric_value = lambda name: isinstance(finance.get(name, ''), float) or isinstance(finance.get(name, ''), int)
       if not is_numeric_value(valuation_key): continue
@@ -428,7 +429,6 @@ def CategorizedStocks():
           hold_condition = lambda code: valuation < hold,
           buy_condition = lambda code: valuation < buy)
       if msg != '': cate_msg += [msg + ' due to valuation=%.3f'%(valuation)]
-      holding_percent += ACCOUNT_INFO['ALL']['holding-percent'].get(code, 0)
     if len(cate_msg) > 0:
       allMsg += ['\n'.join(['* ' + cate + ': ' + str(int(holding_percent * 100)) + '%'] + cate_msg)]
   return '\n'.join(allMsg)

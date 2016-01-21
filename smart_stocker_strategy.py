@@ -127,7 +127,7 @@ def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True
         (holding_percent - percent) * ACCOUNT_INFO['ALL']['net'] * EX_RATE[CURRENCY + '-' + currency])
   cash, op = GetCashAndOp(ACCOUNT_INFO.keys(), currency, percent - holding_percent, backup)
   if percent - holding_percent > delta and cash > 0 and buy_condition(code) and GetMarketPriceChange(code) < 1.0:
-    return op + GiveTip(' ==> Buy', code, cash)
+    return op + GiveTip(' ==> Buy up to %d%% of'%((percent - holding_percent) * 100), code, cash)
   return '' 
 
 def ScoreBanks(banks):

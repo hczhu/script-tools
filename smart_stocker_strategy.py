@@ -126,7 +126,7 @@ def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True
     return GiveTip('Sell %d%% of '%(100 * (holding_percent - percent)), code,
         (holding_percent - percent) * ACCOUNT_INFO['ALL']['net'] * EX_RATE[CURRENCY + '-' + currency])
   cash, op = GetCashAndOp(ACCOUNT_INFO.keys(), currency, percent - holding_percent, backup)
-  if percent - holding_percent > delta and cash > 0 and buy_condition(code) and GetMarketPriceChange(code) < 0:
+  if percent - holding_percent > delta and cash > 0 and buy_condition(code) and GetMarketPriceChange(code) < 1.0:
     return op + GiveTip(' ==> Buy', code, cash)
   return '' 
 

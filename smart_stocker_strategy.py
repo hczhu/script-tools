@@ -21,7 +21,7 @@ def FinancialValue(name, key):
   return FINANCAIL_DATA_ADVANCE[NAME_TO_CODE[name]][key]
 
 def GiveTip(op, code, money):
-  return '%s %s(%s) %d units @%.3f cash %.0f %s'%(op, CODE_TO_NAME[code], code,
+  return '%s %s(%s %.1f%%) %d units @%.3f cash %.0f %s'%(op, CODE_TO_NAME[code], code, GetMarketPriceChange(code),
                                      int(money / GetMarketPrice(code)),
                                      GetMarketPrice(code), money, STOCK_INFO[code]['currency'])
 
@@ -126,7 +126,7 @@ def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True
     return GiveTip('Sell %d%% of '%(100 * (holding_percent - percent)), code,
         (holding_percent - percent) * ACCOUNT_INFO['ALL']['net'] * EX_RATE[CURRENCY + '-' + currency])
   cash, op = GetCashAndOp(ACCOUNT_INFO.keys(), currency, percent - holding_percent, backup)
-  if percent - holding_percent > delta and cash > 0 and buy_condition(code) and GetMarketPriceChange(code) < 1.0:
+  if percent - holding_percent > delta and cash > 0 and buy_condition(code):
     return op + GiveTip(' ==> Buy up to %d%% of'%((percent - holding_percent) * 100), code, cash)
   return '' 
 

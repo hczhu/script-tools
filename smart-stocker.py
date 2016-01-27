@@ -291,6 +291,7 @@ def PrintStocks(names):
 def PrintProfitBreakDown():
   tableMap = []
   header = ['profit', 'name', ]
+  category_profit = collections.defaultdict(float)
   for ticker in STOCK_INFO.keys():
     if 'profit' not in STOCK_INFO[ticker]: continue
     mv = 0.0
@@ -300,8 +301,10 @@ def PrintProfitBreakDown():
       'name': STOCK_INFO[ticker]['name'],
       'profit': EX_RATE[GetCurrency(ticker) + '-' + CURRENCY] *(mv + STOCK_INFO[ticker]['profit']),
     }]
+    category_profit[STOCK_INFO[ticker].get('category', '')] += tableMap[-1]['profit']
   tableMap.sort(key = lambda recordMap: abs(recordMap['profit']))
   PrintTableMap(header, tableMap, float_precision = 0)
+  PrintTableMap(header, [ {'name': k, 'profit': v} for k,v in category_profit.items()], float_precision = 0)
 
 try:
   args = set(sys.argv[1:])
@@ -340,8 +343,6 @@ try:
 
   if goback <= 0 and len(tickers) == 0:
     PopulateMacroData()
-    GetFinancialData(GD_CLIENT) 
-    GetBankData(GD_CLIENT)
     PopulateFinancialData()
 
   PrintAccountInfo()

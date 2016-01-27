@@ -212,7 +212,5 @@ if __name__ == "__main__":
   client = LoginMyGoogleWithFiles()
   GetStockPool(client)
   GetTransectionRecords(client)
-  GetFinancialData(client)
-  GetBankData(client)
   PrintData(','.join(sys.argv[1:]).split(','))
  

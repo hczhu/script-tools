@@ -304,7 +304,9 @@ def PrintProfitBreakDown():
     category_profit[STOCK_INFO[ticker].get('category', '')] += tableMap[-1]['profit']
   tableMap.sort(key = lambda recordMap: abs(recordMap['profit']))
   PrintTableMap(header, tableMap, float_precision = 0)
-  PrintTableMap(header, [ {'name': k, 'profit': v} for k,v in category_profit.items()], float_precision = 0)
+  tableMap = [ {'name': k, 'profit': v} for k,v in category_profit.items() ]
+  tableMap.sort(key = lambda recordMap: abs(recordMap['profit']))
+  PrintTableMap(header, tableMap, float_precision = 0)
 
 try:
   args = set(sys.argv[1:])

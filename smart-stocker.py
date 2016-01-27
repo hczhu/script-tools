@@ -304,12 +304,14 @@ def PrintProfitBreakDown():
   for ticker in STOCK_INFO.keys():
     if 'profit' not in STOCK_INFO[ticker]: continue
     mv = 0.0
-    if STOCK_INFO[ticker]['holding-shares'] > 0:
+    if STOCK_INFO[ticker].get('holding-shares', 0) > 0:
       mv = STOCK_INFO[ticker]['holding-shares'] * GetMarketPrice(ticker)
     tableMap += [{
       'name': STOCK_INFO[ticker]['name'],
       'profit': EX_RATE[GetCurrency(ticker) + '-' + CURRENCY] *(mv + STOCK_INFO[ticker]['profit']),
     }]
+    if 'category' not in STOCK_INFO[ticker] and ticker[-1] == 'A':
+      STOCK_INFO[ticker]['category'] = '分级A'
     category_profit[STOCK_INFO[ticker].get('category', '')] += tableMap[-1]['profit']
   tableMap.sort(key = lambda recordMap: abs(recordMap['profit']))
   PrintTableMap(header, tableMap, float_precision = 0)

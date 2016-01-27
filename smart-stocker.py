@@ -294,6 +294,15 @@ def PrintProfitBreakDown():
   category_profit = collections.defaultdict(float)
   for ticker in STOCK_INFO.keys():
     if 'profit' not in STOCK_INFO[ticker]: continue
+    if ticker.find('@') >= 0 and ticker.find('-') >= 0:
+      mv = 0.0
+      if STOCK_INFO[ticker]['holding-shares'] > 0:
+        mv = STOCK_INFO[ticker]['holding-shares'] * GetMarketPrice(ticker)
+      code = ticker[0:ticker.find('-')]
+      STOCK_INFO[code]['profit'] = mv + STOCK_INFO[code].get('profit', 0.0) + STOCK_INFO[ticker]['profit']
+
+  for ticker in STOCK_INFO.keys():
+    if 'profit' not in STOCK_INFO[ticker]: continue
     mv = 0.0
     if STOCK_INFO[ticker]['holding-shares'] > 0:
       mv = STOCK_INFO[ticker]['holding-shares'] * GetMarketPrice(ticker)

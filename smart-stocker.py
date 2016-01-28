@@ -162,10 +162,10 @@ def PrintAccountInfo():
     'market-value',
     'investment',
     'net',
-    # 'margin-requirement',
+    'margin-requirement',
     'leverage',
     'free-cash',
-    'cushion-ratio',
+    # 'cushion-ratio',
     'IRR',
     'buying-power'
   ]
@@ -310,7 +310,7 @@ def PrintProfitBreakDown():
       'name': STOCK_INFO[ticker]['name'],
       'profit': EX_RATE[GetCurrency(ticker) + '-' + CURRENCY] *(mv + STOCK_INFO[ticker]['profit']),
     }]
-    if 'category' not in STOCK_INFO[ticker] and ticker[-1] == 'A':
+    if 'category' not in STOCK_INFO[ticker] and STOCK_INFO[ticker]['name'][-1] == 'A':
       STOCK_INFO[ticker]['category'] = '分级A'
     category_profit[STOCK_INFO[ticker].get('category', '')] += tableMap[-1]['profit']
   tableMap.sort(key = lambda recordMap: abs(recordMap['profit']))

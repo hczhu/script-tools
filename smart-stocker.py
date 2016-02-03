@@ -261,7 +261,7 @@ def PrintHoldingSecurities():
     'Shares',
     'MV',
     'Chg',
-    'sdv/p',
+    # 'sdv/p',
     # 'ddv/p',
     'Stock name',
   ]

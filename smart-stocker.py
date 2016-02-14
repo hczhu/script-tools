@@ -56,7 +56,9 @@ def InitAll():
   GD_CLIENT = LoginMyGoogleWithFiles()
 
 def ReadRecords():
+  sys.stderr.write('Reading trade records...\n')
   records = GetTransectionRecords(GD_CLIENT)
+  sys.stderr.write('Finished reading trade records.\n')
   for record in records:
     date_str = record['date']
     record['date'] = datetime.date(int(date_str[0:4]), int(date_str[4:6]), int(date_str[6:8]))
@@ -288,6 +290,47 @@ def PrintStocks(names):
   tableMap.sort(key = lambda recordMap: recordMap['p/book-value'] if 'p/book-value' in recordMap else 0)
   PrintTableMap(header, tableMap, float_precision = 3, header_transformer = lambda header: header.replace('book-value', 'bv'))
 
+def OutputVisual(all_records, tickers, path):
+  filename = '/tmp/visual-trades.html'
+  url = 'file://' + filename
+  template_file = path + '/visual-trades-temp.html' 
+  all_trades = {}
+  all_records.sort(key = lambda record: record['date'])
+  min_day_gap = 1
+  for ticker in tickers:
+    prev_date = datetime.date(2000, 1, 1)
+    shares, invest = 0, 0.0
+    for record in all_records:
+      if record['ticker'] != ticker: continue
+      name = record['name']
+      currency = record['currency']
+      trans_date = record['date']
+      diff_days = (record['date'] - prev_date).days
+      if diff_days < min_day_gap:
+        trans_date = prev_date + datetime.timedelta(days = min_day_gap)
+      prev_date = trans_date
+      shares += record['amount']
+      invest += record['commission'] + record['amount'] * record['price']
+      mv = shares * record['price']
+      if name not in all_trades: all_trades[name] = []
+      all_trades[name].append([
+       # 'new Date(%d, %d, %d)'%(trans_date.year, trans_date.month - 1, trans_date.day),
+        int(time.mktime(trans_date.timetuple())) * 1000,
+        record['price'],
+        ('+' if record['amount'] > 0 else '') + str(int(record['amount'])),
+        'shares: %d profit: %dK %s'%(shares, (mv - invest) / 1000, currency),
+      ])
+        
+  content = ''
+  with open(template_file, 'r') as temp_file:
+    content = temp_file.read() 
+  content = content.replace('%TRADES%', ',\n'.join([
+    '%s: %s'%(key, str(value)) for key, value in all_trades.items()
+  ]))
+  with open(filename, 'w') as output_file:
+    output_file.write(content) 
+  return url
+
 def PrintProfitBreakDown():
   tableMap = []
   header = ['profit', 'name', ]
@@ -319,55 +362,67 @@ def PrintProfitBreakDown():
   tableMap.sort(key = lambda recordMap: abs(recordMap['profit']))
   PrintTableMap(header, tableMap, float_precision = 0)
 
-try:
-  args = set(sys.argv[1:])
+def main():
+  try:
+    args = set(sys.argv[1:])
+  
+    goback = filter(lambda arg: arg.find('goback=') == 0, args)
+    args = args - set(goback)
+    goback = -1 if len(goback) == 0 else int(goback[0].split('=')[1])
+  
+    profit = filter(lambda arg: arg.find('profit') == 0, args)
+    args = args - set(profit)
+    profit = len(profit) > 0
+  
+    prices = filter(lambda arg: arg.find('=') != -1, args)
+    args = args - set(prices)
+  
+    input_args = collections.defaultdict(set)
+    for name in ['accounts', 'tickers', 'names', 'visual']:
+      values = filter(lambda arg: arg.find(name + ':') == 0, args)
+      args = args - set(values)
+      if len(values) > 0:
+        input_args[name] = set(values[0][len(name + ':'):].split(','))
+    sys.stderr.write('input args: %s\n'%(str(input_args)))
+    accounts = input_args['accounts']
+    tickers = input_args['tickers']
+    visual = input_args['visual']
+    target_names = args
+  
+    if len(prices) > 0:
+      for pr in prices:
+        info = pr.split('=')
+        MARKET_PRICE_CACHE[info[0]] = (float(info[1]), 0, 0)
+      sys.stderr.write('market data cache = %s\n'%(str(MARKET_PRICE_CACHE)))
+  
+    InitAll()
+  
+    all_records = ReadRecords()
+    if len(visual) > 0:
+      print OutputVisual(all_records, visual, os.path.dirname(sys.argv[0]))
+      return
 
-  goback = filter(lambda arg: arg.find('goback=') == 0, args)
-  args = args - set(goback)
-  goback = -1 if len(goback) == 0 else int(goback[0].split('=')[1])
+    GetStockPool(GD_CLIENT)
 
-  profit = filter(lambda arg: arg.find('profit') == 0, args)
-  args = args - set(profit)
-  profit = len(profit) > 0
+  
+    ProcessRecords(all_records, input_args['accounts'], goback, input_args['tickers'], input_args['names'])
 
-  prices = filter(lambda arg: arg.find('=') != -1, args)
-  args = args - set(prices)
+    if goback <= 0 and len(tickers) == 0:
+      PopulateMacroData()
+      PopulateFinancialData()
+  
+    PrintAccountInfo()
+    PrintHoldingSecurities()
 
-  input_args = collections.defaultdict(set)
-  for name in ['accounts', 'tickers', 'names']:
-    values = filter(lambda arg: arg.find(name + ':') == 0, args)
-    args = args - set(values)
-    if len(values) > 0:
-      input_args[name] = set(values[0][len(name + ':'):].split(','))
-  sys.stderr.write('input args: %s\n'%(str(input_args)))
-  accounts = input_args['accounts']
-  tickers = input_args['tickers']
-  target_names = args
+    if goback <= 0 and len(tickers) == 0:
+      if len(target_names) > 0:
+        names = ','.join(target_names).split(',')
+        PrintStocks(names)
+      if len(accounts) == 0:
+        RunStrategies()
+    if profit:
+       PrintProfitBreakDown()
+  except Exception as ins:
+    traceback.print_exc(file=sys.stderr)
 
-  if len(prices) > 0:
-    for pr in prices:
-      info = pr.split('=')
-      MARKET_PRICE_CACHE[info[0]] = (float(info[1]), 0, 0)
-    sys.stderr.write('market data cache = %s\n'%(str(MARKET_PRICE_CACHE)))
-
-  InitAll()
-  GetStockPool(GD_CLIENT)
-  ProcessRecords(ReadRecords(), input_args['accounts'], goback, input_args['tickers'], input_args['names'])
-
-  if goback <= 0 and len(tickers) == 0:
-    PopulateMacroData()
-    PopulateFinancialData()
-
-  PrintAccountInfo()
-  PrintHoldingSecurities()
-
-  if goback <= 0 and len(tickers) == 0:
-    if len(target_names) > 0:
-      names = ','.join(target_names).split(',')
-      PrintStocks(names)
-    if len(accounts) == 0:
-      RunStrategies()
-  if profit:
-     PrintProfitBreakDown()
-except Exception as ins:
-  traceback.print_exc(file=sys.stderr)
+main()

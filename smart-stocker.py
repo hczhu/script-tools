@@ -298,13 +298,14 @@ def OutputVisual(all_records, tickers, path):
   all_records.sort(key = lambda record: record['date'])
   min_day_gap = 1
   if '*' in tickers:
-    tickers = set([record['ticker'] for record in all_records if len(record['ticker']) < 3])
-  names = set(record['name'] for record in all_records if record['name'] != '' and record['ticker'] in tickers)
-  for name in names:
+    tickers = set([record['ticker'] for record in all_records])
+  for ticker in tickers:
     prev_date = datetime.date(2000, 1, 1)
     shares, invest = 0, 0.0
     for record in all_records:
-      if record['name'] != name: continue
+      if record['ticker'] != ticker: continue
+      if record['name'] == '': continue
+      CODE_TO_NAME[ticker] = record['name']
       currency = record['currency']
       trans_date = record['date']
       diff_days = (trans_date - prev_date).days
@@ -314,22 +315,22 @@ def OutputVisual(all_records, tickers, path):
       shares += record['amount']
       invest += record['commission'] + record['amount'] * record['price']
       mv = shares * record['price']
-      if name not in all_trades: all_trades[name] = []
-      all_trades[name].append([
+      if ticker not in all_trades: all_trades[ticker] = []
+      all_trades[ticker].append([
         # 'new Date(%d, %d, %d)'%(trans_date.year, trans_date.month - 1, trans_date.day),
         int(time.mktime(trans_date.timetuple())) * 1000,
         record['price'],
         ('+' if record['amount'] > 0 else '') + str(int(record['amount'])),
-        'shares: %d profit: %dK %s'%(shares, (mv - invest) / 1000, currency),
+        'shares: %d profit: %dK %s mv: %dK'%(shares, (mv - invest) / 1000, currency, mv / 1000),
       ])
-      if len(all_trades[name]) > 1:
-        assert all_trades[name][-1][0] > all_trades[name][-2][0]
+      if len(all_trades[ticker]) > 1:
+        assert all_trades[ticker][-1][0] > all_trades[ticker][-2][0]
         
   content = ''
   with open(template_file, 'r') as temp_file:
     content = temp_file.read() 
   content = content.replace('%TRADES%', ',\n'.join([
-    '"%s": %s'%(key, str(value)) for key, value in all_trades.items()
+    '"%s": %s'%(CODE_TO_NAME[key], str(value)) for key, value in all_trades.items()
   ]))
   with open(filename, 'w') as output_file:
     output_file.write(content) 

@@ -43,7 +43,15 @@ Apache license (http://www.apache.org/licenses/LICENSE-2.0.html)
             data.addColumn({type:'string', role:'annotation'}); // annotation role col.
             data.addColumn({type:'string', role:'annotationText'}); // annotationText col.
             for (var idx in TRADES[stock]) {
+              if (idx > 0 && TRADES[stock][idx][0] < TRADES[stock][idx - 1][0]) {
+                throw "Dates not sorted for " + stock + ": " + TRADES[stock][idx][0] + " < " + TRADES[stock][idx - 1][0];
+              }
+            }
+            for (var idx in TRADES[stock]) {
               TRADES[stock][idx][0] = new Date(TRADES[stock][idx][0]);
+              if (idx > 0 && TRADES[stock][idx][0] < TRADES[stock][idx - 1][0]) {
+                throw "Dates not sorted for " + stock + ": " + TRADES[stock][idx][0] + " < " + TRADES[stock][idx - 1][0];
+              }
             }
             data.addRows(TRADES[stock]);
 

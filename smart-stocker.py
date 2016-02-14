@@ -297,17 +297,17 @@ def OutputVisual(all_records, tickers, path):
   all_trades = {}
   all_records.sort(key = lambda record: record['date'])
   min_day_gap = 1
-  if tickers[0] == '*':
-    tickers = [record['ticker'] for record in all_records if record == '']
-  for ticker in tickers:
+  if '*' in tickers:
+    tickers = set([record['ticker'] for record in all_records if len(record['ticker']) < 3])
+  names = set(record['name'] for record in all_records if record['name'] != '' and record['ticker'] in tickers)
+  for name in names:
     prev_date = datetime.date(2000, 1, 1)
     shares, invest = 0, 0.0
     for record in all_records:
-      if record['ticker'] != ticker: continue
-      name = record['name']
+      if record['name'] != name: continue
       currency = record['currency']
       trans_date = record['date']
-      diff_days = (record['date'] - prev_date).days
+      diff_days = (trans_date - prev_date).days
       if diff_days < min_day_gap:
         trans_date = prev_date + datetime.timedelta(days = min_day_gap)
       prev_date = trans_date
@@ -322,6 +322,8 @@ def OutputVisual(all_records, tickers, path):
         ('+' if record['amount'] > 0 else '') + str(int(record['amount'])),
         'shares: %d profit: %dK %s'%(shares, (mv - invest) / 1000, currency),
       ])
+      if len(all_trades[name]) > 1:
+        assert all_trades[name][-1][0] > all_trades[name][-2][0]
         
   content = ''
   with open(template_file, 'r') as temp_file:

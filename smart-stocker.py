@@ -297,6 +297,8 @@ def OutputVisual(all_records, tickers, path):
   all_trades = {}
   all_records.sort(key = lambda record: record['date'])
   min_day_gap = 1
+  if tickers[0] == '*':
+    tickers = [record['ticker'] for record in all_records if record == '']
   for ticker in tickers:
     prev_date = datetime.date(2000, 1, 1)
     shares, invest = 0, 0.0
@@ -314,7 +316,7 @@ def OutputVisual(all_records, tickers, path):
       mv = shares * record['price']
       if name not in all_trades: all_trades[name] = []
       all_trades[name].append([
-       # 'new Date(%d, %d, %d)'%(trans_date.year, trans_date.month - 1, trans_date.day),
+        # 'new Date(%d, %d, %d)'%(trans_date.year, trans_date.month - 1, trans_date.day),
         int(time.mktime(trans_date.timetuple())) * 1000,
         record['price'],
         ('+' if record['amount'] > 0 else '') + str(int(record['amount'])),
@@ -325,7 +327,7 @@ def OutputVisual(all_records, tickers, path):
   with open(template_file, 'r') as temp_file:
     content = temp_file.read() 
   content = content.replace('%TRADES%', ',\n'.join([
-    '%s: %s'%(key, str(value)) for key, value in all_trades.items()
+    '"%s": %s'%(key, str(value)) for key, value in all_trades.items()
   ]))
   with open(filename, 'w') as output_file:
     output_file.write(content) 

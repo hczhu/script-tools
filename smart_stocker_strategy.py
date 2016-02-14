@@ -425,6 +425,7 @@ def CategorizedStocks():
       sys.stderr.write('Processing %s(%s): %s\n'%(CODE_TO_NAME[code], code, str(finance)))
       if len(filter(is_numeric_value, ['hold', 'buy', 'max-percent'])) < 3: continue
       hold, buy, percent = finance['hold'], finance['buy'], finance['max-percent']
+      if hold < buy: hold, buy, valuation = -hold, -buy, -valuation
       msg = KeepPercentIf(CODE_TO_NAME[code], percent,
           hold_condition = lambda code: valuation < hold,
           buy_condition = lambda code: valuation < buy)

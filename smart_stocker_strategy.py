@@ -429,7 +429,7 @@ def CategorizedStocks():
       msg = KeepPercentIf(CODE_TO_NAME[code], percent,
           hold_condition = lambda code: valuation < hold,
           buy_condition = lambda code: valuation < buy)
-      if msg != '': cate_msg += [msg + ' due to valuation=%.3f'%(valuation)]
+      if msg != '': cate_msg += [msg + ' due to valuation=%.3f'%(abs(valuation))]
     if len(cate_msg) > 0:
       allMsg += ['\n'.join(['* ' + cate + ': ' + str(int(holding_percent * 100)) + '%'] + cate_msg)]
   return '\n'.join(allMsg)

@@ -19,7 +19,8 @@ from smart_stocker_public_data import *
 import json
 import gspread
 import oauth2client
-from oauth2client.client import SignedJwtAssertionCredentials
+#from oauth2client.client import SignedJwtAssertionCredentials
+from oauth2client.service_account import ServiceAccountCredentials
 
 def GetFinancialValue(value_str):
   integer_re = '-?(0|([1-9][0-9]*))'
@@ -45,10 +46,10 @@ def GetFinancialValue(value_str):
     raise Exception('Failed to parse financial value [%s] by type [%s] with exception %s'%(value_str, type_str, str(e)))
 
 def LoginMyGoogle(google_account_filename):
-  json_key = json.load(open(google_account_filename))
+  # json_key = json.load(open(google_account_filename))
   scope = ['https://spreadsheets.google.com/feeds']
   
-  credentials = SignedJwtAssertionCredentials(json_key['client_email'], json_key['private_key'], scope)
+  credentials = ServiceAccountCredentials.from_json_keyfile_name(google_account_filename, scope)
   return gspread.authorize(credentials)
 
 def LoginMyGoogleWithFiles():

@@ -17,18 +17,18 @@ filetype plugin on
 syntax on
 set foldmethod=indent
 "au FileType php,cc,lex,cpp,h,proto,borg,y set foldmethod=indent
-au FileType php,cc,lex,cpp highlight Folded guibg=blue guifg=green
+au FileType python,py,php,cc,lex,cpp highlight Folded guibg=blue guifg=green
 "set foldlevelstart=30
 set scrolloff=100
 "Use clipboard as default copy
 set clipboard=unnamedplus
 " mystuff
-au FileType sh,php,cc,lex,cpp,c,java,python imap "" ""<Esc>ha
-au FileType sh,php,cc,lex,cpp,c,java,python imap () ()<Esc>ha
-au FileType sh,php,cc,lex,cpp,c,java,python imap [] []<Esc>ha
-au FileType sh,php,cc,lex,cpp,c,java,python imap <> <><Esc>ha
-au FileType sh,php,cc,lex,cpp,c,java,python imap '' ''<Esc>ha
-au FileType sh,php,cc,lex,cpp,c,java imap { {<CR>}<Esc>O
+au FileType sh,html,php,cc,lex,cpp,c,java,python imap "" ""<Esc>ha
+au FileType sh,html,php,cc,lex,cpp,c,java,python imap () ()<Esc>ha
+au FileType sh,html,php,cc,lex,cpp,c,java,python imap [] []<Esc>ha
+au FileType sh,html,php,cc,lex,cpp,c,java,python imap <> <><Esc>ha
+au FileType sh,html,php,cc,lex,cpp,c,java,python imap '' ''<Esc>ha
+au FileType sh,html,php,cc,lex,cpp,c,java imap { {<CR>}<Esc>O
 "au FileType php,cpp,c,java,python map <C-r> :!gedit %<CR>
 map <F6> <Esc>elDyyp0dwi<BS> = vars.<Esc>j
 au FileType php,cpp,python map <F3> <Esc>0dwi<BS><Esc>

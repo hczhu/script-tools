@@ -5,7 +5,7 @@ alias vim='vim -X'
 alias emacs='emacs -nw'
 alias vir='vim -R -X'
 alias 'ls'='ls --color=auto'
-alias 'll'='ls -l'
+alias 'll'='ls -lh'
 alias cl='clear'
 alias 'grep'='grep --color'
 alias portfolio='cat ~/stock-txn/*csv | stock.py 2> /dev/null'
@@ -13,18 +13,13 @@ alias portfolio='cat ~/stock-txn/*csv | stock.py 2> /dev/null'
 # personal export
 export PATH=$PATH:$HOME/tools/
 
-# Memorize historical commands.
-export HISTCONTROL=erasedups
 export HISTTIMEFORMAT="%Y-%m-%d %H:%M:%S"
-# bash history related
-export HISTCONTROL=ignoredups
-export HISTFILESIZE=1000000000
-export HISTSIZE=10000000
-# append historical commands to .bash_history instead of overwriting.
-shopt -s histappend
-# Append each command to ~/.bash_history immediately after executing that
-# command.
-PROMPT_COMMAND="history -a; $PROMPT_COMMAND"
+export HISTCONTROL=ignoredups:erasedups  # no duplicate entries
+export HISTSIZE=100000                   # big big history
+export HISTFILESIZE=100000               # big big history
+shopt -s histappend                      # append to history, don't overwrite it
+# Save and reload the history after each command finishes
+export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
 
 # for tmux window titles.
 settitle() {
@@ -34,16 +29,20 @@ settitle() {
 PROMPT_COMMAND="settitle; $PROMPT_COMMAND"
 
 set_git_branch() {
-  export GIT_BRANCH=$(git branch 2> /dev/null | grep \* | cut -d' ' -f2)
+  export GIT_BRANCH=$(get_git_branch)
 }
 
 get_git_branch() {
-  git branch 2> /dev/null | grep \* | cut -d' ' -f2
+  if [ -r '.git' ]; then 
+    echo "($(git branch 2> /dev/null | grep \* | cut -d' ' -f2))"
+  elif [ -r '.hgignore' ]; then
+    echo "($(hg bookmark 2> /dev/null | grep \* | cut -d' ' -f3))"
+  fi
 }
 
 PROMPT_COMMAND="set_git_branch; $PROMPT_COMMAND"
 
-export PS1='[\u@\h \w($(get_git_branch))] '
+export PS1='[\u@\h \w$(get_git_branch)] '
 
 # Input method
 #export XIM="SCIM"
@@ -86,6 +85,14 @@ VimBinaryDiff() {
 }
 
 alias vimbdiff='VimBinaryDiff'
+
+ShowThreadInfo() {
+  # expect an input pid.
+  pid=$1
+  top  -b -H -p $pid -n1 | tail -n+8 |  cut -d':' -f2 \
+    | cut -d' ' -f2 | sed  's/[0-9]\+$/*/' \
+    | sort | uniq -c  | sort -k1 -n | sed 's/^ \+/    /'
+}
 
 # edit command line in bash by vi
 # set -o vi

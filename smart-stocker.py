@@ -50,12 +50,15 @@ def GetIRR(final_net_value, inflow_records):
 
 def InitAll():
   InitExRate()
+  
   home = os.path.expanduser("~")
   global GD_CLIENT
   GD_CLIENT = LoginMyGoogleWithFiles()
 
 def ReadRecords():
+  sys.stderr.write('Reading trade records...\n')
   records = GetTransectionRecords(GD_CLIENT)
+  sys.stderr.write('Finished reading trade records.\n')
   for record in records:
     date_str = record['date']
     record['date'] = datetime.date(int(date_str[0:4]), int(date_str[4:6]), int(date_str[6:8]))
@@ -72,20 +75,26 @@ def ReadRecords():
     record['price'], record['amount'], record['commission'] = price, buy_shares, fee
   return records
 
-def ProcessRecords(all_records, accounts = set([]), goback = 0):
+def ProcessRecords(all_records, accounts = set([]), goback = 0, tickers = set([]), name_patterns = set([])):
   all_records.sort(key = lambda record: record['date'])
   cutoff_date = datetime.date.today() - (datetime.timedelta(days = goback))
   sys.stderr.write('cut off date = %s\n'%(str(cutoff_date)))
+  is_interested = lambda ticker, name: ticker in tickers or any([name.find(name_pattern) >= 0 for name_pattern in name_patterns]) or \
+                    ticker == 'investment' or (len(tickers) == 0 and len(name_patterns) == 0)
   for record in all_records:
     account = record['account']
     if len(accounts) > 0 and account not in accounts:
       continue
     if record['date'] > cutoff_date:
       continue
+    if record.get('disabled', '0') == '1':
+      continue
     account_info = ACCOUNT_INFO[account]
     ticker = record['ticker']
-    currency = record['currency'].lower()
     name = record['name']
+    if not is_interested(ticker, name): continue
+    currency = record['currency'].lower()
+    # sys.stderr.write('record: %s\n'%(str(record)))
     if goback > 0 and name != '':
       STOCK_INFO[ticker]['currency'] = currency
       STOCK_INFO[ticker]['name'] = name
@@ -100,7 +109,7 @@ def ProcessRecords(all_records, accounts = set([]), goback = 0):
     fee = record['commission'] * ex_rate
     inflow = price * buy_shares * (1.0 if ticker in account_info else -1.0)
     inflow -= fee
-    account_info['txn-fee'] += fee
+    account_info['txn-fee'] += fee if fee >0 else 0
     account_info['free-cash'] += inflow
     if ticker == 'investment':
       account_info['cash-flow'] += [(record['date'], inflow)]
@@ -108,6 +117,11 @@ def ProcessRecords(all_records, accounts = set([]), goback = 0):
       account_info[ticker] += inflow
     else:
       account_info['holding-shares'][ticker] += buy_shares
+      STOCK_INFO[ticker]['profit'] = inflow / ex_rate + STOCK_INFO[ticker].get('profit', 0.0)
+      STOCK_INFO[ticker]['holding-shares'] = buy_shares + STOCK_INFO[ticker].get('holding-shares', 0)
+      if name not in STOCK_INFO[ticker]:
+        STOCK_INFO[ticker]['name'] = name
+        STOCK_INFO[ticker]['currency'] = currency
 
 def PrintAccountInfo():
   aggregated_accout_info = {
@@ -116,11 +130,10 @@ def PrintAccountInfo():
     'investment': 0.0,
     'market-value': 0.0,
     'free-cash': 0.0,
-    'sma': 0.0,
     'net': 0.0,
     'dividend': 0,
     'interest-loss': 0,
-    'buying-power': 0,
+    'margin-interest': 0,
     'txn-fee': 0,
     'cash-flow': [],
     'holding-shares': collections.defaultdict(int),
@@ -128,9 +141,9 @@ def PrintAccountInfo():
     'holding-percent-all': collections.defaultdict(float),
     'holding-value': collections.defaultdict(float),
     'support-currencies': [],
+    'buying-power': 0.0,
   }
   for account, account_info in ACCOUNT_INFO.items():
-    account_info['sma'] = account_info['free-cash']
     base_currency = ACCOUNT_INFO[account]['currency']
     holding = account_info['holding-shares']
     account_info['holding-shares'] = holding = {ticker: shares for ticker, shares in holding.items() if shares != 0}
@@ -139,26 +152,29 @@ def PrintAccountInfo():
         mv = GetMarketPrice(ticker) * EX_RATE[GetCurrency(ticker) + '-' + base_currency] * holding[ticker]
         account_info['market-value'] += mv
         account_info['holding-value'][ticker] = mv
-        if holding[ticker] > 0: account_info['sma'] += account_info['sma-discount'] * mv
-        else: account_info['sma'] += mv
+        if holding[ticker] > 0: account_info['margin-requirement'] += mv * (1 if ticker.find('@') >=0 else account_info['margin-ratio'])
+        else: account_info['margin-requirement'] -= mv
     account_info['net'] = account_info['market-value'] + account_info['free-cash']
-    account_info['buying-power'] = account_info['sma'] - account_info['min-sma-ratio'] * account_info['market-value']
+    account_info['buying-power'] = (account_info['net'] - account_info['margin-requirement']) / account_info['margin-ratio']
+    account_info['cushion-ratio'] = (account_info['net'] - account_info['margin-requirement']) / max(1, account_info['market-value']) * 100.0
 
   header = [
     'account',
     'currency',
+    'market-value',
     'investment',
     'net',
-    'buying-power',
+    'margin-requirement',
     'leverage',
-    'txn-fee-ratio',
-    'sma-ratio',
+    'free-cash',
+    # 'cushion-ratio',
     'IRR',
+    'buying-power'
   ]
   for account, account_info in ACCOUNT_INFO.items():
     base_currency = ACCOUNT_INFO[account]['currency']
     ex_rate = EX_RATE[base_currency + '-' + aggregated_accout_info['currency']]
-    for key in ['buying-power', 'net', 'investment', 'market-value', 'free-cash', 'sma', 'dividend', 'interest-loss', 'txn-fee',]:
+    for key in ['buying-power', 'net', 'investment', 'market-value', 'free-cash', 'dividend', 'interest-loss', 'txn-fee',]:
       aggregated_accout_info[key] += ex_rate * account_info[key]
     for key in ['cash-flow']:
       aggregated_accout_info[key] += map(lambda inflow: (inflow[0], inflow[1] * ex_rate), account_info[key])
@@ -178,7 +194,6 @@ def PrintAccountInfo():
 
   for account, account_info in ACCOUNT_INFO.items():
     ex_rate = EX_RATE[account_info['currency'] + '-' + ACCOUNT_INFO['ALL']['currency']] 
-    account_info['sma-ratio'] = account_info['sma'] / max(max(1, account_info['net']), account_info['market-value']) * 100
     account_info['txn-fee-ratio'] = account_info['txn-fee'] / max(max(1.0, account_info['net']), account_info['market-value']) * 1000
     account_info['leverage'] = 100.0 * account_info['market-value'] / max(1, account_info['net'])
     account_info['IRR'] = GetIRR(account_info['net'], account_info['cash-flow']) * 100
@@ -207,7 +222,7 @@ def PrintHoldingSecurities():
   for ticker, shares in holding_shares.items():
     if shares == 0: continue
     chg = GetMarketPriceChange(ticker)
-    currency = STOCK_INFO[ticker]['currency']
+    currency = GetCurrency(ticker)
     name = STOCK_INFO[ticker]['name']
     sys.stderr.write('Collecting info for %s(%s)\n'%(ticker, name))
     record = {
@@ -235,8 +250,8 @@ def PrintHoldingSecurities():
   summation['ddv/p'] /= max(1.0, summation['Percent'])
   summation['ddv/p'] = myround(summation['ddv/p'], 1)
 
-  stat_records_map.append(summation)
   stat_records_map.sort(reverse = True, key = lambda record: record.get('Percent', 0))
+  stat_records_map.insert(0, summation)
 
   for record in stat_records_map:
     record['Percent'] = str(myround(record['Percent'] * 100, 0)) + '%'
@@ -248,8 +263,8 @@ def PrintHoldingSecurities():
     'Shares',
     'MV',
     'Chg',
-    'sdv/p',
-    'ddv/p',
+    # 'sdv/p',
+    # 'ddv/p',
     'Stock name',
   ]
   PrintTableMap(table_header, stat_records_map, truncate_float = False)
@@ -258,7 +273,7 @@ def RunStrategies():
   for name, strategy in STRATEGY_FUNCS.items():
     sys.stderr.write('Running strategy: %s\n'%(name))
     tip = strategy()
-    if tip != '': print bcolors.FAIL + 'ACTION!!! ' + tip + bcolors.ENDC + '\n'
+    if tip != '': print bcolors.FAIL + tip + bcolors.ENDC + '\n'
 
 def PrintStocks(names):
   tableMap = []
@@ -275,48 +290,144 @@ def PrintStocks(names):
   tableMap.sort(key = lambda recordMap: recordMap['p/book-value'] if 'p/book-value' in recordMap else 0)
   PrintTableMap(header, tableMap, float_precision = 3, header_transformer = lambda header: header.replace('book-value', 'bv'))
 
-try:
-  args = set(sys.argv[1:])
+def OutputVisual(all_records, tickers, path):
+  filename = '/tmp/visual-trades.html'
+  url = 'file://' + filename
+  template_file = path + '/visual-trades-temp.html' 
+  all_trades = {}
+  all_records.sort(key = lambda record: record['date'])
+  min_day_gap = 1
+  if '*' in tickers:
+    tickers = set([record['ticker'] for record in all_records])
+  for ticker in tickers:
+    prev_date = datetime.date(2000, 1, 1)
+    shares, invest = 0, 0.0
+    for record in all_records:
+      if record['ticker'] != ticker: continue
+      if record['name'] == '': continue
+      CODE_TO_NAME[ticker] = record['name']
+      currency = record['currency']
+      trans_date = record['date']
+      diff_days = (trans_date - prev_date).days
+      if diff_days < min_day_gap:
+        trans_date = prev_date + datetime.timedelta(days = min_day_gap)
+      prev_date = trans_date
+      shares += record['amount']
+      invest += record['commission'] + record['amount'] * record['price']
+      mv = shares * record['price']
+      if ticker not in all_trades: all_trades[ticker] = []
+      all_trades[ticker].append([
+        # 'new Date(%d, %d, %d)'%(trans_date.year, trans_date.month - 1, trans_date.day),
+        int(time.mktime(trans_date.timetuple())) * 1000,
+        record['price'],
+        ('+' if record['amount'] > 0 else '') + str(int(record['amount'])),
+        'shares: %d profit: %dK %s mv: %dK'%(shares, (mv - invest) / 1000, currency, mv / 1000),
+      ])
+      if len(all_trades[ticker]) > 1:
+        assert all_trades[ticker][-1][0] > all_trades[ticker][-2][0]
+        
+  content = ''
+  with open(template_file, 'r') as temp_file:
+    content = temp_file.read() 
+  content = content.replace('%TRADES%', ',\n'.join([
+    '"%s": %s'%(CODE_TO_NAME[key], str(value)) for key, value in all_trades.items()
+  ]))
+  with open(filename, 'w') as output_file:
+    output_file.write(content) 
+  return url
 
-  goback = filter(lambda arg: arg.find('goback=') == 0, args)
-  args = args - set(goback)
-  goback = -1 if len(goback) == 0 else int(goback[0].split('=')[1])
+def PrintProfitBreakDown():
+  tableMap = []
+  header = ['profit', 'name', ]
+  category_profit = collections.defaultdict(float)
+  for ticker in STOCK_INFO.keys():
+    if 'profit' not in STOCK_INFO[ticker]: continue
+    if ticker.find('@') >= 0 and ticker.find('-') >= 0:
+      mv = 0.0
+      if STOCK_INFO[ticker]['holding-shares'] > 0:
+        mv = STOCK_INFO[ticker]['holding-shares'] * GetMarketPrice(ticker)
+      code = ticker[0:ticker.find('-')]
+      STOCK_INFO[code]['profit'] = mv + STOCK_INFO[code].get('profit', 0.0) + STOCK_INFO[ticker]['profit']
 
-  prices = filter(lambda arg: arg.find('=') != -1, args)
-  args = args - set(prices)
+  for ticker in STOCK_INFO.keys():
+    if 'profit' not in STOCK_INFO[ticker]: continue
+    mv = 0.0
+    if STOCK_INFO[ticker].get('holding-shares', 0) > 0:
+      mv = STOCK_INFO[ticker]['holding-shares'] * GetMarketPrice(ticker)
+    tableMap += [{
+      'name': STOCK_INFO[ticker]['name'],
+      'profit': EX_RATE[GetCurrency(ticker) + '-' + CURRENCY] *(mv + STOCK_INFO[ticker]['profit']),
+    }]
+    if 'category' not in STOCK_INFO[ticker] and STOCK_INFO[ticker]['name'][-1] == 'A':
+      STOCK_INFO[ticker]['category'] = '分级A'
+    category_profit[STOCK_INFO[ticker].get('category', '')] += tableMap[-1]['profit']
+  tableMap.sort(key = lambda recordMap: abs(recordMap['profit']))
+  PrintTableMap(header, tableMap, float_precision = 0)
+  tableMap = [ {'name': k, 'profit': v} for k,v in category_profit.items() ]
+  tableMap.sort(key = lambda recordMap: abs(recordMap['profit']))
+  PrintTableMap(header, tableMap, float_precision = 0)
 
-  accounts = filter(lambda arg: arg.find('accounts:') == 0, args)
-  args = args - set(accounts)
-  if len(accounts) > 0:
-    accounts = set(accounts[0][len('accounts:'):].split(','))
+def main():
+  try:
+    args = set(sys.argv[1:])
+  
+    goback = filter(lambda arg: arg.find('goback=') == 0, args)
+    args = args - set(goback)
+    goback = -1 if len(goback) == 0 else int(goback[0].split('=')[1])
+  
+    profit = filter(lambda arg: arg.find('profit') == 0, args)
+    args = args - set(profit)
+    profit = len(profit) > 0
+  
+    prices = filter(lambda arg: arg.find('=') != -1, args)
+    args = args - set(prices)
+  
+    input_args = collections.defaultdict(set)
+    for name in ['accounts', 'tickers', 'names', 'visual']:
+      values = filter(lambda arg: arg.find(name + ':') == 0, args)
+      args = args - set(values)
+      if len(values) > 0:
+        input_args[name] = set(values[0][len(name + ':'):].split(','))
+    sys.stderr.write('input args: %s\n'%(str(input_args)))
+    accounts = input_args['accounts']
+    tickers = input_args['tickers']
+    visual = input_args['visual']
+    target_names = args
+  
+    if len(prices) > 0:
+      for pr in prices:
+        info = pr.split('=')
+        MARKET_PRICE_CACHE[info[0]] = (float(info[1]), 0, 0)
+      sys.stderr.write('market data cache = %s\n'%(str(MARKET_PRICE_CACHE)))
+  
+    InitAll()
+  
+    all_records = ReadRecords()
+    if len(visual) > 0:
+      print OutputVisual(all_records, visual, os.path.dirname(sys.argv[0]))
+      return
 
-  target_names = args
-  InitAll()
-  if goback <= 0:
     GetStockPool(GD_CLIENT)
 
-  if len(prices) > 0:
-    for pr in prices:
-      info = pr.split('=')
-      MARKET_PRICE_CACHE[NAME_TO_CODE[info[0]]] = (float(info[1]), 0, 0)
-    sys.stderr.write('market data cache = %s\n'%(str(MARKET_PRICE_CACHE)))
+  
+    ProcessRecords(all_records, input_args['accounts'], goback, input_args['tickers'], input_args['names'])
 
-  if goback <= 0:
-    PopulateMacroData()
-    GetFinancialData(GD_CLIENT) 
-    GetBankData(GD_CLIENT)
-    PopulateFinancialData()
+    if goback <= 0 and len(tickers) == 0:
+      PopulateMacroData()
+      PopulateFinancialData()
+  
+    PrintAccountInfo()
+    PrintHoldingSecurities()
 
-  ProcessRecords(ReadRecords(), accounts, goback)
-  PrintAccountInfo()
-  PrintHoldingSecurities()
+    if goback <= 0 and len(tickers) == 0:
+      if len(target_names) > 0:
+        names = ','.join(target_names).split(',')
+        PrintStocks(names)
+      if len(accounts) == 0:
+        RunStrategies()
+    if profit:
+       PrintProfitBreakDown()
+  except Exception as ins:
+    traceback.print_exc(file=sys.stderr)
 
-  if goback <= 0:
-    if len(target_names) > 0:
-      names = ','.join(target_names).split(',')
-      PrintStocks(names)
-    if len(accounts) == 0:
-      RunStrategies()
-except Exception as ins:
-  print 'Run time error: ', ins
-  traceback.print_exc(file=sys.stdout)
+main()

@@ -108,6 +108,10 @@ NAV_FUNC = {
 }
 
 def GetCurrency(code):
+  if code in STOCK_INFO:
+    return STOCK_INFO[code]['currency']
+  if code.find('@') != -1:
+    code = re.split('[-@]', code)[0]
   return STOCK_INFO[code]['currency'] if code in STOCK_INFO else 'unknown'
 
 def GetXueqiuUrlPrefix(code):
@@ -285,25 +289,15 @@ def GetMarketPriceInBase(code):
 #----------End of crawler util functions-----------------
 
 def InitExRate():
-  template_url = 'http://www.bloomberg.com/quote/%s%s:CUR'
+  target_url = 'http://www.ecb.europa.eu/stats/eurofxref/eurofxref-daily.xml'
+  rate = {}  
   for cur in CURRENCIES:
-    if CURRENCY == cur:
-      EX_RATE[CURRENCY + '-' + cur] = 1.0
-    else:
-      EX_RATE[CURRENCY + '-' + cur] = GetValueFromUrl(
-        template_url%(CURRENCY, cur),
-        ['<meta itemprop="exchange"',
-         '<meta itemprop="price" content="',],
-         '"',
-        float, throw_exp = True)
-  for pr in EX_RATE.keys():
-    currencies = pr.split('-')
-    assert(len(currencies) == 2)
-    EX_RATE[currencies[1] + '-' + currencies[0]] = 1.0 / EX_RATE[pr]
+    rate[cur] = GetValueFromUrl(target_url,
+                                ["<Cube currency='%s'"%(cur.upper()), "rate='"],
+                                "'", float, throw_exp = True)
   for a in CURRENCIES:
     for b in CURRENCIES:
-      EX_RATE[a + '-' + b] = EX_RATE[a + '-' + CURRENCY] * EX_RATE[CURRENCY + '-' + b]
-    EX_RATE[a + '-' + b] = 1.0
+      EX_RATE[a + '-' + b] = rate[b] / rate[a]
   sys.stderr.write('%s\n'%(str(EX_RATE)))
 
 def PopulateFinancialData():

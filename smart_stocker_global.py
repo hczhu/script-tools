@@ -166,13 +166,13 @@ ACCOUNT_INFO = {
     'investment': 0.0,
     'market-value': 0.0,
     'free-cash': 0.0,
-    'sma-discount': 0.0,
-    'sma': 0.0,
-    'sma-ratio': 0.0,
-    'min-sma-ratio': 0.0,
+    'margin-ratio': 1.0,
+    'margin-requirement': 0.0,
+    'cushion-rate': 0.0,
     'cash-flow': [],
     'dividend': 0,
     'interest-loss': 0,
+    'margin-interest': 0,
     'txn-fee': 0,
     'holding-shares': collections.defaultdict(int),
     'buying-power': 0,
@@ -187,13 +187,13 @@ ACCOUNT_INFO = {
     'investment': 0.0,
     'market-value': 0.0,
     'free-cash': 0.0,
-    'sma-discount': 0.8,
-    'sma': 0.0,
-    'sma-ratio': 0.0,
-    'min-sma-ratio': 0.2,
+    'margin-ratio': 0.7,
+    'margin-requirement': 0.0,
+    'cushion-ratio': 0.0,
     'cash-flow': [],
     'dividend': 0,
     'interest-loss': 0,
+    'margin-interest': 0,
     'txn-fee': 0,
     'holding-shares': collections.defaultdict(int),
     'buying-power': 0,
@@ -204,23 +204,23 @@ ACCOUNT_INFO = {
   'schwab': {
     'account': 'us-schwab',
     'currency': 'usd',
-    'support-currencies': ['usd'],
+    'support-currencies': ['usd', 'jpy', 'hkd'],
     'investment': 0.0,
     'market-value': 0.0,
     'free-cash': 0.0,
-    'sma-discount': 0.0,
-    'sma': 0.0,
-    'sma-ratio': 0.0,
-    'min-sma-ratio': 0.0,
+    'margin-ratio': 0.7,
+    'margin-requirement': 0.0,
+    'cushion-ratio': 0.0,
     'cash-flow': [],
     'dividend': 0,
     'interest-loss': 0,
+    'margin-interest': 0,
     'txn-fee': 0,
     'holding-shares': collections.defaultdict(int),
     'buying-power': 0,
     'holding-percent': collections.defaultdict(float),
-    'holding-percent-all': collections.defaultdict(float),
     'holding-value': collections.defaultdict(float),
+    'holding-percent-all': collections.defaultdict(float),
   },
 }
 
@@ -242,3 +242,9 @@ def myround(x, n):
   if n == 0:
     return int(x)
   return round(x, n)
+
+def MergeDictTo(a, b):
+  for k, v in a.items():
+    if k not in b:
+      b[k] = v
+  return b

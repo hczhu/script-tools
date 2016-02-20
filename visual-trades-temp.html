@@ -1,0 +1,90 @@
+<!--
+You are free to copy and use this sample in accordance with the terms of the
+Apache license (http://www.apache.org/licenses/LICENSE-2.0.html)
+-->
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
+    <title>
+      Visual Trades
+    </title>
+    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
+    <script type="text/javascript">
+      google.load('visualization', '1', {packages: ['corechart']});
+    </script>
+    <script type="text/javascript">
+      TRADES = {
+        %TRADES%
+      };
+      /* {
+            'A': [
+            ['2016-1-12', 12.1, '+555', null],
+          ],
+          'B': [
+            [2016-2-12, 4, '-155', null],
+          ],
+      }; */
+      function columnAggr(data, aggr, colId) {
+        ret = data.getValue(0, colId);
+        for (r = 0; r < data.getNumberOfRows(); ++r) {
+          ret = aggr(ret, data.getValue(r, colId));
+        }
+        return ret;
+      }
+      function drawVisualization() {
+          // Create and draw the visualization.
+          for (var stock in TRADES) {
+            var data = new google.visualization.DataTable();
+            // Create and populate the data table.
+            data.addColumn('date', 'Date'); // Implicit series 1 data col.
+            data.addColumn('number', stock); // Implicit domain label col.
+            data.addColumn({type:'string', role:'annotation'}); // annotation role col.
+            data.addColumn({type:'string', role:'annotationText'}); // annotationText col.
+            for (var idx in TRADES[stock]) {
+              if (idx > 0 && TRADES[stock][idx][0] < TRADES[stock][idx - 1][0]) {
+                throw "Dates not sorted for " + stock + ": " + TRADES[stock][idx][0] + " < " + TRADES[stock][idx - 1][0];
+              }
+            }
+            for (var idx in TRADES[stock]) {
+              TRADES[stock][idx][0] = new Date(TRADES[stock][idx][0]);
+              if (idx > 0 && TRADES[stock][idx][0] < TRADES[stock][idx - 1][0]) {
+                throw "Dates not sorted for " + stock + ": " + TRADES[stock][idx][0] + " < " + TRADES[stock][idx - 1][0];
+              }
+            }
+            data.addRows(TRADES[stock]);
+
+            var div = document.createElement("div");
+            document.body.appendChild(div);
+            document.body.appendChild(document.createElement('hr'));
+            new google.visualization.LineChart(div).draw(
+              data,
+              {
+               curveType: "function",
+               lineWidth: 2,
+               pointSize: 5,
+               legend: { position: 'bottom' },
+               hAxis: {
+                        maxAlternation: 1,
+                      },
+               vAxis: {
+                        minValue: columnAggr(data, Math.min, 1),
+                        maxValue: columnAggr(data, Math.max, 1),
+                        title: 'Price',
+                      },
+               explorer: {
+                           actions: ['dragToZoom', 'rightClickToReset'],
+                           axis: 'horizontal',
+                           keepInBounds: true,
+                           maxZoomIn: 0.001,
+                         }
+              });
+          }
+      }
+      google.setOnLoadCallback(drawVisualization);
+    </script>
+  </head>
+  <body style="font-family: Arial;border: 0 none;">
+  </body>
+</html>

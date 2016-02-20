@@ -4,7 +4,7 @@ import sys
 import datetime
 import time
 import collections
-import urllib2
+import urllib
 import traceback
 import copy
 import re

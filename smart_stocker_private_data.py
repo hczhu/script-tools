@@ -41,7 +41,7 @@ def GetFinancialValue(value_str):
     else:
       type_str = 'string'
       return value_str
-  except Exception, e:
+  except Exception as e:
     raise Exception('Failed to parse financial value [%s] by type [%s] with exception %s'%(value_str, type_str, str(e)))
 
 def LoginMyGoogle(google_account_filename):

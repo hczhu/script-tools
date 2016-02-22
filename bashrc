@@ -8,7 +8,7 @@ alias 'ls'='ls --color=auto'
 alias 'll'='ls -lh'
 alias cl='clear'
 alias 'grep'='grep --color'
-alias portfolio='cat ~/stock-txn/*csv | stock.py 2> /dev/null'
+alias portfolio='$HOME/mycode/script-tools/smart-stocker.py 2> /tmp/stock.log'
 
 # personal export
 export PATH=$PATH:$HOME/tools/
@@ -19,13 +19,14 @@ export HISTSIZE=100000                   # big big history
 export HISTFILESIZE=100000               # big big history
 shopt -s histappend                      # append to history, don't overwrite it
 # Save and reload the history after each command finishes
-export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
+export PROMPT_COMMAND="history -a; history -c; history -r;"
 
 # for tmux window titles.
 settitle() {
   title=$(basename $PWD)
   printf "\033k$title\033\\"
 }
+
 PROMPT_COMMAND="settitle; $PROMPT_COMMAND"
 
 set_git_branch() {
@@ -40,7 +41,8 @@ get_git_branch() {
   fi
 }
 
-PROMPT_COMMAND="set_git_branch; $PROMPT_COMMAND"
+# PROMPT_COMMAND="set_git_branch; $PROMPT_COMMAND"
+# PROMPT_COMMAND=""
 
 export PS1='[\u@\h \w$(get_git_branch)] '
 

@@ -3,7 +3,7 @@
 import sys
 import datetime
 import collections
-import urllib2
+import urllib
 import traceback
 import copy
 import re

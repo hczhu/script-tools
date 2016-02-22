@@ -4,7 +4,7 @@ import sys
 import datetime
 import time
 import collections
-import urllib2
+import urllib
 import traceback
 import copy
 import re
@@ -273,7 +273,7 @@ def RunStrategies():
   for name, strategy in STRATEGY_FUNCS.items():
     sys.stderr.write('Running strategy: %s\n'%(name))
     tip = strategy()
-    if tip != '': print bcolors.FAIL + tip + bcolors.ENDC + '\n'
+    if tip != '': print(tip + '\n')
 
 def PrintStocks(names):
   tableMap = []
@@ -404,7 +404,7 @@ def main():
   
     all_records = ReadRecords()
     if len(visual) > 0:
-      print OutputVisual(all_records, visual, os.path.dirname(sys.argv[0]))
+      print(OutputVisual(all_records, visual, os.path.dirname(sys.argv[0])))
       return
 
     GetStockPool(GD_CLIENT)

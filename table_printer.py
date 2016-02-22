@@ -26,7 +26,7 @@ def PrintTable(table_header, records, silent_column = [], truncate_float = True,
       col_len[i] = max(col_len[i], len(header_transformer(table_header[i])))
   line = PrintOneLine(map(header_transformer, table_header), col_len, silent_column)
   header = '+' + line[1:len(line) - 1] + '+'
-  print header
+  print(header)
   records.insert(0, map(header_transformer, table_header))
   first = True
   for cells in records:
@@ -37,9 +37,9 @@ def PrintTable(table_header, records, silent_column = [], truncate_float = True,
       if table_header[i] in silent_column: continue
       row += (' ' * (col_len[i] - len(str(cells[i])))) + str(cells[i]) + '|'
     if first: first = False
-    else: print line
-    print row
-  print header
+    else: print(line)
+    print(row)
+  print(header)
 
 # 'records_map' are an array of map.
 def PrintTableMap(table_header, records_map, silent_column = [], truncate_float = True, header_transformer = lambda name: name,

@@ -9,6 +9,7 @@ import traceback
 import copy
 import re
 import os.path
+import cgi
 
 from table_printer import *
 from smart_stocker_private_data import *

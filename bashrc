@@ -102,7 +102,5 @@ ShowThreadInfo() {
 # edit command line in bash by vi
 # set -o vi
 
-# Press up-arrow for previous matching command
-"\e[A":history-search-backward
-# # Press down-arrow for next matching command
-"\e[B":history-search-forward
+bind '"\e[A": history-search-backward'
+bind '"\e[B": history-search-forward'

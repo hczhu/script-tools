@@ -228,6 +228,8 @@ MIN_TXN_PERCENT = 0.0095
 
 CATEGORIZED_STOCKS = collections.defaultdict(list)
 
+WWW_ROOT = '/var/www'
+
 #----------Begining of global variables------------------
 
 def IsLambda(v):

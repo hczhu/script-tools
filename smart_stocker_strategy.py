@@ -431,7 +431,7 @@ def CategorizedStocks():
           buy_condition = lambda code: valuation < buy)
       if msg != '': cate_msg += [msg + ' due to valuation=%.3f'%(abs(valuation))]
     if len(cate_msg) > 0:
-      allMsg += ['\n'.join(['* ' + cate + ': ' + str(int(holding_percent * 100)) + '%'] + cate_msg)]
+      allMsg += ['\n'.join([cate + ': ' + str(int(holding_percent * 100)) + '%'] + cate_msg)]
   return '\n'.join(allMsg)
     
 STRATEGY_FUNCS = {

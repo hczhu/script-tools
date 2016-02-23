@@ -62,7 +62,7 @@ def PrintTableMapHtml(header, tableMap, float_precision = 0):
         header_row = header,
         col_align  = ['center'] * len(header),
         # attribs = {'border': '5'},
-        style='border: 2px solid black; border-collapse: collapse;'
+        style='border: 2px solid black;'
     )
 
 def CreateHtmlPageAndBody():
@@ -71,13 +71,13 @@ def CreateHtmlPageAndBody():
     body = page.body()
     return page, body
 
-def WriteToStaticHtmlFile(filename, content):
+def WriteToStaticHtmlFile(filename, content, anchor):
     link = 'smart-stocker/' + filename
     filename = WWW_ROOT + '/' + link
     with open(filename, 'w') as output_file:
         os.chmod(filename, 0o600)
         output_file.write(content) 
-    return HTML.link('Visual Trades', link)
+    return HTML.link(anchor, link)
 
 def InitAll():
     InitExRate()
@@ -364,7 +364,7 @@ def OutputVisual(all_records, tickers, path):
     content = content.replace('%TRADES%', ',\n'.join([
         '"%s": %s'%(CODE_TO_NAME[key], str(value)) for key, value in all_trades.items()
     ]))
-    return WriteToStaticHtmlFile('charts.html', content)
+    return WriteToStaticHtmlFile('charts.html', content, 'Visual trades')
 
 def PrintProfitBreakDown():
     tableMap = []
@@ -391,12 +391,17 @@ def PrintProfitBreakDown():
         if 'category' not in STOCK_INFO[ticker] and STOCK_INFO[ticker]['name'][-1] == 'A':
             STOCK_INFO[ticker]['category'] = '分级A'
         category_profit[STOCK_INFO[ticker].get('category', '')] += tableMap[-1]['profit']
-    tableMap.sort(key = lambda recordMap: abs(recordMap['profit']))
-    tableMap = [ {'name': k, 'profit': v} for k,v in category_profit.items() ]
-    tableMap.sort(key = lambda recordMap: abs(recordMap['profit']))
+
     page, body = CreateHtmlPageAndBody()
-    body.text(PrintTableMapHtml(header, tableMap, float_precision = 0), escape=False)
-    return WriteToStaticHtmlFile('profit.html', str(page))
+
+    tableMap.sort(key = lambda recordMap: abs(recordMap['profit']))
+
+    catTableMap = [ {'name': k, 'profit': v} for k,v in category_profit.items() ]
+    catTableMap.sort(key = lambda recordMap: abs(recordMap['profit']))
+
+    body.p(PrintTableMapHtml(header, catTableMap, float_precision = 0), escape=False)
+    body.p(PrintTableMapHtml(header, tableMap, float_precision = 0), escape=False)
+    return WriteToStaticHtmlFile('profit.html', str(page), 'Profit breakdown')
 
 def PopParam(params, name, trans = str, default = str()):
     if name in params:

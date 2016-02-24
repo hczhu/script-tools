@@ -394,10 +394,10 @@ def PrintProfitBreakDown():
 
     page, body = CreateHtmlPageAndBody()
 
-    tableMap.sort(key = lambda recordMap: abs(recordMap['profit']))
+    tableMap.sort(reverse = True, key = lambda recordMap: abs(recordMap['profit']))
 
     catTableMap = [ {'name': k, 'profit': v} for k,v in category_profit.items() ]
-    catTableMap.sort(key = lambda recordMap: abs(recordMap['profit']))
+    catTableMap.sort(reverse = True, key = lambda recordMap: abs(recordMap['profit']))
 
     body.p(PrintTableMapHtml(header, catTableMap, float_precision = 0), escape=False)
     body.p(PrintTableMapHtml(header, tableMap, float_precision = 0), escape=False)
@@ -444,7 +444,7 @@ def main():
     
         body.p(PrintAccountInfo(), escape=False)
         body.p(PrintHoldingSecurities(), escape=False)
-        body.p(RunStrategies(), escape=False)
+        body.p().prev(RunStrategies(), escape=False)
         body.p(PrintProfitBreakDown(), escape=False)
         body.p(OutputVisual(all_records, input_args['visual'], os.path.dirname(sys.argv[0])), escape=False)
 

@@ -306,7 +306,7 @@ def RunStrategies():
         sys.stderr.write('Running strategy: %s\n'%(name))
         tip = strategy()
         if tip != '':
-            tipList.append('<prev>\n' + tip + '\n</prev>')
+            tipList.append('<pre>\n' + tip + '\n</pre>')
     return HTML.list(tipList)
 
 def PrintStocks(names):

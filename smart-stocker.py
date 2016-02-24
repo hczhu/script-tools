@@ -306,7 +306,7 @@ def RunStrategies():
         sys.stderr.write('Running strategy: %s\n'%(name))
         tip = strategy()
         if tip != '':
-            tipList.append(tip.replace('\n', '<br>'))
+            tipList.append('<prev>\n' + tip + '\n</prev>')
     return HTML.list(tipList)
 
 def PrintStocks(names):
@@ -444,7 +444,7 @@ def main():
     
         body.p(PrintAccountInfo(), escape=False)
         body.p(PrintHoldingSecurities(), escape=False)
-        body.p().prev(RunStrategies(), escape=False)
+        body.p(RunStrategies(), escape=False)
         body.p(PrintProfitBreakDown(), escape=False)
         body.p(OutputVisual(all_records, input_args['visual'], os.path.dirname(sys.argv[0])), escape=False)
 

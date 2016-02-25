@@ -388,9 +388,12 @@ def PrintProfitBreakDown():
             'name': STOCK_INFO[ticker]['name'],
             'profit': EX_RATE[GetCurrency(ticker) + '-' + CURRENCY] *(mv + STOCK_INFO[ticker]['profit']),
         }]
-        if 'category' not in STOCK_INFO[ticker] and STOCK_INFO[ticker]['name'][-1] == 'A':
-            STOCK_INFO[ticker]['category'] = '分级A'
-        category_profit[STOCK_INFO[ticker].get('category', STOCK_INFO[ticker]['name'])] += tableMap[-1]['profit']
+        if 'category' not in STOCK_INFO[ticker]:
+            for k, v in REGEX_TO_CATE:
+                if re.match(k, STOCK_INFO['ticker']['name']) is not None:
+                    STOCK_INFO[ticker]['category'] = v
+                    break
+        category_profit[STOCK_INFO[ticker].get('category', 'uncategorized')] += tableMap[-1]['profit']
 
     page, body = CreateHtmlPageAndBody()
 

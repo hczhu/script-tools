@@ -10,75 +10,6 @@ import traceback
 import copy
 import re
 
-#----------------------Template-----------------------------
-
-HTML_TEMPLATE = """
-<!--
-You are free to copy and use this sample in accordance with the terms of the
-Apache license (http://www.apache.org/licenses/LICENSE-2.0.html)
--->
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-    <title>
-      Google Visualization API Sample
-    </title>
-    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-    <script type="text/javascript">
-      google.load('visualization', '1', {packages: ['corechart']});
-    </script>
-    <script type="text/javascript">
-      function drawVisualization() {
-        %s
-      }
-      google.setOnLoadCallback(drawVisualization);
-    </script>
-  </head>
-  <body style="font-family: Arial;border: 0 none;">
-    %s
-  </body>
-</html>
-"""
-
-FUNCTION_TEMPLATE = """
-        {
-          // Create and populate the data table.
-          var data = new google.visualization.DataTable();
-          data.addColumn('date', 'Date'); // Implicit series 1 data col.
-          data.addColumn('number', '%s'); // Implicit domain label col.
-          data.addColumn({type:'string', role:'annotation'}); // annotation role col.
-          data.addColumn({type:'string', role:'annotationText'}); // annotationText col.
-          data.addRows([
-              %s
-              ]); 
-          // Create and draw the visualization.
-          new google.visualization.LineChart(document.getElementById('%s')).draw(
-              data,
-              {
-               curveType: "function",
-               lineWidth: 2,
-               pointSize: 5,
-               legend: { position: 'bottom' },
-               vAxis: {
-                        minValue: %f,
-                        maxValue: %f,
-                        title: 'Price(%s)',
-                      },
-               explorer: {
-                           actions: 'dragToZoom',
-                           axis: 'horizontal',
-                         }
-              });
-      }
-"""
-
-DIV_TEMPLATE = """
-<div id="%s" style="width: 90%%, height: 600px;"></div>
-
-"""
-
 # -------------- End of template --------------------------
 
 EX_RATE = {
@@ -229,6 +160,10 @@ MIN_TXN_PERCENT = 0.0095
 CATEGORIZED_STOCKS = collections.defaultdict(list)
 
 WWW_ROOT = '/var/www'
+
+REGEX_TO_CATE = {
+  '.+A$': '分级A',
+}
 
 #----------Begining of global variables------------------
 

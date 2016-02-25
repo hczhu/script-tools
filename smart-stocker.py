@@ -389,7 +389,7 @@ def PrintProfitBreakDown():
             'profit': EX_RATE[GetCurrency(ticker) + '-' + CURRENCY] *(mv + STOCK_INFO[ticker]['profit']),
         }]
         if 'category' not in STOCK_INFO[ticker]:
-            for k, v in REGEX_TO_CATE:
+            for k, v in REGEX_TO_CATE.items():
                 if re.match(k, STOCK_INFO['ticker']['name']) is not None:
                     STOCK_INFO[ticker]['category'] = v
                     break
@@ -403,7 +403,7 @@ def PrintProfitBreakDown():
     catTableMap.sort(reverse = True, key = lambda recordMap: abs(recordMap['profit']))
 
     body.p(PrintTableMapHtml(header, catTableMap, float_precision = 0), escape=False)
-    body.p(PrintTableMapHtml(header, tableMap, float_precision = 0), escape=False)
+    # body.p(PrintTableMapHtml(header, tableMap, float_precision = 0), escape=False)
     return WriteToStaticHtmlFile('profit.html', str(page), 'Profit breakdown')
 
 def PopParam(params, name, trans = str, default = str()):

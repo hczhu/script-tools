@@ -390,7 +390,7 @@ def PrintProfitBreakDown():
         }]
         if 'category' not in STOCK_INFO[ticker] and STOCK_INFO[ticker]['name'][-1] == 'A':
             STOCK_INFO[ticker]['category'] = '分级A'
-        category_profit[STOCK_INFO[ticker].get('category', '')] += tableMap[-1]['profit']
+        category_profit[STOCK_INFO[ticker].get('category', STOCK_INFO[ticker]['name'])] += tableMap[-1]['profit']
 
     page, body = CreateHtmlPageAndBody()
 

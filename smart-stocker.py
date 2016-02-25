@@ -370,6 +370,7 @@ def PrintProfitBreakDown():
     tableMap = []
     header = ['profit', 'name', ]
     category_profit = collections.defaultdict(float)
+    # Add option profit to its share.
     for ticker in STOCK_INFO.keys():
         if 'profit' not in STOCK_INFO[ticker]: continue
         if ticker.find('@') >= 0 and ticker.find('-') >= 0:
@@ -381,6 +382,7 @@ def PrintProfitBreakDown():
 
     for ticker in STOCK_INFO.keys():
         if 'profit' not in STOCK_INFO[ticker]: continue
+        if ticker.find('@') >= 0 and ticker.find('-') >= 0: continue
         mv = 0.0
         if STOCK_INFO[ticker].get('holding-shares', 0) > 0:
             mv = STOCK_INFO[ticker]['holding-shares'] * GetMarketPrice(ticker)
@@ -390,7 +392,7 @@ def PrintProfitBreakDown():
         }]
         if 'category' not in STOCK_INFO[ticker]:
             for k, v in REGEX_TO_CATE.items():
-                if re.match(k, STOCK_INFO['ticker']['name']) is not None:
+                if re.match(k, STOCK_INFO[ticker]['name']) is not None:
                     STOCK_INFO[ticker]['category'] = v
                     break
         category_profit[STOCK_INFO[ticker].get('category', 'uncategorized')] += tableMap[-1]['profit']

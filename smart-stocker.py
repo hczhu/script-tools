@@ -18,6 +18,7 @@ from smart_stocker_global import *
 from smart_stocker_strategy import *
 import HTML
 import html
+import logging
 
 #--------------Beginning of logic util functions---------------
 class bcolors:
@@ -79,17 +80,21 @@ def WriteToStaticHtmlFile(filename, content, anchor):
         output_file.write(content) 
     return HTML.link(anchor, link)
 
+def InitLogger():
+    FORMAT = '%(asctime)s %(filename)s:%(lineno)s %(levelname)s:%(message)s'
+    logging.basicConfig(format=FORMAT, stream = sys.stderr, level=logging.INFO)
+    logging.info('Got a logger.')
+
 def InitAll():
     InitExRate()
-    
     home = os.path.expanduser("~")
     global GD_CLIENT
     GD_CLIENT = LoginMyGoogleWithFiles()
 
 def ReadRecords():
-    sys.stderr.write('Reading trade records...\n')
+    logging.info('Reading trade records...\n')
     records = GetTransectionRecords(GD_CLIENT)
-    sys.stderr.write('Finished reading trade records.\n')
+    logging.info('Finished reading trade records.\n')
     for record in records:
         date_str = record['date']
         record['date'] = datetime.date(int(date_str[0:4]), int(date_str[4:6]), int(date_str[6:8]))
@@ -109,7 +114,7 @@ def ReadRecords():
 def ProcessRecords(all_records, accounts = set([]), goback = 0, tickers = set([]), name_patterns = set([])):
     all_records.sort(key = lambda record: record['date'])
     cutoff_date = datetime.date.today() - (datetime.timedelta(days = goback))
-    sys.stderr.write('cut off date = %s\n'%(str(cutoff_date)))
+    logging.info('cut off date = %s\n'%(str(cutoff_date)))
     is_interested = lambda ticker, name: ticker in tickers or any([name.find(name_pattern) >= 0 for name_pattern in name_patterns]) or \
                                         ticker == 'investment' or (len(tickers) == 0 and len(name_patterns) == 0)
     for record in all_records:
@@ -125,7 +130,7 @@ def ProcessRecords(all_records, accounts = set([]), goback = 0, tickers = set([]
         name = record['name']
         if not is_interested(ticker, name): continue
         currency = record['currency'].lower()
-        # sys.stderr.write('record: %s\n'%(str(record)))
+        # logging.info('record: %s\n'%(str(record)))
         if goback > 0 and name != '':
             STOCK_INFO[ticker]['currency'] = currency
             STOCK_INFO[ticker]['name'] = name
@@ -233,7 +238,7 @@ def PrintAccountInfo():
         for ticker, value in account_info['holding-value'].items():
             account_info['holding-percent'][ticker] = value / max(1, account_info['net'])
             account_info['holding-percent-all'][ticker] = ex_rate * value / max(1, ACCOUNT_INFO['ALL']['net'])
-        sys.stderr.write('%s\n'%(str(account_info)))
+        logging.info('%s\n'%(str(account_info)))
 
     return PrintTableMapHtml(header, records)
       
@@ -255,7 +260,7 @@ def PrintHoldingSecurities():
         chg = GetMarketPriceChange(ticker)
         currency = GetCurrency(ticker)
         name = STOCK_INFO[ticker]['name']
-        sys.stderr.write('Collecting info for %s(%s)\n'%(ticker, name))
+        logging.info('Collecting info for %s(%s)\n'%(ticker, name))
         record = {
                 'Percent': holding_percent[ticker],
                 'Shares': shares,
@@ -303,7 +308,7 @@ def PrintHoldingSecurities():
 def RunStrategies():
     tipList = []  
     for name, strategy in STRATEGY_FUNCS.items():
-        sys.stderr.write('Running strategy: %s\n'%(name))
+        logging.info('Running strategy: %s\n'%(name))
         tip = strategy()
         if tip != '':
             tipList.append('<pre>\n' + tip + '\n</pre>')
@@ -329,15 +334,17 @@ def OutputVisual(all_records, tickers, path):
     all_trades = {}
     all_records.sort(key = lambda record: record['date'])
     min_day_gap = 1
+    transformer = lambda ticker: ticker if ticker.find('@') == -1 else ticker[0:ticker.find('@')]
     if '*' in tickers:
-        tickers = set([record['ticker'] for record in all_records])
+        tickers = set([transformer(record['ticker']) for record in all_records])
     for ticker in tickers:
         prev_date = datetime.date(2000, 1, 1)
         shares, invest = 0, 0.0
         for record in all_records:
-            if record['ticker'] != ticker: continue
+            if transformer(record['ticker']) != ticker: continue
             if record['name'] == '': continue
             CODE_TO_NAME[ticker] = record['name']
+            ticker = transformer(ticker)
             currency = record['currency']
             trans_date = record['date']
             diff_days = (trans_date - prev_date).days
@@ -418,6 +425,7 @@ def PopParam(params, name, trans = str, default = str()):
 def main():
     page, body = CreateHtmlPageAndBody()
     try:
+        InitLogger()
         input_params = cgi.FieldStorage()
         input_params = {k: input_params.getfirst(k) for k in input_params.keys() }
     
@@ -429,15 +437,15 @@ def main():
             if value != '':
                 input_args[key] = set(value.split(','))
 
-        sys.stderr.write('input args: %s\n'%(str(input_args)))
+        logging.info('input args: %s\n'%(str(input_args)))
     
         for ticker, price in input_params.items():
             price = float(price)
             MARKET_PRICE_CACHE[ticker] = (price, 0, 0)
-        sys.stderr.write('market data cache = %s\n'%(str(MARKET_PRICE_CACHE)))
-    
+        logging.info('market data cache = %s\n'%(str(MARKET_PRICE_CACHE)))
+
         InitAll()
-    
+     
         all_records = ReadRecords()
 
         GetStockPool(GD_CLIENT)

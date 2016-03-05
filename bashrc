@@ -8,7 +8,7 @@ alias 'ls'='ls --color=auto'
 alias 'll'='ls -lh'
 alias cl='clear'
 alias 'grep'='grep --color'
-alias portfolio='$HOME/mycode/script-tools/smart-stocker.py 2> /tmp/stock.log'
+alias portfolio='$HOME/mycode/script-tools/smart-stocker/smart-stocker.py 2> /tmp/stock.log'
 
 # personal export
 export PATH=$PATH:$HOME/tools/

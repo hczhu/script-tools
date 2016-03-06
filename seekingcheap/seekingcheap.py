@@ -33,6 +33,8 @@ def main():
     input_params = {k: input_params.getfirst(k) for k in input_params.keys() }
     logging.info('Got params: %s'%(str(input_params)))
     sys.stdout.write(validate(input_params))
+    logging.info(input_params.value)
+    # print('haha')
     
 if __name__ == "__main__":
     main()

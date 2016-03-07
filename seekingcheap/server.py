@@ -16,6 +16,7 @@ import dateutil.parser
 from logging.handlers import TimedRotatingFileHandler
 
 LOGGER = None
+WORKING_DIR = os.path.expanduser("~") + '/seekingcheap'
 
 def CrawlUrl(url, encoding = ''):
     try:
@@ -31,7 +32,7 @@ def CrawlUrl(url, encoding = ''):
         return ''
 
 def InitLogger(path):
-    FORMAT = '%(asctime)s %(filename)s:%(lineno)s %(levelname)s:%(message)s'
+    FORMAT = '%(asctime)s %(filename)s:%(lineno)s %(levelname)s: %(message)s'
     # logging.basicConfig(format=FORMAT, stream=None)
     # logging.info('Got a logger.')
     global LOGGER
@@ -61,13 +62,13 @@ class TokenRefresher(object):
         thread.daemon = True                            # Daemonize thread
         thread.start()                                  # Start the execution
 
-
     def Refresh(self):
         while True:
             try:
                 refreshed_tokens = []
                 for token in self.tokens.values():
-                    if 'access_token' not in token or 'expires_in' not in token:
+                    if 'access_token' in token and 'expires_in' in token and \
+                            dateutil.parser.parse(token['expires_in']) < datetime.datetime.now():
                         ret = CrawlUrl(self.url_temp%(token['appID'], token['appsecret']))
                         LOGGER.info('Got response: %s'%(ret))
                         ret = json.loads(ret)
@@ -94,8 +95,11 @@ class TokenRefresher(object):
 
     def run(self):
         while True:
-            time.sleep((min([dateutil.parser.parse(token['expires_in']) for token in self.tokens.values()])
-                    - datetime.datetime.now()).total_seconds())
+            soonest_time = min([dateutil.parser.parse(token['expires_in']) for token in self.tokens.values()])
+            kMinGatInSeconds = 10
+            sleep_seconds = max(kMinGatInSeconds, (soonest_time - datetime.datetime.now()).total_seconds() + kMinGatInSeconds)
+            LOGGER.info('Soonest time: %s and will sleep %f seconds.'%(soonest_time.isoformat(), sleep_seconds))
+            time.sleep(sleep_seconds)
             self.Refresh()
 
 class SeekingcheapHandler(SocketServer.BaseRequestHandler):
@@ -110,20 +114,44 @@ class SeekingcheapHandler(SocketServer.BaseRequestHandler):
     def handle(self):
         # self.request is the TCP socket connected to the client
         self.data = self.request.recv(1024).strip()
-        print "{} wrote:".format(self.client_address[0])
-        print self.data
+        # print "{} wrote:".format(self.client_address[0])
+        # print self.data
         LOGGER.info('Got data from http: %s'%(str(self.data)))
         # just send back the same data, but upper-cased
         self.request.sendall(self.data.upper())
 
-if __name__ == "__main__":
-    InitLogger(os.path.expanduser("~") + '/seekingcheap/server.log')
-    HOST, PORT = "localhost", 9527
+def RunServer(port=9527):
+    InitLogger(os.path.join(WORKING_DIR, 'logs/server.log'))
+    HOST = "localhost"
 
     tokenRefresher = TokenRefresher(os.path.expanduser("~") + '/seekingcheap/tokens.json')
     # Create the server, binding to localhost on port 9999
-    server = SocketServer.TCPServer((HOST, PORT), SeekingcheapHandler)
+    server = SocketServer.TCPServer((HOST, port), SeekingcheapHandler)
 
     # Activate the server; this will keep running until you
     # interrupt the program with Ctrl-C
     server.serve_forever()
+
+def SetupDeamon(output_file):
+    # decouple from parent environment
+    os.chdir("/") 
+    os.setsid() 
+    os.umask(0) 
+    out_log = file(output_file, 'a+')
+    err_log = file(output_file, 'a+', 0)
+    dev_null = file('/dev/null', 'r')
+    os.dup2(out_log.fileno(), sys.stdout.fileno())
+    os.dup2(err_log.fileno(), sys.stderr.fileno())
+    os.dup2(dev_null.fileno(), sys.stdin.fileno())
+
+if __name__ == "__main__":
+    fpid = os.fork()
+    if fpid == 0:
+        print 'Running child process...'
+        SetupDeamon(os.path.join(WORKING_DIR, 'logs/deamon.log'))
+        print 'Finisehd setting up deasom.'
+        # Running as daemon now. PID is fpid
+        RunServer()
+    else:
+        with open(os.path.join(WORKING_DIR, 'server.pid'), 'w') as pid_file:
+            pid_file.write(str(fpid))

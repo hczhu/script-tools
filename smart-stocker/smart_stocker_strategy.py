@@ -115,7 +115,7 @@ def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_co
              ' due to valuation ratio = %.3f'%(valuation_ratio)
   return ''
 
-def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True, buy_condition = lambda code: True):
+def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True, buy_condition = lambda code: True, fixed_percent = False):
   delta = MIN_TXN_PERCENT
   code = NAME_TO_CODE[name]
   currency = STOCK_INFO[code]['currency']
@@ -123,7 +123,7 @@ def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True
   holding_percent = ACCOUNT_INFO['ALL']['holding-percent-all'][code]
   if holding_percent > 0 and not hold_condition(code):
     return GiveTip('Clear', code, holding_percent * ACCOUNT_INFO['ALL']['net'] * EX_RATE[CURRENCY + '-' + currency])
-  if holding_percent - percent > delta and not buy_condition(code):
+  if holding_percent - percent > delta and not buy_condition(code) and fixed_percent:
     return GiveTip('Sell %d%% of '%(100 * (holding_percent - percent)), code,
         (holding_percent - percent) * ACCOUNT_INFO['ALL']['net'] * EX_RATE[CURRENCY + '-' + currency])
   cash, op = GetCashAndOp(ACCOUNT_INFO.keys(), currency, percent - holding_percent, backup)
@@ -424,12 +424,13 @@ def CategorizedStocks():
       if not is_numeric_value(valuation_key): continue
       valuation = finance[valuation_key]
       logging.info('Processing %s(%s): %s\n'%(CODE_TO_NAME[code], code, str(finance)))
-      if len(filter(is_numeric_value, ['hold', 'buy', 'max-percent'])) < 3: continue
+      if len(filter(is_numeric_value, ['buy', 'max-percent'])) < 3: continue
       hold, buy, percent = finance['hold'], finance['buy'], finance['max-percent']
       if hold < buy: hold, buy, valuation = -hold, -buy, -valuation
       msg = KeepPercentIf(CODE_TO_NAME[code], percent,
           hold_condition = lambda code: valuation < hold,
-          buy_condition = lambda code: valuation < buy)
+          buy_condition = lambda code: valuation < buy,
+          fixed_percent = 'y' == finance.get('fixed', ''))
       if msg != '': cate_msg += [msg + ' due to valuation=%.3f'%(abs(valuation))]
     if len(cate_msg) > 0:
       allMsg += ['\n'.join([cate + ': ' + str(int(holding_percent * 100)) + '%'] + cate_msg)]

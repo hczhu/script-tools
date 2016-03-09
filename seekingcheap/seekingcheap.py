@@ -28,12 +28,14 @@ def validate(input_params):
 
 def main():
     InitLogger()
+    logging.info('Got cgi: %s'%(str(cgi)))
     input_params = cgi.FieldStorage()
     logging.info('Got params: %s'%(str(input_params)))
-    input_params = {k: input_params.getfirst(k) for k in input_params.keys() }
+    # input_params = {k: input_params.getfirst(k) for k in input_params.keys() }
     logging.info('Got params: %s'%(str(input_params)))
-    sys.stdout.write(validate(input_params))
-    logging.info(input_params.value)
+    # logging.info('echostr: %s'%(input_params.getValue('echostr')))
+    # sys.stdout.write(validate(input_params))
+    # logging.info(input_params.value)
     # print('haha')
     
 if __name__ == "__main__":

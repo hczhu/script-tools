@@ -60,7 +60,7 @@ def ParsePostData(post_data):
 def HandleMessage(form):
     assert form['MsgType'] == 'text'
     clt = client.SeekingcheapClient(logging)
-    stocks_info = clt.GetStockRealtimeInfo([form['Content'].lower()])
+    stocks_info = clt.GetStockRealtimeInfo([form['Content'].strip().lower()])
     response = []
     for _, info in stocks_info.items():
         response.append('%s: %.2f %.1f%%'%(info['name'], info['price'], info['change']))

@@ -10,6 +10,7 @@ import time
 import threading
 import SocketServer
 import json
+import re
 import logging
 import urllib2
 import dateutil.parser
@@ -17,6 +18,7 @@ from logging.handlers import TimedRotatingFileHandler
 
 LOGGER = None
 WORKING_DIR = os.path.expanduser("~") + '/seekingcheap'
+ENDING_STR = '##$$##$$##'
 
 def CrawlUrl(url, encoding = ''):
     try:
@@ -24,7 +26,8 @@ def CrawlUrl(url, encoding = ''):
         request = urllib2.Request(url)
         content = urllib2.urlopen(request).read()
         if encoding != '':
-          content = decode(encoding).encode('utf-8')
+          content = content.decode(encoding).encode('utf-8')
+        LOGGER.info('Crawled content: %s'%(content))
         return content
     except Exception, e:
         LOGGER.info('Exception ' + str(e) +'\n')
@@ -47,13 +50,53 @@ def InitLogger(path):
     LOGGER.info('Got a logger.')
     assert LOGGER is not None
 
+def Recv(obj):
+    data = ''
+    while True:
+        piece = obj.recv(64)
+        if piece == '': break
+        data += piece
+        if data.find(ENDING_STR) != -1:
+            assert data.find(ENDING_STR) + len(ENDING_STR) == len(data)
+            data = data[0:-len(ENDING_STR)]
+            break
+    return data
+
+def GetStockRealtimeInfo(ticker):
+    prefixes = [
+        'sz',
+        'sh',
+        'hk',
+        'gb_',
+    ]
+    url_prefix = 'http://hq.sinajs.cn/list='
+    url = url_prefix + ','.join([prefix + ticker for prefix in prefixes])
+    content = CrawlUrl(url, encoding = 'gbk')
+    pat = re.compile('hq_str_([^=]+)' + ticker + '="([^"]+)";')
+    mt = pat.search(content)
+    price, change, name = 0, 0, ''
+    if mt is None:
+        return {'price': price, 'change': change, 'name': name}
+    market = mt.groups()[0]
+    values = mt.groups()[1].split(',')
+    if 'gb_' == market:
+        price, change, name = float(values[1]), round(float(values[2]), 1), values[0]
+    elif 'hk' == market:
+        price, change, name = float(values[6]), round(float(values[8]), 1), values[1]
+    else:
+        price = float(values[3])
+        prev_price = float(values[2])
+        change = round(100.0 * (price - prev_price) / prev_price, 1)
+        name = values[1]
+    return {'price': price, 'change': change, 'name': name}
+
 class TokenRefresher(object):
     url_temp = 'https://api.weixin.qq.com/cgi-bin/token?grant_type=client_credential&appid=%s&secret=%s'
     def __init__(self, token_file_path):
         self.token_file = token_file_path
         with open(token_file_path, 'r') as token_file:
             content = token_file.read()
-            LOGGER.info('Read token file contnet: %s'%(content))
+            LOGGER.info('Read token file content: %s'%(content))
             self.tokens = json.loads(content)
         self.tokens = {token['appID'] : token for token in self.tokens}
         LOGGER.info('Got tokens: %s'%(str(self.tokens)))
@@ -102,7 +145,16 @@ class TokenRefresher(object):
             time.sleep(sleep_seconds)
             self.Refresh()
 
-class SeekingcheapHandler(SocketServer.BaseRequestHandler):
+class StockPriceRefresher(object):
+    def __init__(self, price_file_dir):
+        pass
+    def GetStockPrices(self, tickers):
+        res = {}
+        for ticker in tickers:
+            res[ticker] = GetStockRealtimeInfo(ticker)
+        return json.dumps(res)
+
+class SeekingcheapHandler(SocketServer.StreamRequestHandler):
     """
     The request handler class for our server.
 
@@ -110,23 +162,55 @@ class SeekingcheapHandler(SocketServer.BaseRequestHandler):
     override the handle() method to implement communication to the
     client.
     """
+    def __init__(self, request, client_address, server):
+        LOGGER.info('Got request from %s: %s'%(str(client_address), str(request)))
+        self.tokenRefresher = server.tokenRefresher
+        self.stockPriceRefresher = server.stockPriceRefresher
+        self.nameToFunc = {
+            'GetAccessToken': lambda json_data: json.dumps({
+                'access_token': self.tokenRefresher.GetToken(json_data['appID'])
+            }),
+            'StockPrices': lambda json_data: self.stockPriceRefresher.GetStockPrices(
+                    json_data['tickers']),
+        }
+        LOGGER.info('nameToFunc: %s'%(str(self.nameToFunc)))
+        SocketServer.BaseRequestHandler.__init__(self, request, client_address, server)
+        return
 
     def handle(self):
-        # self.request is the TCP socket connected to the client
-        self.data = self.request.recv(1024).strip()
-        # print "{} wrote:".format(self.client_address[0])
-        # print self.data
-        LOGGER.info('Got data from http: %s'%(str(self.data)))
-        # just send back the same data, but upper-cased
-        self.request.sendall(self.data.upper())
+        while True:
+            # self.request is the TCP socket connected to the client
+            json_data = Recv(self.request)
+            if json_data == '': break
+            # print "{} wrote:".format(self.client_address[0])
+            # print self.data
+            LOGGER.info('Got data from socket: %s'%(json_data))
+            json_data = json.loads(json_data)
+            res = ''
+            if 'function' in json_data and json_data['function'] in self.nameToFunc:
+                res = self.nameToFunc[json_data['function']](json_data)
+            else:
+                LOGGER.error('Unknow function name: %s'%(json_data.get('function', '')))
+            LOGGER.info('Sending data: %s'%(res))
+            self.request.sendall(res + ENDING_STR)
+
+class SeekingcheapServer(SocketServer.ThreadingTCPServer):
+    def __init__(self, server_address, RequestHandlerClass, tokenRefresher, stockPriceRefresher):
+        SocketServer.ThreadingTCPServer.__init__(self, 
+                                                 server_address, 
+                                                 RequestHandlerClass)
+        self.tokenRefresher = tokenRefresher
+        self.stockPriceRefresher = stockPriceRefresher
 
 def RunServer(port=9527):
     InitLogger(os.path.join(WORKING_DIR, 'logs/server.log'))
     HOST = "localhost"
 
-    tokenRefresher = TokenRefresher(os.path.expanduser("~") + '/seekingcheap/tokens.json')
-    # Create the server, binding to localhost on port 9999
-    server = SocketServer.TCPServer((HOST, port), SeekingcheapHandler)
+    tokenRefresher = TokenRefresher(os.path.join(os.path.expanduser("~"), 'seekingcheap/tokens.json'))
+
+    stockPriceRefresher = StockPriceRefresher(os.path.join(os.path.expanduser("~"), 'stock-price'))
+
+    server = SeekingcheapServer((HOST, port), SeekingcheapHandler, tokenRefresher, stockPriceRefresher)
 
     # Activate the server; this will keep running until you
     # interrupt the program with Ctrl-C

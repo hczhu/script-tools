@@ -3,29 +3,55 @@
 
 import socket
 import sys
+import json
+import logging
+from server import ENDING_STR
+from server import Recv
 
-# Create a TCP/IP socket
-sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+class SeekingcheapClient():
+    def __init__(self, logger):
+        self.logger = logger
+        # Create a TCP/IP socket
+        self.sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        # Connect the socket to the port where the server is listening
+        server_address = ('localhost', 9527)
+        logger.info('connecting to %s port %s' % server_address)
+        self.sock.connect(server_address)
 
-# Connect the socket to the port where the server is listening
-server_address = ('localhost', 9527)
-print >>sys.stderr, 'connecting to %s port %s' % server_address
-sock.connect(server_address)
-try:
-    # Send data
-    message = 'This is the message.  It will be repeated.'
-    print >>sys.stderr, 'sending "%s"' % message
-    sock.sendall(message)
+    def SendAndRecv(self, json_data):
+        try:
+            self.logger.info('Sending data: %s'%(json.dumps(json_data)))
+            self.sock.sendall(json.dumps(json_data) + ENDING_STR)
+            all_data = Recv(self.sock)
+            self.logger.info('Received data: %s'%(all_data))
+            return json.loads(all_data)
+        except Exception as ins:
+            self.logger.error('Exception: %s'%(ins))
+            return json.loads('{}')
 
-    # Look for the response
-    amount_received = 0
-    amount_expected = len(message)
-    
-    while amount_received < amount_expected:
-        data = sock.recv(16)
-        amount_received += len(data)
-        print >>sys.stderr, 'received "%s"' % data
+    def GetAccessToken(self, appID):
+        json_data = {
+            'function': 'GetAccessToken',
+            'appID': appID,
+        }
+        json_response = self.SendAndRecv(json_data)
+        return json_response.get('access_token', '')
 
-finally:
-    print >>sys.stderr, 'closing socket'
-    sock.close()
+    def GetStockPrices(self, tickers):
+        json_data = {
+            'function': 'StockPrices',
+            'tickers': tickers,
+        }
+        json_response = self.SendAndRecv(json_data)
+        return json.dumps(json_response)
+    def __del__(self):
+        self.sock.close()
+
+if __name__ == '__main__':
+    FORMAT = '%(asctime)s %(filename)s:%(lineno)s %(levelname)s:%(message)s'
+    logging.basicConfig(format=FORMAT, stream = sys.stderr, level=logging.INFO)
+    logging.info('Got a logger.')
+    clt = SeekingcheapClient(logging)
+    print 'token for haha:', clt.GetAccessToken('haha')
+    print 'stock price:', clt.GetStockPrices(['600036'])
+    print clt.GetAccessToken('wxb84af52eb82fb589')

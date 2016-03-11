@@ -29,11 +29,11 @@ def InitLogger():
     logging.info('Got a logger.')
     # cgitb.enable()
 
-def validate(url_params):
-    url_params['token'] = ['seekingcheap']
-    strings = [url_params[key][0] for key in ['token', 'timestamp', 'nonce']]    
+def Validate(url_params):
+    url_params['token'] = 'seekingcheap'
+    strings = [url_params[key] for key in ['token', 'timestamp', 'nonce']]    
     strings.sort()
-    if hashlib.sha1(''.join(strings)).hexdigest() != url_params['signature'][0]:
+    if hashlib.sha1(''.join(strings)).hexdigest() != url_params['signature']:
         logging.error('Failed to validate the request.')
         sys.exit(1)
     return url_params.get('echostr', '')
@@ -60,10 +60,10 @@ def main():
     InitLogger()
     url = os.environ["REQUEST_URI"] 
     logging.info('Got request url: %s'%(url))
-    parsed = urlparse.urlparse(url) 
-    url_params = urlparse.parse_qs(parsed.query)
+    parsed = urlparse.urlparse(url)
+    url_params = {k: v[0] for k,v in urlparse.parse_qs(parsed.query).items()}
     logging.info('Got url params: %s'%(str(url_params)))
-    sys.stdout.write(validate(url_params))
+    sys.stdout.write(Validate(url_params))
 
     post_data = cgi.FieldStorage().value
     logging.info('Got post data: %s'%(post_data))

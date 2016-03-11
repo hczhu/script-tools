@@ -75,8 +75,7 @@ def GetStockRealtimeInfo(ticker):
     pat = re.compile('hq_str_([^=]+)' + ticker + '="([^"]+)";')
     mt = pat.search(content)
     price, change, name = 0, 0, ''
-    if mt is None:
-        return {'price': price, 'change': change, 'name': name}
+    if mt is None: return {}
     market = mt.groups()[0]
     values = mt.groups()[1].split(',')
     if 'gb_' == market:
@@ -87,7 +86,7 @@ def GetStockRealtimeInfo(ticker):
         price = float(values[3])
         prev_price = float(values[2])
         change = round(100.0 * (price - prev_price) / prev_price, 1)
-        name = values[1]
+        name = values[0]
     return {'price': price, 'change': change, 'name': name}
 
 class TokenRefresher(object):
@@ -151,7 +150,9 @@ class StockPriceRefresher(object):
     def GetStockPrices(self, tickers):
         res = {}
         for ticker in tickers:
-            res[ticker] = GetStockRealtimeInfo(ticker)
+            info = GetStockRealtimeInfo(ticker)
+            if 'price' in info and 'change' in info and 'name' in info:
+              res[ticker] = info
         return json.dumps(res)
 
 class SeekingcheapHandler(SocketServer.StreamRequestHandler):

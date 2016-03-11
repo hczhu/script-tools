@@ -35,15 +35,16 @@ class SeekingcheapClient():
             'appID': appID,
         }
         json_response = self.SendAndRecv(json_data)
-        return json_response.get('access_token', '')
+        return json_response
 
-    def GetStockPrices(self, tickers):
+    def GetStockRealtimeInfo(self, tickers):
         json_data = {
             'function': 'StockPrices',
             'tickers': tickers,
         }
         json_response = self.SendAndRecv(json_data)
-        return json.dumps(json_response)
+        return json_response
+
     def __del__(self):
         self.sock.close()
 
@@ -52,6 +53,7 @@ if __name__ == '__main__':
     logging.basicConfig(format=FORMAT, stream = sys.stderr, level=logging.INFO)
     logging.info('Got a logger.')
     clt = SeekingcheapClient(logging)
-    print 'token for haha:', clt.GetAccessToken('haha')
-    print 'stock price:', clt.GetStockPrices(['600036'])
+    print 'token for haha:', json.dumps(clt.GetAccessToken('haha'))
+    print 'stock price:', json.dumps(clt.GetStockRealtimeInfo(['600036']))
+    print 'stock price:', clt.GetStockRealtimeInfo(['600000', 'momo', 'hehe'])
     print clt.GetAccessToken('wxb84af52eb82fb589')

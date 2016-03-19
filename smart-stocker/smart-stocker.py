@@ -417,6 +417,28 @@ def PrintProfitBreakDown():
     body.p(PrintTableMapHtml(header, tableMap, float_precision = 0), escape=False)
     return WriteToStaticHtmlFile('profit.html', str(page), 'Profit breakdown')
 
+def PrintDeposit(all_records, path):
+    template_file = path + '/visual-trades-temp.html' 
+    all_deposit = []
+    invest = 0
+    for record in all_records:
+        if record['ticker'] != 'investment': continue
+        currency = record['currency']
+        trans_date = record['date']
+        deposit = int((record['commission'] + record['amount'] * record['price']) * EX_RATE[currency + '-' + CURRENCY])
+        invest += deposit
+        all_deposit.append([
+            int(time.mktime(trans_date.timetuple())) * 1000,
+            invest,
+            '$' + str(invest),
+            '$' + str(deposit),
+        ])
+    content = ''
+    with open(template_file, 'r') as temp_file:
+        content = temp_file.read() 
+    content = content.replace('%TRADES%', '"Deposit": ' + str(all_deposit))
+    return WriteToStaticHtmlFile('deposit-charts.html', content, 'Visual deposit')
+
 def PopParam(params, name, trans = str, default = str()):
     if name in params:
         res = trans(params[name]) 
@@ -462,6 +484,7 @@ def main():
         body.p(RunStrategies(), escape=False)
         body.p(PrintProfitBreakDown(), escape=False)
         body.p(OutputVisual(all_records, input_args['visual'], os.path.dirname(sys.argv[0])), escape=False)
+        body.p(PrintDeposit(all_records, os.path.dirname(sys.argv[0])), escape=False)
 
     except Exception as ins:
         traceback.print_exc(file=sys.stderr)

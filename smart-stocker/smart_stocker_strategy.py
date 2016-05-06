@@ -115,15 +115,18 @@ def KeepGroupPercentIf(names, percent, backup = [], hold_conditions = {}, buy_co
              ' due to valuation ratio = %.3f'%(valuation_ratio)
   return ''
 
-def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True, buy_condition = lambda code: True, fixed_percent = False):
+def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True,
+                  buy_condition = lambda code: True, fixed_money = None):
   delta = MIN_TXN_PERCENT
   code = NAME_TO_CODE[name]
   currency = STOCK_INFO[code]['currency']
+  if fixed_money is not None:
+      percent = fixed_money * EX_RATE[currency + '-' + CURRENCY] / ACCOUNT_INFO['ALL']['net']
   percent = percent if hold_condition(code) else 0
   holding_percent = ACCOUNT_INFO['ALL']['holding-percent-all'][code]
   if holding_percent > 0 and not hold_condition(code):
     return GiveTip('Clear', code, holding_percent * ACCOUNT_INFO['ALL']['net'] * EX_RATE[CURRENCY + '-' + currency])
-  if holding_percent - percent > delta and not buy_condition(code) and fixed_percent:
+  if holding_percent - percent > delta and not buy_condition(code):
     return GiveTip('Sell %d%% of '%(100 * (holding_percent - percent)), code,
         (holding_percent - percent) * ACCOUNT_INFO['ALL']['net'] * EX_RATE[CURRENCY + '-' + currency])
   cash, op = GetCashAndOp(ACCOUNT_INFO.keys(), currency, percent - holding_percent, backup)
@@ -430,7 +433,7 @@ def CategorizedStocks():
       msg = KeepPercentIf(CODE_TO_NAME[code], percent,
           hold_condition = lambda code: valuation < hold,
           buy_condition = lambda code: valuation < buy,
-          fixed_percent = 'y' == finance.get('fixed', ''))
+          fixed_money = int(finance['fixed']) if ('fixed' in finance and finance['fixed'] != '') else None)
       if msg != '': cate_msg += [msg + ' due to valuation=%.3f'%(abs(valuation))]
     if len(cate_msg) > 0:
       allMsg += ['\n'.join([cate + ': ' + str(int(holding_percent * 100)) + '%'] + cate_msg)]

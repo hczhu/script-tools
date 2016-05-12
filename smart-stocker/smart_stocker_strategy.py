@@ -428,19 +428,31 @@ def CategorizedStocks():
       valuation = finance[valuation_key]
       logging.info('Processing %s(%s): %s\n'%(CODE_TO_NAME[code], code, str(finance)))
       if len(filter(is_numeric_value, ['buy', 'hold', 'max-percent'])) < 3: continue
-      hold, buy, percent = finance['hold'], finance['buy'], finance['max-percent']
+      hold, buy, percent = finance['hold'], finance['buy'], min(MAX_PERCENT_PER_STOCK, finance['max-percent'])
       if hold < buy: hold, buy, valuation = -hold, -buy, -valuation
       msg = KeepPercentIf(CODE_TO_NAME[code], percent,
           hold_condition = lambda code: valuation < hold,
           buy_condition = lambda code: valuation < buy,
           fixed_money = int(finance['fixed']) if ('fixed' in finance and finance['fixed'] != '') else None)
       if msg != '': cate_msg += [msg + ' due to valuation=%.3f'%(abs(valuation))]
-    if len(cate_msg) > 0:
+    if len(cate_msg) > 0 or holding_percent > 0:
       allMsg += ['\n'.join([cate + ': ' + str(int(holding_percent * 100)) + '%'] + cate_msg)]
   return '\n'.join(allMsg)
+
+
+def StockBalance():
+    allMsg = []
+    for code, percent in ACCOUNT_INFO['ALL']['holding-percent'].items():
+        if percent > MAX_PERCENT_PER_STOCK and code in CODE_TO_NAME:
+            msg = KeepPercentIf(CODE_TO_NAME[code], MAX_PERCENT_PER_STOCK)
+            if len(msg) > 0:
+                allMsg.append(msg)
+    return '\n'.join(allMsg)
+              
     
 STRATEGY_FUNCS = {
   # '银行股': lambda: KeepBanks(),
   # '分级A': FenJiClassA,
   '分主题': CategorizedStocks,
+  '再平衡': StockBalance,
 }

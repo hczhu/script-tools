@@ -157,6 +157,8 @@ ACCOUNT_INFO = {
 
 MIN_TXN_PERCENT = 0.0095
 
+MAX_PERCENT_PER_STOCK = 0.3
+
 CATEGORIZED_STOCKS = collections.defaultdict(list)
 
 WWW_ROOT = '/var/www'

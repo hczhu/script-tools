@@ -434,7 +434,7 @@ def CategorizedStocks():
           hold_condition = lambda code: valuation < hold,
           buy_condition = lambda code: valuation < buy,
           fixed_money = int(finance['fixed']) if ('fixed' in finance and finance['fixed'] != '') else None)
-      if msg != '': cate_msg += [msg + ' due to valuation=%.3f'%(abs(valuation))]
+      if msg != '': cate_msg += ['    ' + msg + ' due to valuation=%.3f'%(abs(valuation))]
     if len(cate_msg) > 0 or holding_percent > 0:
       allMsg += ['\n'.join([cate + ': ' + str(int(holding_percent * 100)) + '%'] + cate_msg)]
   return '\n'.join(allMsg)
@@ -446,11 +446,9 @@ def StockBalance():
       msg = KeepPercentIf(CODE_TO_NAME[code], MAX_PERCENT_PER_STOCK)
       if len(msg) > 0:
         allMsg.append(msg)
-  if ACCOUNT_INFO['ALL']['free-cash-ratio'] < MIN_CASH_RATIO:
-    allMsg.append('Cash ratio is too low: %.0f%%'%(100 *
-        ACCOUNT_INFO['ALL']['free-cash-ratio']))
+  if ACCOUNT_INFO['ALL']['free-cash-ratio'] / 100.0 < MIN_CASH_RATIO:
+    allMsg.append('Cash ratio is too low: %.0f%%'%(ACCOUNT_INFO['ALL']['free-cash-ratio']))
   return '\n'.join(allMsg)
-              
     
 STRATEGY_FUNCS = {
   # '银行股': lambda: KeepBanks(),

@@ -202,16 +202,18 @@ def PrintAccountInfo():
         'market-value',
         'investment',
         'net',
-        'margin-requirement',
+        # 'margin-requirement',
         'leverage',
         'free-cash',
+        'free-cash-ratio',
         # 'cushion-ratio',
         'IRR',
-        'buying-power'
+        # 'buying-power'
     ]
     for account, account_info in ACCOUNT_INFO.items():
         base_currency = ACCOUNT_INFO[account]['currency']
         ex_rate = EX_RATE[base_currency + '-' + aggregated_accout_info['currency']]
+        account_info['free-cash-ratio'] = 1.0 * account_info['free-cash'] / account_info['net']
         for key in ['buying-power', 'net', 'investment', 'market-value', 'free-cash', 'dividend', 'interest-loss', 'txn-fee',]:
             aggregated_accout_info[key] += ex_rate * account_info[key]
         for key in ['cash-flow']:
@@ -222,6 +224,8 @@ def PrintAccountInfo():
         for key in ['holding-value']:
             for ticker, value in account_info[key].items():
                 aggregated_accout_info[key][ticker] += value * ex_rate
+
+    aggregated_accout_info['free-cash-ratio'] = 1.0 * aggregated_accout_info['free-cash'] / aggregated_accout_info['net']
     
     records = [
         ACCOUNT_INFO[account] for account in ACCOUNT_INFO.keys()
@@ -242,7 +246,7 @@ def PrintAccountInfo():
             account_info['holding-percent-all'][ticker] = ex_rate * value / max(1, ACCOUNT_INFO['ALL']['net'])
         logging.info('%s\n'%(str(account_info)))
 
-    return PrintTableMapHtml(header, records)
+    return PrintTableMapHtml(header, records, float_precision = 2)
       
 def PrintHoldingSecurities():
     stat_records_map = []

@@ -439,15 +439,17 @@ def CategorizedStocks():
       allMsg += ['\n'.join([cate + ': ' + str(int(holding_percent * 100)) + '%'] + cate_msg)]
   return '\n'.join(allMsg)
 
-
 def StockBalance():
-    allMsg = []
-    for code, percent in ACCOUNT_INFO['ALL']['holding-percent'].items():
-        if percent > MAX_PERCENT_PER_STOCK and code in CODE_TO_NAME:
-            msg = KeepPercentIf(CODE_TO_NAME[code], MAX_PERCENT_PER_STOCK)
-            if len(msg) > 0:
-                allMsg.append(msg)
-    return '\n'.join(allMsg)
+  allMsg = []
+  for code, percent in ACCOUNT_INFO['ALL']['holding-percent'].items():
+    if percent > MAX_PERCENT_PER_STOCK and code in CODE_TO_NAME:
+      msg = KeepPercentIf(CODE_TO_NAME[code], MAX_PERCENT_PER_STOCK)
+      if len(msg) > 0:
+        allMsg.append(msg)
+  if ACCOUNT_INFO['ALL']['free-cash-ratio'] < MIN_CASH_RATIO:
+    allMsg.append('Cash ratio is too low: %.0f%%'%(100 *
+        ACCOUNT_INFO['ALL']['free-cash-ratio']))
+  return '\n'.join(allMsg)
               
     
 STRATEGY_FUNCS = {

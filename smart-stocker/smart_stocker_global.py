@@ -159,6 +159,8 @@ MIN_TXN_PERCENT = 0.0095
 
 MAX_PERCENT_PER_STOCK = 0.3
 
+MIN_CASH_RATIO = 0.06
+
 CATEGORIZED_STOCKS = collections.defaultdict(list)
 
 WWW_ROOT = '/var/www'

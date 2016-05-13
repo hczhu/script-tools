@@ -148,7 +148,7 @@ def ProcessRecords(all_records, accounts = set([]), goback = 0, tickers = set([]
         inflow = price * buy_shares * (1.0 if ticker in account_info else -1.0)
         inflow -= fee
         account_info['txn-fee'] += fee if fee >0 else 0
-        account_info['free-cash'] += inflow
+        account_info['cash'] += inflow
         if ticker == 'investment':
             account_info['cash-flow'] += [(record['date'], inflow)]
         if ticker in account_info:
@@ -167,7 +167,7 @@ def PrintAccountInfo():
         'currency': CURRENCY,
         'investment': 0.0,
         'market-value': 0.0,
-        'free-cash': 0.0,
+        'cash': 0.0,
         'net': 0.0,
         'dividend': 0,
         'interest-loss': 0,
@@ -192,7 +192,7 @@ def PrintAccountInfo():
                 account_info['holding-value'][ticker] = mv
                 if holding[ticker] > 0: account_info['margin-requirement'] += mv * (1 if ticker.find('@') >=0 else account_info['margin-ratio'])
                 else: account_info['margin-requirement'] -= mv
-        account_info['net'] = account_info['market-value'] + account_info['free-cash']
+        account_info['net'] = account_info['market-value'] + account_info['cash']
         account_info['buying-power'] = (account_info['net'] - account_info['margin-requirement']) / account_info['margin-ratio']
         account_info['cushion-ratio'] = (account_info['net'] - account_info['margin-requirement']) / max(1, account_info['market-value']) * 100.0
 
@@ -204,8 +204,8 @@ def PrintAccountInfo():
         'net',
         # 'margin-requirement',
         'leverage',
-        'free-cash',
-        'free-cash-ratio',
+        'cash',
+        'cash-ratio',
         # 'cushion-ratio',
         'IRR',
         # 'buying-power'
@@ -213,8 +213,8 @@ def PrintAccountInfo():
     for account, account_info in ACCOUNT_INFO.items():
         base_currency = ACCOUNT_INFO[account]['currency']
         ex_rate = EX_RATE[base_currency + '-' + aggregated_accout_info['currency']]
-        account_info['free-cash-ratio'] = 100.0 * account_info['free-cash'] / account_info['net']
-        for key in ['buying-power', 'net', 'investment', 'market-value', 'free-cash', 'dividend', 'interest-loss', 'txn-fee',]:
+        account_info['cash-ratio'] = 100.0 * account_info['cash'] / account_info['net']
+        for key in ['buying-power', 'net', 'investment', 'market-value', 'cash', 'dividend', 'interest-loss', 'txn-fee',]:
             aggregated_accout_info[key] += ex_rate * account_info[key]
         for key in ['cash-flow']:
             aggregated_accout_info[key] += map(lambda inflow: (inflow[0], inflow[1] * ex_rate), account_info[key])
@@ -225,7 +225,7 @@ def PrintAccountInfo():
             for ticker, value in account_info[key].items():
                 aggregated_accout_info[key][ticker] += value * ex_rate
 
-    aggregated_accout_info['free-cash-ratio'] = 100.0 * aggregated_accout_info['free-cash'] / aggregated_accout_info['net']
+    aggregated_accout_info['cash-ratio'] = 100.0 * aggregated_accout_info['cash'] / aggregated_accout_info['net']
     
     records = [
         ACCOUNT_INFO[account] for account in ACCOUNT_INFO.keys()

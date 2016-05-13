@@ -446,8 +446,8 @@ def StockBalance():
       msg = KeepPercentIf(CODE_TO_NAME[code], MAX_PERCENT_PER_STOCK)
       if len(msg) > 0:
         allMsg.append(msg)
-  if ACCOUNT_INFO['ALL']['free-cash-ratio'] / 100.0 < MIN_CASH_RATIO:
-    allMsg.append('Cash ratio is too low: %.0f%%'%(ACCOUNT_INFO['ALL']['free-cash-ratio']))
+  if ACCOUNT_INFO['ALL']['cash-ratio'] / 100.0 < MIN_CASH_RATIO:
+    allMsg.append('Cash ratio is too low: %.0f%%'%(ACCOUNT_INFO['ALL']['cash-ratio']))
   return '\n'.join(allMsg)
     
 STRATEGY_FUNCS = {

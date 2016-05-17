@@ -213,7 +213,7 @@ def PrintAccountInfo():
     for account, account_info in ACCOUNT_INFO.items():
         base_currency = ACCOUNT_INFO[account]['currency']
         ex_rate = EX_RATE[base_currency + '-' + aggregated_accout_info['currency']]
-        account_info['cash-ratio'] = 100.0 * account_info['cash'] / account_info['net']
+        account_info['cash-ratio'] = 100.0 * account_info['cash'] / max(1, account_info['net'])
         for key in ['buying-power', 'net', 'investment', 'market-value', 'cash', 'dividend', 'interest-loss', 'txn-fee',]:
             aggregated_accout_info[key] += ex_rate * account_info[key]
         for key in ['cash-flow']:

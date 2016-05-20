@@ -161,7 +161,7 @@ MAX_PERCENT_PER_STOCK = 0.3
 
 MIN_CASH_RATIO = 0.06
 
-CATEGORIZED_STOCKS = collections.defaultdict(list)
+CATEGORIZED_STOCKS = collections.defaultdict(dict)
 
 WWW_ROOT = '/var/www'
 

@@ -420,20 +420,19 @@ def CategorizedStocks():
     logging.info('Going through category: %s\n'%(cate))
     cate_msg = []
     holding_percent = 0
-    for code in stocks:
+    for code, strategy in stocks.items():
       holding_percent += ACCOUNT_INFO['ALL']['holding-percent'].get(code, 0)
-      finance = FINANCAIL_DATA_BASE[code] 
-      is_numeric_value = lambda name: isinstance(finance.get(name, ''), float) or isinstance(finance.get(name, ''), int)
+      is_numeric_value = lambda name: isinstance(strategy.get(name, ''), float) or isinstance(strategy.get(name, ''), int)
       if not is_numeric_value(valuation_key): continue
-      valuation = finance[valuation_key]
-      logging.info('Processing %s(%s): %s\n'%(CODE_TO_NAME[code], code, str(finance)))
+      valuation = strategy[valuation_key]
+      logging.info('Processing %s(%s): %s\n'%(CODE_TO_NAME[code], code, str(strategy)))
       if len(filter(is_numeric_value, ['buy', 'hold', 'max-percent'])) < 3: continue
-      hold, buy, percent = finance['hold'], finance['buy'], min(MAX_PERCENT_PER_STOCK, finance['max-percent'])
+      hold, buy, percent = strategy['hold'], strategy['buy'], min(MAX_PERCENT_PER_STOCK, strategy['max-percent'])
       if hold < buy: hold, buy, valuation = -hold, -buy, -valuation
       msg = KeepPercentIf(CODE_TO_NAME[code], percent,
           hold_condition = lambda code: valuation < hold,
           buy_condition = lambda code: valuation < buy,
-          fixed_money = int(finance['fixed']) if ('fixed' in finance and finance['fixed'] != '') else None)
+          fixed_money = int(strategy['fixed']) if ('fixed' in strategy and strategy['fixed'] != '') else None)
       if msg != '': cate_msg += ['    ' + msg + ' due to valuation=%.3f'%(abs(valuation))]
     if len(cate_msg) > 0 or holding_percent > 0:
       allMsg += ['\n'.join([cate + ': ' + str(int(holding_percent * 100)) + '%'] + cate_msg)]

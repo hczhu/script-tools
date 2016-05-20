@@ -126,7 +126,7 @@ def GetCategorizedStocks(gd_client):
             MergeDictTo(row, FINANCAIL_DATA_BASE[code])
             MergeDictTo(row, STOCK_INFO[code])
             NAME_TO_CODE[name], CODE_TO_NAME[code] = code, name
-            CATEGORIZED_STOCKS[category] += [code]
+            CATEGORIZED_STOCKS[category][code] = row
             if 'category' not in STOCK_INFO[code]:
                 STOCK_INFO[code]['category'] = category
         all_data += [(ws, records, key_to_column)]

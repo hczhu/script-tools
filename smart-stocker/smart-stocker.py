@@ -119,6 +119,7 @@ def ProcessRecords(all_records, accounts = set([]), goback = 0, tickers = set([]
     logging.info('cut off date = %s\n'%(str(cutoff_date)))
     is_interested = lambda ticker, name: ticker in tickers or any([name.find(name_pattern) >= 0 for name_pattern in name_patterns]) or \
                                         ticker == 'investment' or (len(tickers) == 0 and len(name_patterns) == 0)
+    filtered_record = []
     for record in all_records:
         account = record['account']
         if len(accounts) > 0 and account not in accounts:
@@ -127,6 +128,7 @@ def ProcessRecords(all_records, accounts = set([]), goback = 0, tickers = set([]
             continue
         if record.get('disabled', '0') == '1':
             continue
+        filtered_record.append(record)
         account_info = ACCOUNT_INFO[account]
         ticker = record['ticker']
         name = record['name']
@@ -160,6 +162,7 @@ def ProcessRecords(all_records, accounts = set([]), goback = 0, tickers = set([]
             if name not in STOCK_INFO[ticker]:
                 STOCK_INFO[ticker]['name'] = name
                 STOCK_INFO[ticker]['currency'] = currency
+    return filtered_record
 
 def PrintAccountInfo():
     aggregated_accout_info = {
@@ -478,7 +481,7 @@ def main():
 
         GetStockPool(GD_CLIENT)
 
-        ProcessRecords(all_records, input_args['accounts'], goback, input_args['tickers'], input_args['names'])
+        all_records = ProcessRecords(all_records, input_args['accounts'], goback, input_args['tickers'], input_args['names'])
 
         PopulateMacroData()
         PopulateFinancialData()

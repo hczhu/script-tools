@@ -153,6 +153,27 @@ ACCOUNT_INFO = {
     'holding-value': collections.defaultdict(float),
     'holding-percent-all': collections.defaultdict(float),
   },
+  '401k': {
+    'account': 'us-401k',
+    'currency': 'usd',
+    'support-currencies': ['usd'],
+    'investment': 0.0,
+    'market-value': 0.0,
+    'cash': 0.0,
+    'margin-ratio': 1.0,
+    'margin-requirement': 0.0,
+    'cushion-ratio': 0.0,
+    'cash-flow': [],
+    'dividend': 0,
+    'interest-loss': 0,
+    'margin-interest': 0,
+    'txn-fee': 0,
+    'holding-shares': collections.defaultdict(int),
+    'buying-power': 0,
+    'holding-percent': collections.defaultdict(float),
+    'holding-value': collections.defaultdict(float),
+    'holding-percent-all': collections.defaultdict(float),
+  },
 }
 
 MIN_TXN_PERCENT = 0.0095

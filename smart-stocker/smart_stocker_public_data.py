@@ -232,15 +232,17 @@ def GetMarketPriceFromSina(code):
         try:
             logging.info('Getting value from url: %s\n'%(url))
             values = GetValueFromUrl(url, 'hq_str_%s="'%(suffix), '"', str, reg_exp = '[^"]+')
-            logging.info('Get string for %s: [%s] from url: %s\n'%(code, [values], url))
-            if len(values) == 0: continue
             values = values.split(',')
-            if suffix.find('hk') == 0: values = values[1:]
+            logging.info('Get string for %s: %s from url: %s\n'%(code, str(values), url))
+            if len(values) == 0: continue
             price, change, cap, book_value = 0, 0, 0, 1.0
             if suffix.find('gb_') == 0:
                 price, change, cap = float(values[1]), myround(float(values[2]), 1), float(values[12])
             elif suffix.find('hk') == 0:
-                price, change = float(values[5]), myround(float(values[7]), 1)
+                price, change = float(values[6]), myround(float(values[8]), 1)
+                if price < 0.02:
+                    price, change = float(values[3]), 0
+                    # logging.info('new price: %f %s %s %s', price, values[2], values[3], values[4])
             else:
                 price = float(values[3])
                 prev_price = float(values[2])

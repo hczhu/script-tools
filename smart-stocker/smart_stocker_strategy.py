@@ -126,12 +126,16 @@ def KeepPercentIf(name, percent, backup = [], hold_condition = lambda code: True
   holding_percent = ACCOUNT_INFO['ALL']['holding-percent-all'][code]
   if holding_percent > 0 and not hold_condition(code):
     return GiveTip('Clear', code, holding_percent * ACCOUNT_INFO['ALL']['net'] * EX_RATE[CURRENCY + '-' + currency])
-  if holding_percent - percent > delta and not buy_condition(code):
+
+  if buy_condition(code):
+    cash, op = GetCashAndOp(ACCOUNT_INFO.keys(), currency, percent - holding_percent, backup)
+    if percent - holding_percent > delta and cash > 0 and buy_condition(code):
+        return op + GiveTip(' ==> Buy up to %d%% of'%((percent - holding_percent) * 100), code, cash)
+    return ''
+
+  if holding_percent - percent > delta and fixed_money is not None:
     return GiveTip('Sell %d%% of '%(100 * (holding_percent - percent)), code,
         (holding_percent - percent) * ACCOUNT_INFO['ALL']['net'] * EX_RATE[CURRENCY + '-' + currency])
-  cash, op = GetCashAndOp(ACCOUNT_INFO.keys(), currency, percent - holding_percent, backup)
-  if percent - holding_percent > delta and cash > 0 and buy_condition(code):
-    return op + GiveTip(' ==> Buy up to %d%% of'%((percent - holding_percent) * 100), code, cash)
   return '' 
 
 def ScoreBanks(banks):

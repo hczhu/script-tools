@@ -47,6 +47,7 @@ def GetFinancialValue(value_str):
         raise Exception('Failed to parse financial value [%s] by type [%s] with exception %s'%(value_str, type_str, str(e)))
 
 def LoginMyGoogle(google_account_filename):
+    logging.info('Using credential file: {}'.format(google_account_filename)) 
     # json_key = json.load(open(google_account_filename))
     scope = ['https://spreadsheets.google.com/feeds']
     

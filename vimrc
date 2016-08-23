@@ -9,7 +9,7 @@
 "%s/^/\=repeat(' ', 10)                    Insert 10 whitespaces in the front of every line.
 "-----------------
 set smartindent
-set tabstop=4
+set tabstop=2
 set shiftwidth=2
 set expandtab
 

@@ -130,6 +130,14 @@ def GetCategorizedStocks(gd_client):
             CATEGORIZED_STOCKS[category][code] = row
             if 'category' not in STOCK_INFO[code]:
                 STOCK_INFO[code]['category'] = category
+            if 'hcode' in row:
+                NAME_TO_CODE[name + 'H'] = row['hcode']
+                CODE_TO_NAME[row['hcode']] = name + 'H'
+                STOCK_INFO[row['hcode']].update({
+                    'market': 'hk',
+                    'currency': 'hkd',
+                    'acode': code,
+                })
         all_data += [(ws, records, key_to_column)]
 
     PrefetchSinaStockList(stock_batch)
@@ -149,74 +157,6 @@ def GetCategorizedStocks(gd_client):
                 cells_to_update.append(cell)
         ws.update_cells(cells_to_update)
             
-def GetStockPool(gd_client):
-    ss_key = '1Ita0nLCH5zpt6FgpZwOshZFXwIcNeOFvJ3ObGze2UBs'
-    stocks = MergeAllHorizontalWorkSheets(gd_client, ss_key, 'code')
-    GetClassA(gd_client)
-    for code in stocks.keys():
-        info = stocks[code]
-        for key, value in info.items():
-            if value == '': del info[key]
-        STOCK_INFO[code] = info
-        CODE_TO_NAME[code] = info['name']
-        NAME_TO_CODE[info['name']] = code
-        if 'hcode' in info:
-            hcode = info['hcode']
-            CODE_TO_NAME[hcode] = info['name'] + 'H'
-            NAME_TO_CODE[CODE_TO_NAME[hcode]] = hcode
-            STOCK_INFO[hcode] = {
-                'name': CODE_TO_NAME[hcode],
-                'currency': 'hkd',
-                'acode': code,
-                'market': 'hk',
-            }
-        if 'cb' in info:
-            cb = info['cb']
-            CODE_TO_NAME[cb] = info['name'] + '转债'
-            NAME_TO_CODE[CODE_TO_NAME[cb]] = cb
-            STOCK_INFO[cb] = {
-                'name': CODE_TO_NAME[cb],
-                'currency': info['currency'],
-                'market': info['market'],
-            }
-    GetCategorizedStocks(gd_client)
-  
-def GetClassA(client):
-    ws = client.open_by_key('1ER4HZD-_UUZF7ph5RkgPu8JftY9jwFVJtpd2tUwz_ac').get_worksheet(0)
-    table, _ = ParseWorkSheetHorizontal(ws, global_transformer = GetFinancialValue, transformers = {'code' : lambda x: x})
-    for row in table:
-        code = row['code']
-        if code == '': continue
-        FINANCAIL_DATA_BASE[code] = STOCK_INFO[code] = row
-        CODE_TO_NAME[code] = row['name']
-        NAME_TO_CODE[row['name']] = code
-
-def GetBankData(client):
-    logging.info('Reading bank data.\n')
-    bank_data = MergeAllHorizontalWorkSheets(client, '1xw6xPiyE6zOmbHmNo9L2HCPknidj4vPdwU9PubZZtCs', 'name', GetFinancialValue)
-    logging.info('Got bank data:\n%s\n'%(str(bank_data)))
-    for name, value in bank_data.items():
-        if name not in NAME_TO_CODE:
-            logging.info('unknown stock name: %s\n'%(name))
-            continue
-        logging.info('Added financial data for %s(%s)\n'%(name, NAME_TO_CODE[name]))
-        MergeDictTo(value, FINANCAIL_DATA_BASE[NAME_TO_CODE[name]])
-
-def GetFinancialData(client):
-    ss_key = '14pJTivMAHd-Gqpc9xboV4Kl7WbK51TrOc9QzgXBFRgw'
-    worksheets = client.open_by_key(ss_key).worksheets()
-    for ws in worksheets:
-        logging.info('Reading worksheet: %s\n'%(ws.title.encode('utf-8')))
-        name = ws.title.strip().encode('utf-8')
-        if name not in NAME_TO_CODE:
-            raise Exception('name: [%s] not in stock pool'%(name))
-        code = NAME_TO_CODE[name]
-        FINANCAIL_DATA_BASE[code] = ParseWorkSheetVertical(ws, GetFinancialValue)
-        FINANCAIL_DATA_BASE[code]['name'] = name
-        if 'cross-share' in FINANCAIL_DATA_BASE[code]:
-            cross_share =  FINANCAIL_DATA_BASE[code]['cross-share'];
-            FINANCAIL_DATA_BASE[code]['cross-share'] = {cross_share[idx + 1] : cross_share[idx] for idx in range(0, len(cross_share), 2)} 
-
 def PrintData(names):
     tableMap = []
     header = [col for col in (FINANCIAL_KEYS - set(['name']))]
@@ -227,8 +167,12 @@ def PrintData(names):
             tableMap.append(data)
     PrintTableMap(header, tableMap)
 
+def GetAllStocks(gd_client):
+    GetCategorizedStocks(gd_client)
+
+
 if __name__ == "__main__":
     client = LoginMyGoogleWithFiles()
-    GetStockPool(client)
+    GetAllStocks(gd_client)
     GetTransectionRecords(client)
     PrintData(','.join(sys.argv[1:]).split(','))

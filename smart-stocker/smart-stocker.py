@@ -479,7 +479,7 @@ def main():
      
         all_records = ReadRecords()
 
-        GetStockPool(GD_CLIENT)
+        GetAllStocks(GD_CLIENT)
 
         all_records = ProcessRecords(all_records, input_args['accounts'], goback, input_args['tickers'], input_args['names'])
 

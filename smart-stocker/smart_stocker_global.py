@@ -92,6 +92,7 @@ MACRO_DATA = {}
 ACCOUNT_INFO = {
   'a': {
     'account': 'china-a',
+    'adjust': 0,
     'currency': 'cny',
     'support-currencies': ['cny'],
     'investment': 0.0,
@@ -105,6 +106,7 @@ ACCOUNT_INFO = {
     'interest-loss': 0,
     'margin-interest': 0,
     'txn-fee': 0,
+    'tax': 0,
     'holding-shares': collections.defaultdict(int),
     'buying-power': 0,
     'holding-percent': collections.defaultdict(float),
@@ -112,6 +114,8 @@ ACCOUNT_INFO = {
     'holding-percent-all': collections.defaultdict(float),
   },
   'ib': {
+    'tax': 0,
+    'adjust': 0,
     'account': 'us-ib',
     'currency': 'usd',
     'support-currencies': ['usd', 'jpy', 'hkd'],
@@ -133,6 +137,8 @@ ACCOUNT_INFO = {
     'holding-percent-all': collections.defaultdict(float),
   },
   'schwab': {
+    'tax': 0,
+    'adjust': 0,
     'account': 'us-schwab',
     'currency': 'usd',
     'support-currencies': ['usd', 'jpy', 'hkd'],
@@ -154,6 +160,7 @@ ACCOUNT_INFO = {
     'holding-percent-all': collections.defaultdict(float),
   },
   '401k': {
+    'adjust': 0,
     'account': 'us-401k',
     'currency': 'usd',
     'support-currencies': ['usd'],

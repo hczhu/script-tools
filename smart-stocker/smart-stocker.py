@@ -149,12 +149,16 @@ def ProcessRecords(all_records, accounts = set([]), goback = 0, tickers = set([]
         fee = record['commission'] * ex_rate
         inflow = price * buy_shares * (1.0 if ticker in account_info else -1.0)
         inflow -= fee
-        account_info['txn-fee'] += fee if fee >0 else 0
+        account_info['txn-fee'] += fee if fee > 0 else 0
         account_info['cash'] += inflow
         if ticker == 'investment':
             account_info['cash-flow'] += [(record['date'], inflow)]
-        if ticker in account_info:
             account_info[ticker] += inflow
+        elif ticker in account_info:
+            account_info[ticker] += -inflow
+        elif fee < 0 and buy_shares ==0:
+            # Dividend
+            account_info['dividend'] += inflow
         else:
             account_info['holding-shares'][ticker] += buy_shares
             STOCK_INFO[ticker]['profit'] = inflow / ex_rate + STOCK_INFO[ticker].get('profit', 0.0)
@@ -205,8 +209,12 @@ def PrintAccountInfo():
         'market-value',
         'investment',
         'net',
+        'txn-fee',
+        'dividend',
+        'margin-interest',
+        'tax',
         # 'margin-requirement',
-        'leverage',
+        # 'leverage',
         'cash',
         'cash-ratio',
         # 'cushion-ratio',
@@ -217,7 +225,7 @@ def PrintAccountInfo():
         base_currency = ACCOUNT_INFO[account]['currency']
         ex_rate = EX_RATE[base_currency + '-' + aggregated_accout_info['currency']]
         account_info['cash-ratio'] = 100.0 * account_info['cash'] / max(1, account_info['net'])
-        for key in ['buying-power', 'net', 'investment', 'market-value', 'cash', 'dividend', 'interest-loss', 'txn-fee',]:
+        for key in ['buying-power', 'net', 'investment', 'market-value', 'cash', 'dividend', 'margin-interest', 'txn-fee',]:
             aggregated_accout_info[key] += ex_rate * account_info[key]
         for key in ['cash-flow']:
             aggregated_accout_info[key] += map(lambda inflow: (inflow[0], inflow[1] * ex_rate), account_info[key])

@@ -8,6 +8,7 @@ alias 'ls'='ls --color=auto -h'
 alias 'll'='ls -lh'
 alias cl='clear'
 alias 'grep'='grep --color'
+alias portfolio='$HOME/mycode/script-tools/smart-stocker/smart-stocker.py 2> /tmp/stock.log'
 
 # personal export
 export PATH=$PATH:$HOME/tools/
@@ -122,3 +123,4 @@ export HGEDITOR='HgEditor() { file=$1; $HOME/git-hooks/prepare-commit-msg $file 
 alias diff-sum='diff -wbBdu'
 alias hg-blame='hg blame -dupw'
 alias fix-tmux='tmux detach -a'
+export ACLOCAL_PATH=/usr/share/aclocal

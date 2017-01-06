@@ -50,7 +50,7 @@ au FileType php,python map <F5> :!./%
 au FileType php,java map <F6> :!java -enableassertions -Xmx1024M %:r
 " check spell
 "
-"au FileType php,tex map <C-b> :w<CR>:!pdflatex %<CR>
+au FileType tex map <C-b> :w<CR>:!pdflatex %<CR>
 "au FileType php,tex map <C-r> :w<CR>:!acroread %:r.pdf<CR>
 "au FileType php,tex imap {} {}<Esc>ha
 "au FileType php,tex imap [] []<Esc>ha

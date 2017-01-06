@@ -10,75 +10,6 @@ import traceback
 import copy
 import re
 
-#----------------------Template-----------------------------
-
-HTML_TEMPLATE = """
-<!--
-You are free to copy and use this sample in accordance with the terms of the
-Apache license (http://www.apache.org/licenses/LICENSE-2.0.html)
--->
-
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd">
-<html xmlns="http://www.w3.org/1999/xhtml">
-  <head>
-    <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-    <title>
-      Google Visualization API Sample
-    </title>
-    <script type="text/javascript" src="https://www.google.com/jsapi"></script>
-    <script type="text/javascript">
-      google.load('visualization', '1', {packages: ['corechart']});
-    </script>
-    <script type="text/javascript">
-      function drawVisualization() {
-        %s
-      }
-      google.setOnLoadCallback(drawVisualization);
-    </script>
-  </head>
-  <body style="font-family: Arial;border: 0 none;">
-    %s
-  </body>
-</html>
-"""
-
-FUNCTION_TEMPLATE = """
-        {
-          // Create and populate the data table.
-          var data = new google.visualization.DataTable();
-          data.addColumn('date', 'Date'); // Implicit series 1 data col.
-          data.addColumn('number', '%s'); // Implicit domain label col.
-          data.addColumn({type:'string', role:'annotation'}); // annotation role col.
-          data.addColumn({type:'string', role:'annotationText'}); // annotationText col.
-          data.addRows([
-              %s
-              ]); 
-          // Create and draw the visualization.
-          new google.visualization.LineChart(document.getElementById('%s')).draw(
-              data,
-              {
-               curveType: "function",
-               lineWidth: 2,
-               pointSize: 5,
-               legend: { position: 'bottom' },
-               vAxis: {
-                        minValue: %f,
-                        maxValue: %f,
-                        title: 'Price(%s)',
-                      },
-               explorer: {
-                           actions: 'dragToZoom',
-                           axis: 'horizontal',
-                         }
-              });
-      }
-"""
-
-DIV_TEMPLATE = """
-<div id="%s" style="width: 90%%, height: 600px;"></div>
-
-"""
-
 # -------------- End of template --------------------------
 
 EX_RATE = {
@@ -161,11 +92,12 @@ MACRO_DATA = {}
 ACCOUNT_INFO = {
   'a': {
     'account': 'china-a',
+    'adjust': 0,
     'currency': 'cny',
     'support-currencies': ['cny'],
     'investment': 0.0,
     'market-value': 0.0,
-    'free-cash': 0.0,
+    'cash': 0.0,
     'margin-ratio': 1.0,
     'margin-requirement': 0.0,
     'cushion-rate': 0.0,
@@ -174,6 +106,7 @@ ACCOUNT_INFO = {
     'interest-loss': 0,
     'margin-interest': 0,
     'txn-fee': 0,
+    'tax': 0,
     'holding-shares': collections.defaultdict(int),
     'buying-power': 0,
     'holding-percent': collections.defaultdict(float),
@@ -181,12 +114,14 @@ ACCOUNT_INFO = {
     'holding-percent-all': collections.defaultdict(float),
   },
   'ib': {
+    'tax': 0,
+    'adjust': 0,
     'account': 'us-ib',
     'currency': 'usd',
     'support-currencies': ['usd', 'jpy', 'hkd'],
     'investment': 0.0,
     'market-value': 0.0,
-    'free-cash': 0.0,
+    'cash': 0.0,
     'margin-ratio': 0.7,
     'margin-requirement': 0.0,
     'cushion-ratio': 0.0,
@@ -202,13 +137,37 @@ ACCOUNT_INFO = {
     'holding-percent-all': collections.defaultdict(float),
   },
   'schwab': {
+    'tax': 0,
+    'adjust': 0,
     'account': 'us-schwab',
     'currency': 'usd',
     'support-currencies': ['usd', 'jpy', 'hkd'],
     'investment': 0.0,
     'market-value': 0.0,
-    'free-cash': 0.0,
+    'cash': 0.0,
     'margin-ratio': 0.7,
+    'margin-requirement': 0.0,
+    'cushion-ratio': 0.0,
+    'cash-flow': [],
+    'dividend': 0,
+    'interest-loss': 0,
+    'margin-interest': 0,
+    'txn-fee': 0,
+    'holding-shares': collections.defaultdict(int),
+    'buying-power': 0,
+    'holding-percent': collections.defaultdict(float),
+    'holding-value': collections.defaultdict(float),
+    'holding-percent-all': collections.defaultdict(float),
+  },
+  '401k': {
+    'adjust': 0,
+    'account': 'us-401k',
+    'currency': 'usd',
+    'support-currencies': ['usd'],
+    'investment': 0.0,
+    'market-value': 0.0,
+    'cash': 0.0,
+    'margin-ratio': 1.0,
     'margin-requirement': 0.0,
     'cushion-ratio': 0.0,
     'cash-flow': [],
@@ -225,8 +184,19 @@ ACCOUNT_INFO = {
 }
 
 MIN_TXN_PERCENT = 0.0095
+MAX_TXN_PERCENT = 0.1
 
-CATEGORIZED_STOCKS = collections.defaultdict(list)
+MAX_PERCENT_PER_STOCK = 0.2
+
+MIN_CASH_RATIO = -0.1
+
+CATEGORIZED_STOCKS = collections.defaultdict(dict)
+
+WWW_ROOT = '/var/www'
+
+REGEX_TO_CATE = {
+  '.+A$': '分级A',
+}
 
 #----------Begining of global variables------------------
 

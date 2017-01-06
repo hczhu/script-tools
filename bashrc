@@ -4,11 +4,10 @@ alias chinese='LANG=zh.utf8'
 alias vim='vim -X'
 alias emacs='emacs -nw'
 alias vir='vim -R -X'
-alias 'ls'='ls --color=auto'
+alias 'ls'='ls --color=auto -h'
 alias 'll'='ls -lh'
 alias cl='clear'
 alias 'grep'='grep --color'
-alias portfolio='$HOME/mycode/script-tools/smart-stocker.py 2> /tmp/stock.log'
 
 # personal export
 export PATH=$PATH:$HOME/tools/
@@ -104,3 +103,22 @@ ShowThreadInfo() {
 
 bind '"\e[A": history-search-backward'
 bind '"\e[B": history-search-forward'
+
+RepeatRunUntilFail() {
+  seconds=$1
+  shift
+  for((i=0;i<1000000;++i)); do
+    #>&2 echo "Running $@"
+    $@
+    if [ $? -ne 0 ]; then
+      echo "$@ failed :("
+      break
+    fi
+    sleep $seconds
+  done
+}
+
+export HGEDITOR='HgEditor() { file=$1; $HOME/git-hooks/prepare-commit-msg $file template; vim $file; } && HgEditor'
+alias diff-sum='diff -wbBdu'
+alias hg-blame='hg blame -dupw'
+alias fix-tmux='tmux detach -a'

@@ -62,11 +62,15 @@ command Sb vert sb
 command Target vs %:h/TARGETS
 command Cs !look <cword>
 command Ls !ls -l <cfile>
+command Number %s/\([0-9]\)[0-9]\{3\}\([^0-9]\|$\)/\1K\2/g | %s/\([0-9]\)[0-9]\{3\}K/\1M/g | %s/\([0-9]\)[0-9]\{3\}M/\1G/g | %s/\([0-9]\)[0-9]\{3\}G/\1T/g | %s/\([0-9]\)[0-9]\{3\}T/\1P/g
+
+
 command Fl !grep "^DEFINE_[a-zA-Z0-9]\+($(echo <cword> | sed 's/FLAGS_//')" % -A 3
 " Create a variable name for type: AaaBbbCaa ===> aaa_bbb_ccc
 map Va wbveyea <CR><Esc>O<Esc>p:.s/\([a-z]\)\([A-Z]\)/\1_\2/g<CR>VuA <Esc>JkJ
 map Vc wbve:s/_\([a-z]\)/\u\1/g<CR>
 map Fl wbiFLAGS_<Esc>
+map I{ iaa<Esc>hr{lr}a
 "map <C-s> :!look <cword>
 "command Backup !suffix=`date | tr ' ' '-'`; echo $suffix; cp % .%-$suffix 
 

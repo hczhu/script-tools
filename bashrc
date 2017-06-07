@@ -7,7 +7,7 @@ alias vir='vim -R -X'
 alias 'ls'='ls --color=auto -h'
 alias 'll'='ls -lh'
 alias cl='clear'
-alias 'grep'='grep --color'
+alias 'grep'='grep --color -a'
 alias portfolio='$HOME/mycode/script-tools/smart-stocker/smart-stocker.py 2> /tmp/stock.log'
 
 # personal export
@@ -73,7 +73,7 @@ alias L='tmux capture-pane; tmux showb -b 0 | tail -n 3 | head -n 1'
 alias tmux-new='tmux new -s'
 
 #alias tmux='export TMPDIR=/home/hcz/tmux-sessions && tmux'
-tmux attach -t working
+tmux attach -t work
 
 alias ds='date +%F'
 
@@ -124,3 +124,19 @@ alias diff-sum='diff -wbBdu'
 alias hg-blame='hg blame -dupw'
 alias fix-tmux='tmux detach -a'
 export ACLOCAL_PATH=/usr/share/aclocal
+
+alias hdfs='hadoop dfs'
+alias hdfs-ls='hadoop dfs -ls 2> /dev/null'
+alias hdfs-cat='hadoop dfs -cat 2> /dev/null'
+
+bigDir() {
+ du -hs $1/* 2> /dev/null | grep ^[0-9.]*G
+}
+alias big-dir='bigDir'
+
+alias test-network='iperf3 -P2b -c' 
+
+alias hdfs-du='hdfs -dus'
+
+LS_COLORS=$LS_COLORS:'di=31:'
+export LS_COLORS

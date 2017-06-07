@@ -72,7 +72,9 @@ def BuyOrPass(name, valuation, buy_valuation, fixed_money = None):
                         (holding_percent - percent) * ACCOUNT_INFO['ALL']['net'] * EX_RATE[CURRENCY + '-' + currency])
 
   if valuation < buy_valuation:
-        return GiveTip(' Buy ', code, MAX_TXN_PERCENT * ACCOUNT_INFO['ALL']['net'] * EX_RATE[CURRENCY + '-' + currency])
+        buy_percent = MAX_TXN_PERCENT if fixed_money is None else fixed_money * EX_RATE[currency + '-' + CURRENCY] / ACCOUNT_INFO['ALL']['net'] - holding_percent
+        if buy_percent > MIN_TXN_PERCENT:
+            return GiveTip(' Buy ', code, buy_percent * ACCOUNT_INFO['ALL']['net'] * EX_RATE[CURRENCY + '-' + currency])
   return ''
 
 def FenJiClassA():

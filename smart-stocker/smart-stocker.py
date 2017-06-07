@@ -159,6 +159,7 @@ def ProcessRecords(all_records, accounts = set([]), goback = 0, tickers = set([]
         elif fee < 0 and buy_shares ==0:
             # Dividend
             account_info['dividend'] += inflow
+            STOCK_INFO[ticker]['profit'] = inflow / ex_rate + STOCK_INFO[ticker].get('profit', 0.0)
         else:
             account_info['holding-shares'][ticker] += buy_shares
             STOCK_INFO[ticker]['profit'] = inflow / ex_rate + STOCK_INFO[ticker].get('profit', 0.0)

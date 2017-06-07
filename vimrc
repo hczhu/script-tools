@@ -16,47 +16,47 @@ set expandtab
 filetype plugin on
 syntax on
 set foldmethod=indent
-"au FileType php,cc,lex,cpp,h,proto,borg,y set foldmethod=indent
-au FileType python,py,php,cc,lex,cpp highlight Folded guibg=blue guifg=green
+"au FileType javascript,php,cc,lex,cpp,h,proto,borg,y set foldmethod=indent
+au FileType python,py,javascript,php,cc,lex,cpp highlight Folded guibg=blue guifg=green
 "set foldlevelstart=30
 set scrolloff=100
 "Use clipboard as default copy
 set clipboard=unnamedplus
 " mystuff
-au FileType sh,html,php,cc,lex,cpp,c,java,python imap "" ""<Esc>ha
-au FileType sh,html,php,cc,lex,cpp,c,java,python imap () ()<Esc>ha
-au FileType sh,html,php,cc,lex,cpp,c,java,python imap [] []<Esc>ha
-au FileType sh,html,php,cc,lex,cpp,c,java,python imap <> <><Esc>ha
-au FileType sh,html,php,cc,lex,cpp,c,java,python imap '' ''<Esc>ha
-au FileType sh,html,php,cc,lex,cpp,c,java imap { {<CR>}<Esc>O
-"au FileType php,cpp,c,java,python map <C-r> :!gedit %<CR>
+au FileType sh,html,javascript,php,cc,lex,cpp,c,java,python imap "" ""<Esc>ha
+au FileType sh,html,javascript,php,cc,lex,cpp,c,java,python imap () ()<Esc>ha
+au FileType sh,html,javascript,php,cc,lex,cpp,c,java,python imap [] []<Esc>ha
+au FileType sh,html,javascript,php,cc,lex,cpp,c,java,python imap <> <><Esc>ha
+au FileType sh,html,javascript,php,cc,lex,cpp,c,java,python imap '' ''<Esc>ha
+au FileType sh,html,javascript,php,cc,lex,cpp,c,java imap { {<CR>}<Esc>O
+"au FileType javascript,php,cpp,c,java,python map <C-r> :!gedit %<CR>
 map <F6> <Esc>elDyyp0dwi<BS> = vars.<Esc>j
-au FileType php,cpp,python map <F3> <Esc>0dwi<BS><Esc>
-au FileType php,cpp,python map <F4> 0dwi<BS><CR><Esc>
+au FileType javascript,php,cpp,python map <F3> <Esc>0dwi<BS><Esc>
+au FileType javascript,php,cpp,python map <F4> 0dwi<BS><CR><Esc>
 
 
-"au FileType php,cpp map <C-u> :w<CR>:!g++ -o %:r -g -O0 -Wall -lprofiler -lpthread %
-au FileType php,cpp map <C-u> :w<CR>:!g++ -o %:r -g -O0 -Wall -std=c++0x %<CR>
-"au FileType php,c map <C-u> :w<CR>:!gcc -o %:r -g -O0 -Wall -lpthread %
-au FileType php,cpp,c map <F5> :!./%:r
-au FileType php,python map <F5> :!./%
+"au FileType javascript,php,cpp map <C-u> :w<CR>:!g++ -o %:r -g -O0 -Wall -lprofiler -lpthread %
+au FileType javascript,php,cpp map <C-u> :w<CR>:!g++ -o %:r -g -O0 -Wall -std=c++0x %<CR>
+"au FileType javascript,php,c map <C-u> :w<CR>:!gcc -o %:r -g -O0 -Wall -lpthread %
+au FileType javascript,php,cpp,c map <F5> :!./%:r
+au FileType javascript,php,python map <F5> :!./%
 "
-"au FileType php,cpp map <C-u> :w<CR>:!g++ -o %:r -O2 -DNDEBUG -lprofiler -lpthread %;echo "No debug\!\!\!"
-"au FileType php,cpp map <C-u> :w<CR>:!g++ -o %:r -O2 -DNDEBUG %;echo "No debug\!\!\!"<CR>
-"au FileType php,c map <C-u> :w<CR>:!gcc -o %:r -O2 -DNDEBUG -lpthread %;echo "No debug\!\!\!"
+"au FileType javascript,php,cpp map <C-u> :w<CR>:!g++ -o %:r -O2 -DNDEBUG -lprofiler -lpthread %;echo "No debug\!\!\!"
+"au FileType javascript,php,cpp map <C-u> :w<CR>:!g++ -o %:r -O2 -DNDEBUG %;echo "No debug\!\!\!"<CR>
+"au FileType javascript,php,c map <C-u> :w<CR>:!gcc -o %:r -O2 -DNDEBUG -lpthread %;echo "No debug\!\!\!"
 
 
-"au FileType php,java map <C-u> :w<CR>:!javac %<CR>
-au FileType php,java map <F6> :!java -enableassertions -Xmx1024M %:r
+"au FileType javascript,php,java map <C-u> :w<CR>:!javac %<CR>
+au FileType javascript,php,java map <F6> :!java -enableassertions -Xmx1024M %:r
 " check spell
 "
 au FileType tex map <C-b> :w<CR>:!pdflatex %<CR>
-"au FileType php,tex map <C-r> :w<CR>:!acroread %:r.pdf<CR>
-"au FileType php,tex imap {} {}<Esc>ha
-"au FileType php,tex imap [] []<Esc>ha
-"au FileType php,tex imap () ()<Esc>ha
-"au FileType php,tex imap $$ $$<Esc>ha
-"au FileType php,tex set spell
+"au FileType javascript,php,tex map <C-r> :w<CR>:!acroread %:r.pdf<CR>
+"au FileType javascript,php,tex imap {} {}<Esc>ha
+"au FileType javascript,php,tex imap [] []<Esc>ha
+"au FileType javascript,php,tex imap () ()<Esc>ha
+"au FileType javascript,php,tex imap $$ $$<Esc>ha
+"au FileType javascript,php,tex set spell
 autocmd BufNewFile,BufRead *.html,*htm set spell
 command Sb vert sb
 command Target vs %:h/TARGETS

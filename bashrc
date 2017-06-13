@@ -72,8 +72,7 @@ alias L='tmux capture-pane; tmux showb -b 0 | tail -n 3 | head -n 1'
 
 alias tmux-new='tmux new -s'
 
-#alias tmux='export TMPDIR=/home/hcz/tmux-sessions && tmux'
-tmux attach -t work
+tmux attach -t work || tmux attach -t hacking
 
 alias ds='date +%F'
 

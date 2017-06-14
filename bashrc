@@ -139,3 +139,5 @@ alias hdfs-du='hdfs -dus'
 
 LS_COLORS=$LS_COLORS:'di=31:'
 export LS_COLORS
+
+alias Ctags='ctags /usr/local/include/folly'

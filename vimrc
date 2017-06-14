@@ -36,7 +36,7 @@ au FileType javascript,php,cpp,python map <F4> 0dwi<BS><CR><Esc>
 
 
 "au FileType javascript,php,cpp map <C-u> :w<CR>:!g++ -o %:r -g -O0 -Wall -lprofiler -lpthread %
-au FileType javascript,php,cpp map <C-u> :w<CR>:!g++ -o %:r -g -O0 -Wall -std=c++0x %<CR>
+au FileType javascript,php,cpp map <C-u> :w<CR>:!g++ -o %:r -g -O0 -Wall -std=c++11 -lpthread -lfolly %<CR>
 "au FileType javascript,php,c map <C-u> :w<CR>:!gcc -o %:r -g -O0 -Wall -lpthread %
 au FileType javascript,php,cpp,c map <F5> :!./%:r
 au FileType javascript,php,python map <F5> :!./%

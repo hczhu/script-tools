@@ -74,7 +74,7 @@ alias tmux-new='tmux new -s'
 
 tmux attach -t work || tmux attach -t hacking
 
-alias ds='date +%F'
+alias ds='date +%s -d'
 
 alias git-new-br='git checkout --track origin/master -b'
 
@@ -84,9 +84,9 @@ alias git-new-br='git checkout --track origin/master -b'
 #  script -t -a 2> /tmp/terminal-record-time-$$.txt /tmp/terminal-record-$$.txt
 #fi
 
-VimBinaryDiff() {
-  vimdiff <(xxd $1) <(xxd $2)
-}
+# VimBinaryDiff() {
+  # vimdiff <(xxd $1) <(xxd $2)
+# }
 
 alias vimbdiff='VimBinaryDiff'
 
@@ -141,3 +141,10 @@ LS_COLORS=$LS_COLORS:'di=31:'
 export LS_COLORS
 
 alias Ctags='ctags /usr/local/include/folly'
+
+alias clang-format-diff="hg diff -U0 -r '.^' -r . | clang-format-diff.py -p 2 -i"
+
+hgReverCommit() {
+  commit_hash=$1
+  hg diff -c $1 --reverse | hg patch --no-commit -
+}

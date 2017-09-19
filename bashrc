@@ -4,8 +4,8 @@ alias chinese='LANG=zh.utf8'
 alias vim='vim -X'
 alias emacs='emacs -nw'
 alias vir='vim -R -X'
-alias 'ls'='ls --color=auto -h'
-alias 'll'='ls -lh'
+alias lss='ls --color=auto -h'
+alias ll='ls -lh'
 alias cl='clear'
 alias 'grep'='grep --color -a'
 alias portfolio='$HOME/mycode/script-tools/smart-stocker/smart-stocker.py 2> /tmp/stock.log'
@@ -74,7 +74,7 @@ alias tmux-new='tmux new -s'
 
 tmux attach -t work || tmux attach -t hacking || tmux attach -t hack
 
-alias ds='date +%F'
+alias ds='date +%s -d'
 
 alias git-new-br='git checkout --track origin/master -b'
 
@@ -84,9 +84,9 @@ alias git-new-br='git checkout --track origin/master -b'
 #  script -t -a 2> /tmp/terminal-record-time-$$.txt /tmp/terminal-record-$$.txt
 #fi
 
-VimBinaryDiff() {
-  vimdiff <(xxd $1) <(xxd $2)
-}
+# VimBinaryDiff() {
+  # vimdiff <(xxd $1) <(xxd $2)
+# }
 
 alias vimbdiff='VimBinaryDiff'
 
@@ -149,3 +149,11 @@ alias perlack-context='perlack -A 3 -B 3'
 
 # to edit command lines
 set -o vi
+alias Ctags='ctags /usr/local/include/folly'
+
+alias clang-format-diff="hg diff -U0 -r '.^' -r . | clang-format-diff.py -p 2 -i"
+
+hgReverCommit() {
+  commit_hash=$1
+  hg diff -c $1 --reverse | hg patch --no-commit -
+}

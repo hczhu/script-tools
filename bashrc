@@ -72,7 +72,7 @@ alias L='tmux capture-pane; tmux showb -b 0 | tail -n 3 | head -n 1'
 
 alias tmux-new='tmux new -s'
 
-tmux attach -t work || tmux attach -t hacking
+tmux attach -t work || tmux attach -t hacking || tmux attach -t hack
 
 alias ds='date +%F'
 
@@ -121,6 +121,7 @@ RepeatRunUntilFail() {
 export HGEDITOR='HgEditor() { file=$1; $HOME/git-hooks/prepare-commit-msg $file template; vim $file; } && HgEditor'
 alias diff-sum='diff -wbBdu'
 alias hg-blame='hg blame -dupw'
+alias hg-master='hg update master'
 alias fix-tmux='tmux detach -a'
 export ACLOCAL_PATH=/usr/share/aclocal
 
@@ -139,3 +140,12 @@ alias hdfs-du='hdfs -dus'
 
 LS_COLORS=$LS_COLORS:'di=31:'
 export LS_COLORS
+
+readableNumber() {
+  sed 's/([0-9])[0-9]{3}(\s|$)/\1K\2/g;s/([0-9])[0-9]{3}K/\1M/g;s/([0-9])[0-9]{3}M/\1B/g;s/([0-9])[0-9]{3}B/\1T/g' -
+}
+
+alias perlack-context='perlack -A 3 -B 3'
+
+# to edit command lines
+set -o vi

@@ -109,3 +109,6 @@ command GenerateTags !ctags -R *
 "automatic completion & correction
 iab zhuhcheng@ zhuhcheng@gmail.com
 
+"python formater
+autocmd FileType python smap = :autopep8
+

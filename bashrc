@@ -149,7 +149,7 @@ alias perlack-context='perlack -A 3 -B 3'
 
 # to edit command lines
 set -o vi
-alias Ctags='ctags /usr/local/include/folly'
+alias Ctags="alias Ctags='ctags -h .thrift.h.H.hh.hpp.hxx.h++.inc.def -R"
 
 alias clang-format-diff="hg diff -U0 -r '.^' -r . | clang-format-diff.py -p 2 -i"
 

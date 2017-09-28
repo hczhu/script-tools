@@ -157,3 +157,6 @@ hgReverCommit() {
   commit_hash=$1
   hg diff -c $1 --reverse | hg patch --no-commit -
 }
+
+export LIBRARY_PATH="$LIBRARY_PATH:/usr/local/lib"
+export CPATH="$CPATH:/usr/local/include"

@@ -149,7 +149,7 @@ alias perlack-context='perlack -A 3 -B 3'
 
 # to edit command lines
 set -o vi
-alias Ctags="alias Ctags='ctags -h .thrift.h.H.hh.hpp.hxx.h++.inc.def -R"
+alias Ctags="ctags -h .thrift.h.H.hh.hpp.hxx.h++.inc.def -R . /usr/local/include"
 
 alias clang-format-diff="hg diff -U0 -r '.^' -r . | clang-format-diff.py -p 2 -i"
 
@@ -158,5 +158,8 @@ hgReverCommit() {
   hg diff -c $1 --reverse | hg patch --no-commit -
 }
 
+
+# for C++ code
 export LIBRARY_PATH="$LIBRARY_PATH:/usr/local/lib"
 export CPATH="$CPATH:/usr/local/include"
+export GLOG_logtostderr=1

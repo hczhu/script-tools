@@ -111,5 +111,6 @@ command GenerateTags !ctags -R *
 iab zhuhcheng@ zhuhcheng@gmail.com
 
 "python formater
-autocmd FileType python smap = :autopep8
+autocmd FileType *.py smap = :autopep8
 
+au BufNewFile *.cc,*.cpp :r !echo "haha" && ls 

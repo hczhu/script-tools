@@ -160,6 +160,6 @@ hgReverCommit() {
 
 
 # for C++ code
-export LIBRARY_PATH="$LIBRARY_PATH:/usr/local/lib"
+export LIBRARY_PATH="$LIBRARY_PATH:/usr/local/lib:/usr/local/lib64"
 export CPATH="$CPATH:/usr/local/include"
 export GLOG_logtostderr=1

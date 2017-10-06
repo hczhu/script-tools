@@ -114,3 +114,4 @@ iab zhuhcheng@ zhuhcheng@gmail.com
 autocmd FileType *.py smap = :autopep8
 
 au BufNewFile *.cc,*.cpp :r !cat $HOME/template.cpp 2> /dev/null
+au FileType cc,cpp,c,h,hpp vmap = :!clang-format

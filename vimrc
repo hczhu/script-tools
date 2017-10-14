@@ -35,8 +35,8 @@ au FileType javascript,php,cpp,python map <F3> <Esc>0dwi<BS><Esc>
 "au FileType javascript,php,cpp,python map <F4> 0dwi<BS><CR><Esc>
 
 
-au FileType javascript,php,cpp map <C-y> :w<CR>:!g++ -o %:r -std=c++14 -g -O3 -Wl,--no-as-needed -lpthread -lfolly -lgflags -lglog % && ./%:r
-au FileType javascript,php,cpp map <C-u> :w<CR>:!g++ -o %:r -std=c++14 -g -O0 -Wl,--no-as-needed -lpthread -lfolly -lgflags -lglog % && ./%:r
+au FileType javascript,php,cpp map <C-y> :w<CR>:!g++ % -std=c++14 -g -O3 -Wl,--no-as-needed -lpthread -lfolly -lgflags -lglog -lgtest -o %:r && ./%:r
+au FileType javascript,php,cpp map <C-u> :w<CR>:!g++ % -std=c++14 -g -O0 -Wl,--no-as-needed -lpthread -lfolly -lgflags -lglog -lgtest -o %:r && ./%:r
 
 au FileType javascript,php,cpp,c map <F5> :!./%:r
 au FileType javascript,php,python map <F5> :!./%

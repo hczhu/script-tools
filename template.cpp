@@ -28,6 +28,7 @@
 
 #include <glog/logging.h>
 #include <gflags/gflags.h>
+#include <gtest/gtest.h>
 
 template<typename T>
 class _DisplayType;
@@ -39,9 +40,13 @@ void _displayType(T&& t);
 
 /* template end */
 
+TEST(Foo, Bar) {
+}
+
 int main(int argc, char* argv[]) {
+  testing::InitGoogleTest(&argc, argv);
   gflags::ParseCommandLineFlags(&argc, &argv, true);
   google::InitGoogleLogging(argv[0]);
-  return 0;
+  return RUN_ALL_TESTS();
 }
 

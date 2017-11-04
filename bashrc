@@ -175,3 +175,4 @@ hgCommitFilePattern() {
 
 alias rg='rg -p'
 alias hg-my-commits='hg log -k "hongcheng zhu"'
+alias clang-format='clang-format-3.9'

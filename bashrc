@@ -165,3 +165,7 @@ export LIBRARY_PATH="$LIBRARY_PATH:/usr/local/lib:/usr/local/lib64"
 export CPATH="$CPATH:/usr/local/include"
 export GLOG_logtostderr=1
 alias clang-format='clang-format-3.9'
+
+clangFormat() {
+  clang-format-3.9
+}

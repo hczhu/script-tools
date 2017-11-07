@@ -8,6 +8,7 @@
 "%g/^zhuhcheng/s/$/zhucheng                Append 'zhucheng' to the line starting with 'zhucheng'
 "%s/^/\=repeat(' ', 10)                    Insert 10 whitespaces in the front of every line.
 "-----------------
+"let $BASH_ENV="~/.bashrc"
 set smartindent
 set tabstop=2
 set shiftwidth=2
@@ -114,4 +115,4 @@ iab zhuhcheng@ zhuhcheng@gmail.com
 autocmd FileType *.py smap = :autopep8
 
 au BufNewFile *.cc,*.cpp :r !cat $HOME/template.cpp 2> /dev/null
-au FileType cc,cpp,c,h,hpp vmap = :!clang-format
+au FileType cc,cpp,c,h,hpp vmap = :!clang-format-3.9<CR>

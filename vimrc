@@ -7,6 +7,7 @@
 ":%s/^\([^a-z]\+\)\([a-z]\+\)/\1\U\2       Replace the first lower word to upper 
 "%g/^zhuhcheng/s/$/zhucheng                Append 'zhucheng' to the line starting with 'zhucheng'
 "%s/^/\=repeat(' ', 10)                    Insert 10 whitespaces in the front of every line.
+" #                                        search for the previous instance of the word under the cursor
 "-----------------
 "let $BASH_ENV="~/.bashrc"
 set smartindent
@@ -60,8 +61,8 @@ au FileType tex map <C-b> :w<CR>:!pdflatex %<CR>
 "au FileType javascript,php,tex set spell
 autocmd BufNewFile,BufRead *.html,*htm set spell
 command Sb vert sb
-command Target vs %:h/TARGETS
 command Cs !look <cword>
+command Rg !rg <cword> %:h/
 command Ls !ls -l <cfile>
 command Number %s/\([0-9]\)[0-9]\{3\}\([^0-9]\|$\)/\1K\2/g | %s/\([0-9]\)[0-9]\{3\}K/\1M/g | %s/\([0-9]\)[0-9]\{3\}M/\1G/g | %s/\([0-9]\)[0-9]\{3\}G/\1T/g | %s/\([0-9]\)[0-9]\{3\}T/\1P/g
 
@@ -116,3 +117,5 @@ autocmd FileType *.py smap = :autopep8
 
 au BufNewFile *.cc,*.cpp :r !cat $HOME/template.cpp 2> /dev/null
 au FileType cc,cpp,c,h,hpp vmap = :!clang-format-3.9<CR>
+"au FileType cc,cpp,c,h,hpp vmap = :!clang-format<CR>
+:command! -nargs=* -complete=shellcmd Bash vert new | setlocal buftype=nofile bufhidden=hide noswapfile | r !<args>

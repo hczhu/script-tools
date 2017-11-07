@@ -8,7 +8,6 @@ alias lss='ls --color=auto -h'
 alias ll='ls -lh'
 alias cl='clear'
 alias 'grep'='grep --color -a'
-alias portfolio='$HOME/mycode/script-tools/smart-stocker/smart-stocker.py 2> /tmp/stock.log'
 
 # personal export
 export PATH=$PATH:$HOME/tools/
@@ -44,7 +43,11 @@ get_git_branch() {
 # PROMPT_COMMAND="set_git_branch; $PROMPT_COMMAND"
 # PROMPT_COMMAND=""
 
-export PS1='[\u@\h \w$(get_git_branch)] '
+setPS1() {
+  export PS1='[\u@\h \w$(get_git_branch)] ';
+}
+
+setPS1
 
 # Input method
 #export XIM="SCIM"
@@ -164,6 +167,14 @@ hgReverCommit() {
 export LIBRARY_PATH="$LIBRARY_PATH:/usr/local/lib:/usr/local/lib64"
 export CPATH="$CPATH:/usr/local/include"
 export GLOG_logtostderr=1
+
+hgCommitFilePattern() {
+  pat=$1
+  hg commit -I **${pat}**
+}
+
+alias rg='rg -p'
+alias hg-my-commits='hg log -k "hongcheng zhu"'
 alias clang-format='clang-format-3.9'
 
 clangFormat() {

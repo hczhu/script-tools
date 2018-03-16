@@ -180,3 +180,15 @@ alias clang-format='clang-format-3.9'
 clangFormat() {
   clang-format-3.9
 }
+
+export PYTHONPATH='/usr/local/lib/python3.4/dist-packages'
+if ! pgrep -q ssh-agent > /dev/null 2>&1; then
+  ssh-agent -s
+fi
+ssh-agent -s
+
+alias start-mysql='sudo /etc/init.d/mysql start'
+alias mysql-shell='mysql -u root -p'
+alias cpu-num='echo $(nproc)'
+
+export LD_LIBRARY_PATH='/usr/local/lib:/lib:/lib64:/usr/lib'

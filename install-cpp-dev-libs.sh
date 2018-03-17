@@ -20,9 +20,9 @@ cd krb5-1.16
 ./configure
 make
 sudo make install
-cd -
+cd ..
 
-sudo apt-get install bison flex cmake3
+sudo apt-get install bison flex cmake3 cmake-data libboost-all-dev
 
 git clone https://github.com/no1msd/mstch
 cd mstch
@@ -112,21 +112,14 @@ cd ../..
 
 git clone https://github.com/facebook/proxygen.git
 cd proxygen/proxygen
-# It may need other libs
-export LIBS='-lpthread'
-# Remove folly and other installations
-# Append libs '-ldl -levent -lboost_context -ldouble-conversion' to proxygen/proxygen/lib/http/Makefile 'LIBS = ...'
-# disable run test in deps.sh
-./deps.sh
-# comment out folly installing commands in reinstall.sh
-./reinstall.sh
+autoreconf -ivf && ./configure && make && sudo make install
 cd ../..
 
 git clone https://github.com/rsocket/rsocket-cpp.git
 cd rsocket-cpp
 mkdir -p build
 cd build
-# Append '-ldl -levent -lboost_context -ldouble-conversion' to somewhere in CMakeList.txt
+# Append '-ldl -levent -lboost_context -ldouble-conversion -lgflags -lboost_regex' to somewhere in CMakeList.txt
 cmake ../
 make -j
 # ./tests
@@ -137,8 +130,3 @@ cd fbthrift/build
 cmake ..
 make
 sudo make install
-
-rm -fr CMakeCache.txt
-cmake -Denable_tests=ON ..
-make test
-cd -

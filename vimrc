@@ -13,6 +13,8 @@ set smartindent
 set tabstop=2
 set shiftwidth=2
 set expandtab
+" search highlight
+set hlsearch
 
 filetype plugin on
 syntax on
@@ -117,3 +119,4 @@ autocmd FileType *.py smap = :autopep8
 au BufNewFile *.cc,*.cpp :r !cat $HOME/template.cpp 2> /dev/null
 au FileType cc,cpp,c,h,hpp vmap = :!clang-format<CR>
 :command! -nargs=* -complete=shellcmd Bash vert new | setlocal buftype=nofile bufhidden=hide noswapfile | r !<args>
+"set cursorcolumn

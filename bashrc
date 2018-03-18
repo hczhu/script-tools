@@ -173,6 +173,11 @@ hgCommitFilePattern() {
   hg commit -I **${pat}**
 }
 
-alias rg='rg -p'
+alias rg-color='rg -p'
 alias hg-my-commits='hg log -k "hongcheng zhu"'
 alias clang-format='clang-format-3.9'
+
+# top -p <pid>, then 'H' to show threads,
+# then 'O' plus 'COMMAND=rocksdb' to filter for the threads you want
+alias top-process='top -p'
+

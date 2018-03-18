@@ -125,8 +125,17 @@ make -j
 # ./tests
 cd ../..
 
+wget https://curl.haxx.se/download/curl-7.59.0.tar.gz
+tar xvf curl-7.59.0.tar.gz
+cd curl-7.59.0/
+cmake .
+make
+sudo make install
+cd ..
+
 git clone https://github.com/facebook/fbthrift.git
 cd fbthrift/build
 cmake ..
 make
 sudo make install
+cd ../..

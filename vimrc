@@ -9,6 +9,7 @@
 "%s/^/\=repeat(' ', 10)                    Insert 10 whitespaces in the front of every line.
 " #                                        search for the previous instance of the word under the cursor
 "-----------------
+"let $BASH_ENV="~/.bashrc"
 set smartindent
 set tabstop=2
 set shiftwidth=2
@@ -38,8 +39,8 @@ au FileType javascript,php,cpp,python map <F3> <Esc>0dwi<BS><Esc>
 "au FileType javascript,php,cpp,python map <F4> 0dwi<BS><CR><Esc>
 
 
-au FileType javascript,php,cpp map <C-y> :w<CR>:!g++ % -std=c++14 -g -O3 -Wl,--no-as-needed -lpthread -lfolly -lgflags -lglog -lgtest -o %:r && ./%:r
-au FileType javascript,php,cpp map <C-u> :w<CR>:!g++ % -std=c++14 -g -O0 -Wl,--no-as-needed -lpthread -lfolly -lgflags -lglog -lgtest -o %:r && ./%:r
+au FileType javascript,php,cpp map <C-y> :w<CR>:!g++ % -O3 $GCC_FLAGS $CPP_LIBS -o %:r && ./%:r
+au FileType javascript,php,cpp map <C-u> :w<CR>:!g++ % -O0 $GCC_FLAGS $CPP_LIBS -o %:r && ./%:r
 
 au FileType javascript,php,cpp,c map <F5> :!./%:r
 au FileType javascript,php,python map <F5> :!./%
@@ -117,6 +118,8 @@ iab zhuhcheng@ zhuhcheng@gmail.com
 autocmd FileType *.py smap = :autopep8
 
 au BufNewFile *.cc,*.cpp :r !cat $HOME/template.cpp 2> /dev/null
-au FileType cc,cpp,c,h,hpp vmap = :!clang-format<CR>
+au FileType cc,cpp,c,h,hpp vmap = :!clang-format-3.9
+"au FileType cc,cpp,c,h,hpp vmap = :!clang-format<CR>
 :command! -nargs=* -complete=shellcmd Bash vert new | setlocal buftype=nofile bufhidden=hide noswapfile | r !<args>
 "set cursorcolumn
+au FileType cc,cpp,c,h,hpp vmap = :pyf /usr/local/bin/clang-format.py<CR>

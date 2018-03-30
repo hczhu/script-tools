@@ -1,8 +1,8 @@
 #!/bin/bash
 
-set -ex
+set -x
 
-sudo apt-get insall zlib
+sudo apt-get install zlib1g-dev
 # sudo apt-get install automake bison flex g++ git libboost-all-dev libevent-dev libssl-dev libtool make pkg-config python-all python-all-dev python-all-dbg
 # git clone https://github.com/apache/thrift.git
 

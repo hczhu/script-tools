@@ -51,3 +51,5 @@ curl https://bazel.build/bazel-release.pub.gpg | sudo apt-key add -
 sudo apt-get update && sudo apt-get install bazel
 sudo apt-get upgrade bazel
 sudo apt-get install cmake
+
+curl -LO https://github.com/BurntSushi/ripgrep/releases/download/0.8.1/ripgrep_0.8.1_amd64.deb && sudo dpkg -i ripgrep_0.8.1_amd64.deb

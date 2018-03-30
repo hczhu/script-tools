@@ -4,6 +4,9 @@ set -x
 
 run=$1
 
+curl -LO https://raw.githubusercontent.com/llvm-mirror/clang/master/tools/clang-format/clang-format.py && \
+  sudo cp -f clang-format.py /usr/local/bin/
+
 if [ "$run" = "apt" ]; then run=""; fi
 if [ "$run" = "" ]; then
     sudo apt-get install \

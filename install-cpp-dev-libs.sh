@@ -42,13 +42,13 @@ fi
 
 if [ "$run" = "krb" ]; then run=""; fi
 if [ "$run" = "" ]; then
-    wget https://kerberos.org/dist/krb5/1.16/krb5-1.16.tar.gz.asc
-    tar xvf krb5-1.16.tar.gz
-    cd krb5-1.16/src
-    ./configure
-    make
-    sudo make install
-    make clean
+    wget https://kerberos.org/dist/krb5/1.16/krb5-1.16.tar.gz && \
+    tar xvf krb5-1.16.tar.gz && \
+    cd krb5-1.16/src && \
+    ./configure && \
+    make && \
+    sudo make install && \
+    make clean && \
     cd ..
 fi
 
